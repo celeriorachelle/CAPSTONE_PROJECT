@@ -17,12 +17,8 @@
                 </div>
             </div>
             <nav>
-                <a href="/userhome">Home</a>
-                <a href="#">Services</a>
-                <a href="/maps">Map</a>
-                <a href="#">Contact</a>
+                <a href="/">Home</a>
                 <a href=/login>Log In</a>
-                <a href="#">Sign Up</a>
             </nav>     
     </header>
 
@@ -192,10 +188,18 @@
                             <p class="info-item-label">Pricing</p>
                             <p id="info-price" class="info-item-value"></p>
                         </div>
-                </div>
-                <div class="info-actions">
-                 <button class="btn btn-primary btn-sm" id="schedule-visit-btn">Schedule Visit</button>
-                <button class="btn btn-secondary btn-sm" id="request-info-btn">Request Info</button>
+               <div class="info-actions">
+                 <button class="btn btn-primary btn-sm" 
+                    id="schedule-visit-btn" 
+                    onclick="location.href='/appointment'">
+                    Schedule Visit
+                    </button>
+
+                <button class="btn btn-secondary btn-sm" 
+                   id="request-info-btn" 
+                   onclick="location.href='/maps'">
+                   Request Info
+                </button>
                 </div>
             </div>
         </div>

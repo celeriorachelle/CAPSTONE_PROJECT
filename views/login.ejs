@@ -1,23 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login | Everlasting Peace</title>
-    <link rel="stylesheet" href="/stylesheets/loginForm.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Everlasting Peace</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      background: #f3f4f6;
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+      width: 200px;
+      background-color: #16a34a;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 0.75rem 1rem;
+      margin: 0.25rem 0;
+      border-radius: 6px;
+    }
+    .sidebar a:hover {
+      background-color: #15803d;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: center;
+    }
+
+    form input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+    }
+
+    form button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    form button:hover {
+      background-color: #15803d;
+    }
+
+    .login-container a {
+      display: block;
+      margin-top: 1rem;
+      color: #16a34a;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .login-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+
+  <div class="sidebar">
+    <a href="/">Home</a>
+  </div>
+
+  <div class="main-content">
     <div class="login-container">
-        <h2>Login</h2>
-        <% if (error) { %>
-            <p class="error"><%= error %></p>
-        <% } %>
-        <form method="POST" action="/login">
-            <label>Username</label>
-            <input type="text" name="username" required>
-            <label>Password</label>
-            <input type="password" name="password" required>
-            <button type="submit">Log In</button>
-        </form>
+      <h2>Login</h2>
+      <form action="/login" method="POST">
+        <input type="text" name="username" placeholder="Username" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+      <a href="/register">Don't have an account? Register</a>
     </div>
+  </div>
+
 </body>
 </html>

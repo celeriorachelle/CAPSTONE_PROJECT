@@ -2,54 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Everlasting Peace  Memorial</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everlasting Peace Memorial</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/stylesheets/maps.css">
-  </head>
+</head>
 <body>
+  <div class="home-button">
+  <button onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+</div>
+
   <div class="container">
     <div class="header">
-      <h1><i class="fas fa-cross"></i> Everlasting Peace Memorial Cemetery Plot Management <Ana/h1>
+      <h1><i class="fas fa-cross"></i> Everlasting Peace Memorial Cemetery Plot Management</h1>
       <p>Manage and track cemetery plots with ease</p>
     </div>
 
     <div class="main-content">
       <div class="cemetery-section">
-        <div class="controls">
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search by plot number or person name...">
-            <i class="fas fa-search"></i>
-          </div>
-          <div class="filter-buttons">
-            <button class="filter-btn all active" data-filter="all">All</button>
-            <button class="filter-btn available" data-filter="available">Available</button>
-            <button class="filter-btn reserved" data-filter="reserved">Reserved</button>
-            <button class="filter-btn occupied" data-filter="occupied">Occupied</button>
-          </div>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search by plot number or person name...">
+          <i class="fas fa-search"></i>
         </div>
 
         <div class="cemetery-grid" id="cemeteryGrid"></div>
 
         <div class="legend">
-          <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #d4edda, #c3e6cb); border-color: #28a745;"></div>
-            <span>Available</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-color: #ffc107;"></div>
-            <span>Reserved</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #f8d7da, #f5c6cb); border-color: #dc3545;"></div>
-            <span>Occupied</span>
-          </div>
-        </div>
-      </div>
+      <h3>Categories</h3>
+      <div class="legend-item"><button class="category-btn" data-category="all">All</button></div>
+      <div class="legend-item"><button class="category-btn" data-category="heritage">Heritage Gardens</button></div>
+      <div class="legend-item"><button class="category-btn" data-category="family">Family Estates</button></div>
+      <div class="legend-item"><button class="category-btn" data-category="columbarium">Serenity Columbarium</button></div>
+      <div class="legend-item"><button class="category-btn" data-category="veterans">Veterans Memorial</button></div>
+      <div class="legend-item"><button class="category-btn" data-category="chapel">Memorial Chapel & Administration</button></div>
 
-      <div class="sidebar">
+      <h3>Status</h3>
+     <div class="legend-item"><span class="legend-color available"></span> Available</div>
+     <div class="legend-item"><span class="legend-color reserved"></span> Reserved</div>
+    <div class="legend-item"><span class="legend-color occupied"></span> Occupied</div>
+      </div>
+    <div class="sidebar">
         <h2><i class="fas fa-info-circle"></i> Plot Information</h2>
-        
         <div class="stats">
           <div class="stat-card">
             <div class="stat-number" id="availableCount">0</div>
@@ -75,7 +68,6 @@
     </div>
   </div>
 
-  <!-- Modal for editing plot details -->
   <div id="plotModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -120,282 +112,147 @@
   </div>
 
   <script>
-    class CemeteryManager {
-      constructor() {
-        this.plots = {};
-        this.totalPlots = 100;
-        this.currentFilter = 'all';
-        this.selectedPlot = null;
-        
-        this.initializePlots();
-        this.renderGrid();
-        this.bindEvents();
-        this.updateStats();
+    function goHome() {
+  window.location.href = '/'; // change '/' to your actual home page URL
+}
+class CemeteryManager {
+  constructor() {
+    this.plots = {};
+    this.totalPlots = 100;
+    this.currentFilter = 'all'; // status filter: all, available, reserved, occupied
+    this.currentCategory = 'all'; // category filter
+    this.selectedPlot = null;
+    this.categories = ['heritage','family','columbarium','veterans','chapel'];
+    this.initializePlots();
+    this.renderGrid();
+    this.bindEvents();
+    this.updateStats();
+  }
+
+  initializePlots() {
+    for (let i = 1; i <= this.totalPlots; i++) {
+      const category = this.categories[Math.floor((i-1)/20)];
+      this.plots[i] = {
+        id: i,
+        status: 'available',
+        category: category,
+        name: '',
+        birth: '',
+        death: '',
+        contact: '',
+        notes: ''
+      };
+    }
+    // Example reserved/occupied plots
+    this.plots[5].status = 'occupied';
+    this.plots[12].status = 'reserved';
+    this.plots[23].status = 'occupied';
+  }
+
+  renderGrid() {
+    const grid = document.getElementById('cemeteryGrid');
+    grid.innerHTML = '';
+
+    for (let i = 1; i <= this.totalPlots; i++) {
+      const plot = this.plots[i];
+      const plotElement = document.createElement('div');
+      plotElement.className = `plot ${plot.status} ${plot.category}`;
+      plotElement.textContent = i;
+      plotElement.dataset.plotId = i;
+
+      // Apply filters
+      if (
+        (this.currentFilter !== 'all' && plot.status !== this.currentFilter) ||
+        (this.currentCategory !== 'all' && plot.category !== this.currentCategory)
+      ) {
+        plotElement.style.display = 'none';
+      } else {
+        plotElement.style.display = 'block';
       }
 
-      initializePlots() {
-        // Sample data for demonstration
-        const sampleData = [
-          { id: 1, status: 'occupied', name: 'John Smith', birth: '1945-03-15', death: '2020-08-22', contact: 'jane.smith@email.com', notes: 'Beloved father and grandfather' },
-          { id: 5, status: 'occupied', name: 'Mary Johnson', birth: '1952-11-08', death: '2021-05-14', contact: '555-0123', notes: 'Loving mother' },
-          { id: 12, status: 'reserved', name: 'Robert Brown', birth: '1960-07-20', death: '', contact: 'robert.brown@email.com', notes: 'Pre-arranged burial' },
-          { id: 23, status: 'occupied', name: 'Sarah Davis', birth: '1938-12-03', death: '2019-09-10', contact: '555-0456', notes: 'Veteran, served in Vietnam' },
-          { id: 34, status: 'reserved', name: 'Michael Wilson', birth: '1955-04-18', death: '', contact: '555-0789', notes: 'Family plot reservation' },
-          { id: 45, status: 'occupied', name: 'Elizabeth Taylor', birth: '1942-01-25', death: '2022-03-07', contact: 'family@taylor.com', notes: 'Teacher for 40 years' }
-        ];
-
-        for (let i = 1; i <= this.totalPlots; i++) {
-          const samplePlot = sampleData.find(plot => plot.id === i);
-          this.plots[i] = samplePlot || {
-            id: i,
-            status: 'available',
-            name: '',
-            birth: '',
-            death: '',
-            contact: '',
-            notes: ''
-          };
-        }
-      }
-
-      renderGrid() {
-        const grid = document.getElementById('cemeteryGrid');
-        grid.innerHTML = '';
-
-        for (let i = 1; i <= this.totalPlots; i++) {
-          const plot = this.plots[i];
-          const plotElement = document.createElement('div');
-          plotElement.className = `plot ${plot.status}`;
-          plotElement.textContent = i;
-          plotElement.dataset.plotId = i;
-          
-          // Apply filter
-          if (this.currentFilter !== 'all' && plot.status !== this.currentFilter) {
-            plotElement.style.display = 'none';
-          }
-
-          plotElement.addEventListener('click', () => this.selectPlot(i));
-          plotElement.addEventListener('dblclick', () => this.openModal(i));
-          
-          grid.appendChild(plotElement);
-        }
-      }
-
-      selectPlot(plotId) {
-        // Remove previous selection
-        document.querySelectorAll('.plot.highlighted').forEach(plot => {
-          plot.classList.remove('highlighted');
-        });
-
-        // Highlight selected plot
-        const plotElement = document.querySelector(`[data-plot-id="${plotId}"]`);
-        plotElement.classList.add('highlighted');
-
-        this.selectedPlot = plotId;
-        this.displayPlotDetails(plotId);
-      }
-
-      displayPlotDetails(plotId) {
-        const plot = this.plots[plotId];
-        const detailsContainer = document.getElementById('plotDetails');
-        
-        const statusClass = `status-${plot.status}`;
-        
-        detailsContainer.innerHTML = `
-          <div class="detail-row">
-            <span class="detail-label">Plot Number:</span>
-            <span class="detail-value">#${plot.id}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Status:</span>
-            <span class="detail-value">
-              <span class="status-badge ${statusClass}">${plot.status}</span>
-            </span>
-          </div>
-          ${plot.name ? `
-            <div class="detail-row">
-              <span class="detail-label">Name:</span>
-              <span class="detail-value">${plot.name}</span>
-            </div>
-          ` : ''}
-          ${plot.birth ? `
-            <div class="detail-row">
-              <span class="detail-label">Birth Date:</span>
-              <span class="detail-value">${new Date(plot.birth).toLocaleDateString()}</span>
-            </div>
-          ` : ''}
-          ${plot.death ? `
-            <div class="detail-row">
-              <span class="detail-label">Death Date:</span>
-              <span class="detail-value">${new Date(plot.death).toLocaleDateString()}</span>
-            </div>
-          ` : ''}
-          ${plot.contact ? `
-            <div class="detail-row">
-              <span class="detail-label">Contact:</span>
-              <span class="detail-value">${plot.contact}</span>
-            </div>
-          ` : ''}
-          ${plot.notes ? `
-            <div class="detail-row">
-              <span class="detail-label">Notes:</span>
-              <span class="detail-value">${plot.notes}</span>
-            </div>
-          ` : ''}
-          <div class="action-buttons">
-            <button class="btn btn-primary" onclick="cemeteryManager.openModal(${plotId})">
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            ${plot.status !== 'available' ? `
-              <button class="btn btn-warning" onclick="cemeteryManager.changePlotStatus(${plotId}, 'available')">
-                <i class="fas fa-undo"></i> Clear
-              </button>
-            ` : ''}
-          </div>
-        `;
-      }
-
-      openModal(plotId) {
-        const plot = this.plots[plotId];
-        const modal = document.getElementById('plotModal');
-        
-        document.getElementById('modalTitle').textContent = `Edit Plot #${plotId}`;
-        document.getElementById('plotStatus').value = plot.status;
-        document.getElementById('personName').value = plot.name;
-        document.getElementById('birthDate').value = plot.birth;
-        document.getElementById('deathDate').value = plot.death;
-        document.getElementById('contactInfo').value = plot.contact;
-        document.getElementById('notes').value = plot.notes;
-        
-        modal.style.display = 'block';
-        this.selectedPlot = plotId;
-      }
-
-      closeModal() {
-        document.getElementById('plotModal').style.display = 'none';
-      }
-
-      savePlotDetails() {
-        if (!this.selectedPlot) return;
-
-        const plot = this.plots[this.selectedPlot];
-        plot.status = document.getElementById('plotStatus').value;
-        plot.name = document.getElementById('personName').value;
-        plot.birth = document.getElementById('birthDate').value;
-        plot.death = document.getElementById('deathDate').value;
-        plot.contact = document.getElementById('contactInfo').value;
-        plot.notes = document.getElementById('notes').value;
-
-        this.renderGrid();
-        this.updateStats();
-        this.displayPlotDetails(this.selectedPlot);
-        this.closeModal();
-      }
-
-      changePlotStatus(plotId, newStatus) {
-        this.plots[plotId].status = newStatus;
-        if (newStatus === 'available') {
-          // Clear all data when making available
-          this.plots[plotId] = {
-            id: plotId,
-            status: 'available',
-            name: '',
-            birth: '',
-            death: '',
-            contact: '',
-            notes: ''
-          };
-        }
-        this.renderGrid();
-        this.updateStats();
-        this.displayPlotDetails(plotId);
-      }
-
-      filterPlots(filter) {
-        this.currentFilter = filter;
-        
-        // Update filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-        
-        this.renderGrid();
-      }
-
-      searchPlots(query) {
-        const plots = document.querySelectorAll('.plot');
-        query = query.toLowerCase();
-
-        plots.forEach(plotElement => {
-          const plotId = plotElement.dataset.plotId;
-          const plot = this.plots[plotId];
-          
-          const matchesQuery = 
-            plotId.includes(query) ||
-            plot.name.toLowerCase().includes(query) ||
-            plot.contact.toLowerCase().includes(query) ||
-            plot.notes.toLowerCase().includes(query);
-
-          if (query === '' || matchesQuery) {
-            plotElement.style.display = '';
-          } else {
-            plotElement.style.display = 'none';
-          }
-        });
-      }
-
-      updateStats() {
-        const stats = { available: 0, reserved: 0, occupied: 0 };
-        
-        Object.values(this.plots).forEach(plot => {
-          stats[plot.status]++;
-        });
-
-        document.getElementById('availableCount').textContent = stats.available;
-        document.getElementById('reservedCount').textContent = stats.reserved;
-        document.getElementById('occupiedCount').textContent = stats.occupied;
-      }
-
-      bindEvents() {
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-          this.searchPlots(e.target.value);
-        });
-
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            this.filterPlots(btn.dataset.filter);
-          });
-        });
-
-        // Modal events
-        document.querySelector('.close').addEventListener('click', () => {
-          this.closeModal();
-        });
-
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-          this.closeModal();
-        });
-
-        document.getElementById('plotForm').addEventListener('submit', (e) => {
-          e.preventDefault();
-          this.savePlotDetails();
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-          const modal = document.getElementById('plotModal');
-          if (e.target === modal) {
-            this.closeModal();
-          }
-        });
-      }
+      plotElement.addEventListener('click', () => this.selectPlot(i));
+      plotElement.addEventListener('dblclick', () => this.openModal(i));
+      grid.appendChild(plotElement);
     }
 
-    // Initialize the cemetery manager
-    const cemeteryManager = new CemeteryManager();
+    // Update stats based on current category filter
+    this.updateStats();
+  }
+
+  selectPlot(plotId) {
+    document.querySelectorAll('.plot.highlighted').forEach(plot => plot.classList.remove('highlighted'));
+    const plotElement = document.querySelector(`[data-plot-id="${plotId}"]`);
+    plotElement.classList.add('highlighted');
+    this.selectedPlot = plotId;
+    this.displayPlotDetails(plotId);
+  }
+
+  displayPlotDetails(plotId) {
+    const plot = this.plots[plotId];
+    const detailsContainer = document.getElementById('plotDetails');
+    const statusClass = `status-${plot.status}`;
+
+    detailsContainer.innerHTML = `
+      <div class="detail-row"><span class="detail-label">Plot Number:</span><span class="detail-value">#${plot.id}</span></div>
+      <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value"><span class="status-badge ${statusClass}">${plot.status}</span></span></div>
+      ${plot.name ? `<div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${plot.name}</span></div>` : ''}
+      ${plot.birth ? `<div class="detail-row"><span class="detail-label">Birth Date:</span><span class="detail-value">${new Date(plot.birth).toLocaleDateString()}</span></div>` : ''}
+      ${plot.death ? `<div class="detail-row"><span class="detail-label">Death Date:</span><span class="detail-value">${new Date(plot.death).toLocaleDateString()}</span></div>` : ''}
+      ${plot.contact ? `<div class="detail-row"><span class="detail-label">Contact:</span><span class="detail-value">${plot.contact}</span></div>` : ''}
+      ${plot.notes ? `<div class="detail-row"><span class="detail-label">Notes:</span><span class="detail-value">${plot.notes}</span></div>` : ''}
+    `;
+  }
+
+  filterPlots(filter) {
+    this.currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+    this.renderGrid();
+  }
+
+  filterByCategory(category) {
+    this.currentCategory = category;
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-category="${category}"]`)?.classList.add('active');
+    this.renderGrid();
+  }
+
+  updateStats() {
+    let stats = { available: 0, reserved: 0, occupied: 0 };
+    Object.values(this.plots).forEach(plot => {
+      if (this.currentCategory === 'all' || plot.category === this.currentCategory) {
+        stats[plot.status]++;
+      }
+    });
+    document.getElementById('availableCount').textContent = stats.available;
+    document.getElementById('reservedCount').textContent = stats.reserved;
+    document.getElementById('occupiedCount').textContent = stats.occupied;
+  }
+
+  bindEvents() {
+    document.getElementById('searchInput').addEventListener('input', (e) => this.searchPlots(e.target.value));
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => this.filterPlots(btn.dataset.filter)));
+    document.querySelectorAll('.category-btn').forEach(btn => btn.addEventListener('click', () => this.filterByCategory(btn.dataset.category)));
+    document.querySelector('.close').addEventListener('click', () => this.closeModal());
+    document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal());
+    document.getElementById('plotForm').addEventListener('submit', (e) => { e.preventDefault(); this.savePlotDetails(); });
+    window.addEventListener('click', (e) => { if (e.target === document.getElementById('plotModal')) this.closeModal(); });
+  }
+
+  searchPlots(query) {
+    query = query.toLowerCase();
+    Object.values(this.plots).forEach(plot => {
+      const el = document.querySelector(`[data-plot-id="${plot.id}"]`);
+      const match = plot.id.toString().includes(query) || plot.name.toLowerCase().includes(query);
+      el.style.display = match ? 'block' : 'none';
+    });
+    this.updateStats();
+  }
+
+  // ... add openModal, closeModal, savePlotDetails, changePlotStatus functions as before ...
+}
+
+const cemeteryManager = new CemeteryManager();
   </script>
 </body>
 </html>
