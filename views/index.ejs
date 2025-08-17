@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Everlasting Peace</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">🌿</div>
+                <div class="logo-text">
+                    <h1>Everlasting Peace Memorial Cemetery </h1>
+                    <p>Gardens of Peace</p>
+                </div>
+            </div>
+            <nav>
+                <a href="/userhome">Home</a>
+                <a href="#">Services</a>
+                <a href="/maps">Map</a>
+                <a href="#">Contact</a>
+                <a href=/login>Log In</a>
+                <a href="#">Sign Up</a>
+            </nav>     
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="content-grid">
+            <!-- Left Content -->
+            <div class="hero-content">
+                <h2 class="hero-title">
+                    A Place  <span class="highlight">Remember</span>
+                </h2>
+                <p class="hero-description">
+                    Discover our beautifully landscaped memorial gardens where memories live forever. Explore different
+                    sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
+                </p>
+              
+
+                <!-- Features -->
+                <div class="features-grid">
+                    <div class="feature">
+                        <div class="feature-icon green">🌿</div>
+                        <div class="feature-content">
+                            <h3>Beautiful Landscaping</h3>
+                            <p>Meticulously maintained gardens and natural beauty</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon blue">🕐</div>
+                        <div class="feature-content">
+                            <h3>24/7 Access</h3>
+                            <p>Visit your loved ones anytime, day or night</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon purple">⭐</div>
+                        <div class="feature-content">
+                            <h3>Premium Care</h3>
+                            <p>Professional maintenance and groundskeeping</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon amber">✉️</div>
+                        <div class="feature-content">
+                            <h3>Family Support</h3>
+                            <p>Compassionate guidance through every step</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Map -->
+            <div class="map-section">
+                <div class="map-container">
+                    <h3 class="map-title">Memorial Grounds Map</h3>
+                    <p class="map-subtitle">Click on any area to learn more about available options</p>
+
+                    <svg class="map-svg" viewBox="0 0 800 600">
+                        <!-- Background patterns and gradients -->
+                        <defs>
+                            <pattern id="grass" patternUnits="userSpaceOnUse" width="4" height="4">
+                                <rect width="4" height="4" fill="#f0f9f0"/>
+                                <circle cx="2" cy="2" r="0.5" fill="#e8f5e8"/>
+                            </pattern>
+                            <linearGradient id="water" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#bfdbfe"/>
+                                <stop offset="100%" stop-color="#93c5fd"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Pathways -->
+                        <path d="M50 300 Q200 280 350 300 T650 300" stroke="#d6d3d1" stroke-width="20" fill="none" opacity="0.8"/>
+                        <path d="M400 50 Q400 200 400 350 Q400 500 400 550" stroke="#d6d3d1" stroke-width="16" fill="none" opacity="0.8"/>
+                        <path d="M200 150 Q300 200 400 250" stroke="#d6d3d1" stroke-width="12" fill="none" opacity="0.6"/>
+
+                        <!-- Water feature -->
+                        <ellipse cx="600" cy="450" rx="80" ry="40" fill="url(#water)" opacity="0.7"/>
+                        <ellipse cx="600" cy="450" rx="60" ry="30" fill="#dbeafe" opacity="0.5"/>
+
+                        <!-- Trees -->
+                        <g>
+                            <circle cx="100" cy="100" r="25" fill="#22c55e" opacity="0.8"/>
+                            <rect x="95" y="120" width="10" height="20" fill="#92400e"/>
+                            <circle cx="700" cy="120" r="30" fill="#16a34a" opacity="0.8"/>
+                            <rect x="695" y="145" width="10" height="25" fill="#92400e"/>
+                            <circle cx="150" cy="500" r="20" fill="#22c55e" opacity="0.8"/>
+                            <rect x="145" y="515" width="10" height="15" fill="#92400e"/>
+                            <circle cx="650" cy="200" r="25" fill="#16a34a" opacity="0.8"/>
+                            <rect x="645" y="220" width="10" height="20" fill="#92400e"/>
+                        </g>
+
+                        <!-- Heritage Gardens (Block A) -->
+                        <rect class="map-area" data-area="heritage" x="80" y="150" width="180" height="120" 
+                              fill="#f0fdf4" stroke="#22c55e" stroke-width="2" rx="8"/>
+                        <text x="170" y="200" text-anchor="middle" class="map-label">Heritage</text>
+                        <text x="170" y="220" text-anchor="middle" class="map-label">Gardens</text>
+                        <circle cx="120" cy="180" r="3" fill="#22c55e"/>
+                        <circle cx="140" cy="190" r="3" fill="#22c55e"/>
+                        <circle cx="200" cy="185" r="3" fill="#22c55e"/>
+
+                        <!-- Family Estates (Block B) -->
+                        <rect class="map-area" data-area="family" x="300" y="80" width="200" height="140" 
+                              fill="#fffbeb" stroke="#f59e0b" stroke-width="2" rx="8"/>
+                        <text x="400" y="140" text-anchor="middle" class="map-label">Family Estates</text>
+                        <rect x="330" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
+                        <rect x="370" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
+                        <rect x="410" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
+                        <rect x="450" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
+
+                        <!-- Columbarium -->
+                        <rect class="map-area" data-area="columbarium" x="540" y="80" width="180" height="100" 
+                              fill="#f1f5f9" stroke="#6366f1" stroke-width="2" rx="8"/>
+                        <text x="630" y="125" text-anchor="middle" class="map-label">Serenity</text>
+                        <text x="630" y="145" text-anchor="middle" class="map-label">Columbarium</text>
+                        <rect x="560" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
+                        <rect x="580" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
+                        <rect x="600" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
+                        <rect x="620" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
+
+                        <!-- Garden of Remembrance -->
+                        <ellipse class="map-area" data-area="garden" cx="200" cy="400" rx="120" ry="80" 
+                                 fill="#fdf2f8" stroke="#f472b6" stroke-width="2"/>
+                        <text x="200" y="390" text-anchor="middle" class="map-label">Garden of</text>
+                        <text x="200" y="410" text-anchor="middle" class="map-label">Remembrance</text>
+                        <circle cx="160" cy="370" r="4" fill="#f472b6" opacity="0.6"/>
+                        <circle cx="180" cy="430" r="4" fill="#f472b6" opacity="0.6"/>
+                        <circle cx="220" cy="360" r="4" fill="#f472b6" opacity="0.6"/>
+                        <circle cx="240" cy="420" r="4" fill="#f472b6" opacity="0.6"/>
+
+                        <!-- Memorial Chapel -->
+                        <rect class="map-area" data-area="chapel" x="450" y="350" width="160" height="100" 
+                              fill="#faf5ff" stroke="#a855f7" stroke-width="2" rx="8"/>
+                        <text x="530" y="395" text-anchor="middle" class="map-label">Memorial Chapel</text>
+                        <text x="530" y="415" text-anchor="middle" class="map-label">& Administration</text>
+                        <polygon points="500,370 530,350 560,370" fill="#a855f7" opacity="0.5"/>
+                        <rect x="515" y="370" width="30" height="40" fill="#a855f7" opacity="0.3"/>
+
+                        <!-- Veterans Memorial -->
+                        <rect class="map-area" data-area="veterans" x="80" y="320" width="180" height="100" 
+                              fill="#fefefe" stroke="#ef4444" stroke-width="2" rx="8"/>
+                        <text x="170" y="365" text-anchor="middle" class="map-label">Veterans</text>
+                        <text x="170" y="385" text-anchor="middle" class="map-label">Memorial</text>
+                        <polygon points="140,340 150,330 160,340 160,350 140,350" fill="#ef4444" opacity="0.6"/>
+                        <rect x="145" y="350" width="10" height="15" fill="#92400e"/>
+
+                        <!-- Decorative elements -->
+                        <circle cx="350" cy="500" r="15" fill="#22c55e" opacity="0.4"/>
+                        <circle cx="450" cy="520" r="12" fill="#16a34a" opacity="0.4"/>
+                        <circle cx="550" cy="510" r="18" fill="#22c55e" opacity="0.4"/>
+                    </svg>
+                </div>
+
+                <!-- Info Card -->
+                <div id="info-card" class="info-card">
+                    <div class="info-card-header">
+                        <div>
+                            <h4 id="info-title" class="info-card-title"></h4>
+                            <p id="info-description" class="info-card-description"></p>
+                        </div>
+                        <button class="close-btn" onclick="closeInfoCard()">×</button>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item green">
+                            <p class="info-item-label">Availability</p>
+                            <p id="info-availability" class="info-item-value"></p>
+                        </div>
+                        <div class="info-item blue">
+                            <p class="info-item-label">Pricing</p>
+                            <p id="info-price" class="info-item-value"></p>
+                        </div>
+                </div>
+                <div class="info-actions">
+                 <button class="btn btn-primary btn-sm" id="schedule-visit-btn">Schedule Visit</button>
+                <button class="btn btn-secondary btn-sm" id="request-info-btn">Request Info</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        // Area data
+        const areas = {
+            heritage: {
+                name: "Heritage Gardens",
+                description: "Traditional burial plots surrounded by mature oak trees and seasonal flowers.",
+                available: "24 plots available",
+                price: "Starting from ₱20,500"
+            },
+            family: {
+                name: "Family Estates",
+                description: "Spacious family plots with personalized memorial options and garden spaces.",
+                available: "12 family plots available",
+                price: "Starting from ₱35,500"
+            },
+            columbarium: {
+                name: "Serenity Columbarium",
+                description: "Beautiful indoor and outdoor niches with peaceful water features.",
+                available: "156 niches available",
+                price: "Starting from ₱40,200"
+            },
+            garden: {
+                name: "Garden of Remembrance",
+                description: "Tranquil memorial garden with benches, fountains, and reflection areas.",
+                available: "36 memorial spaces",
+                price: "Starting from ₱35,800"
+            },
+            chapel: {
+                name: "Memorial Chapel",
+                description: "Elegant chapel for services with adjacent administrative offices.",
+                available: "Services available",
+                price: "Contact for pricing"
+            },
+            veterans: {
+                name: "Veterans Memorial",
+                description: "Dedicated section honoring our military heroes with flag displays.",
+                available: "48 plots available",
+                price: "Starting from ₱45,000"
+            }
+        };
+
+        let selectedArea = null;
+
+        // Add click event listeners to map areas
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapAreas = document.querySelectorAll('.map-area');
+            
+            mapAreas.forEach(area => {
+                area.addEventListener('click', function() {
+                    const areaId = this.getAttribute('data-area');
+                    selectArea(areaId, this);
+                });
+
+                area.addEventListener('mouseenter', function() {
+                    if (this !== selectedArea) {
+                        this.style.filter = 'brightness(1.1)';
+                    }
+                });
+
+                area.addEventListener('mouseleave', function() {
+                    if (this !== selectedArea) {
+                        this.style.filter = 'brightness(1)';
+                    }
+                });
+            });
+        });
+
+        function selectArea(areaId, element) {
+            // Remove previous selection
+            if (selectedArea) {
+                selectedArea.classList.remove('selected');
+                selectedArea.style.filter = 'brightness(1)';
+            }
+
+            // Set new selection
+            selectedArea = element;
+            element.classList.add('selected');
+            element.style.filter = 'brightness(1.2)';
+
+            // Update info card
+            const area = areas[areaId];
+            document.getElementById('info-title').textContent = area.name;
+            document.getElementById('info-description').textContent = area.description;
+            document.getElementById('info-availability').textContent = area.available;
+            document.getElementById('info-price').textContent = area.price;
+
+            // Show info card
+            document.getElementById('info-card').classList.add('active');
+        }
+
+        function closeInfoCard() {
+            document.getElementById('info-card').classList.remove('active');
+            if (selectedArea) {
+                selectedArea.classList.remove('selected');
+                selectedArea.style.filter = 'brightness(1)';
+                selectedArea = null;
+            }
+        }
+    </script>
+</body>
+</html>

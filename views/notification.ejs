@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Log | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/stylesheets/notification.css">
+</head>
+<body>
+  <section class="notifications-list">
+  <% if (notifications.length === 0) { %>
+    <p>No notifications yet.</p>
+  <% } else { %>
+    <% notifications.forEach(notif => { %>
+      <div class="notification-item">
+        <i class="fas fa-<%= notif.type === 'email' ? 'envelope' : 'sms' %>"></i>
+        <div>
+          <p class="message"><%= notif.message %></p>
+          <small><%= new Date(notif.created_at).toLocaleString() %></small>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</section>
+
+  <script>
+    async function loadNotifications() {
+  try {
+    const res = await fetch('/appointment/notifications'); // match the route above
+    const notifications = await res.json();
+
+    const list = document.getElementById('notificationsList');
+    list.innerHTML = '';
+
+    notifications.forEach(notif => {
+      const item = document.createElement('div');
+      item.className = 'notification-item';
+      item.innerHTML = `
+        <i class="fas fa-${notif.type === 'email' ? 'envelope' : 'sms'}"></i>
+        <div>
+          <p class="message">${notif.message}</p>
+          <small>${new Date(notif.created_at).toLocaleString()}</small>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Error loading notifications:", err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadNotifications);
+  </script>
+</body>
+</html>

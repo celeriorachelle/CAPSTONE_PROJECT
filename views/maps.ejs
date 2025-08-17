@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Everlasting Peace  Memorial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/stylesheets/maps.css">
+  </head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-cross"></i> Everlasting Peace Memorial Cemetery Plot Management <Ana/h1>
+      <p>Manage and track cemetery plots with ease</p>
+    </div>
+
+    <div class="main-content">
+      <div class="cemetery-section">
+        <div class="controls">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by plot number or person name...">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="filter-buttons">
+            <button class="filter-btn all active" data-filter="all">All</button>
+            <button class="filter-btn available" data-filter="available">Available</button>
+            <button class="filter-btn reserved" data-filter="reserved">Reserved</button>
+            <button class="filter-btn occupied" data-filter="occupied">Occupied</button>
+          </div>
+        </div>
+
+        <div class="cemetery-grid" id="cemeteryGrid"></div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #d4edda, #c3e6cb); border-color: #28a745;"></div>
+            <span>Available</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-color: #ffc107;"></div>
+            <span>Reserved</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #f8d7da, #f5c6cb); border-color: #dc3545;"></div>
+            <span>Occupied</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h2><i class="fas fa-info-circle"></i> Plot Information</h2>
+        
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-number" id="availableCount">0</div>
+            <div class="stat-label">Available</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="reservedCount">0</div>
+            <div class="stat-label">Reserved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="occupiedCount">0</div>
+            <div class="stat-label">Occupied</div>
+          </div>
+        </div>
+
+        <div class="plot-details" id="plotDetails">
+          <p style="text-align: center; color: #666; font-style: italic;">
+            <i class="fas fa-mouse-pointer"></i><br>
+            Click on a plot to view details
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for editing plot details -->
+  <div id="plotModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Edit Plot Details</h2>
+        <span class="close">&times;</span>
+      </div>
+      <form id="plotForm">
+        <div class="form-group">
+          <label for="plotStatus">Status:</label>
+          <select id="plotStatus" required>
+            <option value="available">Available</option>
+            <option value="reserved">Reserved</option>
+            <option value="occupied">Occupied</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="personName">Person Name:</label>
+          <input type="text" id="personName" placeholder="Enter full name">
+        </div>
+        <div class="form-group">
+          <label for="birthDate">Birth Date:</label>
+          <input type="date" id="birthDate">
+        </div>
+        <div class="form-group">
+          <label for="deathDate">Death Date:</label>
+          <input type="date" id="deathDate">
+        </div>
+        <div class="form-group">
+          <label for="contactInfo">Contact Information:</label>
+          <input type="text" id="contactInfo" placeholder="Phone or email">
+        </div>
+        <div class="form-group">
+          <label for="notes">Notes:</label>
+          <textarea id="notes" rows="3" placeholder="Additional information..."></textarea>
+        </div>
+        <div class="action-buttons">
+          <button type="button" class="btn btn-danger" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    class CemeteryManager {
+      constructor() {
+        this.plots = {};
+        this.totalPlots = 100;
+        this.currentFilter = 'all';
+        this.selectedPlot = null;
+        
+        this.initializePlots();
+        this.renderGrid();
+        this.bindEvents();
+        this.updateStats();
+      }
+
+      initializePlots() {
+        // Sample data for demonstration
+        const sampleData = [
+          { id: 1, status: 'occupied', name: 'John Smith', birth: '1945-03-15', death: '2020-08-22', contact: 'jane.smith@email.com', notes: 'Beloved father and grandfather' },
+          { id: 5, status: 'occupied', name: 'Mary Johnson', birth: '1952-11-08', death: '2021-05-14', contact: '555-0123', notes: 'Loving mother' },
+          { id: 12, status: 'reserved', name: 'Robert Brown', birth: '1960-07-20', death: '', contact: 'robert.brown@email.com', notes: 'Pre-arranged burial' },
+          { id: 23, status: 'occupied', name: 'Sarah Davis', birth: '1938-12-03', death: '2019-09-10', contact: '555-0456', notes: 'Veteran, served in Vietnam' },
+          { id: 34, status: 'reserved', name: 'Michael Wilson', birth: '1955-04-18', death: '', contact: '555-0789', notes: 'Family plot reservation' },
+          { id: 45, status: 'occupied', name: 'Elizabeth Taylor', birth: '1942-01-25', death: '2022-03-07', contact: 'family@taylor.com', notes: 'Teacher for 40 years' }
+        ];
+
+        for (let i = 1; i <= this.totalPlots; i++) {
+          const samplePlot = sampleData.find(plot => plot.id === i);
+          this.plots[i] = samplePlot || {
+            id: i,
+            status: 'available',
+            name: '',
+            birth: '',
+            death: '',
+            contact: '',
+            notes: ''
+          };
+        }
+      }
+
+      renderGrid() {
+        const grid = document.getElementById('cemeteryGrid');
+        grid.innerHTML = '';
+
+        for (let i = 1; i <= this.totalPlots; i++) {
+          const plot = this.plots[i];
+          const plotElement = document.createElement('div');
+          plotElement.className = `plot ${plot.status}`;
+          plotElement.textContent = i;
+          plotElement.dataset.plotId = i;
+          
+          // Apply filter
+          if (this.currentFilter !== 'all' && plot.status !== this.currentFilter) {
+            plotElement.style.display = 'none';
+          }
+
+          plotElement.addEventListener('click', () => this.selectPlot(i));
+          plotElement.addEventListener('dblclick', () => this.openModal(i));
+          
+          grid.appendChild(plotElement);
+        }
+      }
+
+      selectPlot(plotId) {
+        // Remove previous selection
+        document.querySelectorAll('.plot.highlighted').forEach(plot => {
+          plot.classList.remove('highlighted');
+        });
+
+        // Highlight selected plot
+        const plotElement = document.querySelector(`[data-plot-id="${plotId}"]`);
+        plotElement.classList.add('highlighted');
+
+        this.selectedPlot = plotId;
+        this.displayPlotDetails(plotId);
+      }
+
+      displayPlotDetails(plotId) {
+        const plot = this.plots[plotId];
+        const detailsContainer = document.getElementById('plotDetails');
+        
+        const statusClass = `status-${plot.status}`;
+        
+        detailsContainer.innerHTML = `
+          <div class="detail-row">
+            <span class="detail-label">Plot Number:</span>
+            <span class="detail-value">#${plot.id}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value">
+              <span class="status-badge ${statusClass}">${plot.status}</span>
+            </span>
+          </div>
+          ${plot.name ? `
+            <div class="detail-row">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value">${plot.name}</span>
+            </div>
+          ` : ''}
+          ${plot.birth ? `
+            <div class="detail-row">
+              <span class="detail-label">Birth Date:</span>
+              <span class="detail-value">${new Date(plot.birth).toLocaleDateString()}</span>
+            </div>
+          ` : ''}
+          ${plot.death ? `
+            <div class="detail-row">
+              <span class="detail-label">Death Date:</span>
+              <span class="detail-value">${new Date(plot.death).toLocaleDateString()}</span>
+            </div>
+          ` : ''}
+          ${plot.contact ? `
+            <div class="detail-row">
+              <span class="detail-label">Contact:</span>
+              <span class="detail-value">${plot.contact}</span>
+            </div>
+          ` : ''}
+          ${plot.notes ? `
+            <div class="detail-row">
+              <span class="detail-label">Notes:</span>
+              <span class="detail-value">${plot.notes}</span>
+            </div>
+          ` : ''}
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="cemeteryManager.openModal(${plotId})">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            ${plot.status !== 'available' ? `
+              <button class="btn btn-warning" onclick="cemeteryManager.changePlotStatus(${plotId}, 'available')">
+                <i class="fas fa-undo"></i> Clear
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      openModal(plotId) {
+        const plot = this.plots[plotId];
+        const modal = document.getElementById('plotModal');
+        
+        document.getElementById('modalTitle').textContent = `Edit Plot #${plotId}`;
+        document.getElementById('plotStatus').value = plot.status;
+        document.getElementById('personName').value = plot.name;
+        document.getElementById('birthDate').value = plot.birth;
+        document.getElementById('deathDate').value = plot.death;
+        document.getElementById('contactInfo').value = plot.contact;
+        document.getElementById('notes').value = plot.notes;
+        
+        modal.style.display = 'block';
+        this.selectedPlot = plotId;
+      }
+
+      closeModal() {
+        document.getElementById('plotModal').style.display = 'none';
+      }
+
+      savePlotDetails() {
+        if (!this.selectedPlot) return;
+
+        const plot = this.plots[this.selectedPlot];
+        plot.status = document.getElementById('plotStatus').value;
+        plot.name = document.getElementById('personName').value;
+        plot.birth = document.getElementById('birthDate').value;
+        plot.death = document.getElementById('deathDate').value;
+        plot.contact = document.getElementById('contactInfo').value;
+        plot.notes = document.getElementById('notes').value;
+
+        this.renderGrid();
+        this.updateStats();
+        this.displayPlotDetails(this.selectedPlot);
+        this.closeModal();
+      }
+
+      changePlotStatus(plotId, newStatus) {
+        this.plots[plotId].status = newStatus;
+        if (newStatus === 'available') {
+          // Clear all data when making available
+          this.plots[plotId] = {
+            id: plotId,
+            status: 'available',
+            name: '',
+            birth: '',
+            death: '',
+            contact: '',
+            notes: ''
+          };
+        }
+        this.renderGrid();
+        this.updateStats();
+        this.displayPlotDetails(plotId);
+      }
+
+      filterPlots(filter) {
+        this.currentFilter = filter;
+        
+        // Update filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+        
+        this.renderGrid();
+      }
+
+      searchPlots(query) {
+        const plots = document.querySelectorAll('.plot');
+        query = query.toLowerCase();
+
+        plots.forEach(plotElement => {
+          const plotId = plotElement.dataset.plotId;
+          const plot = this.plots[plotId];
+          
+          const matchesQuery = 
+            plotId.includes(query) ||
+            plot.name.toLowerCase().includes(query) ||
+            plot.contact.toLowerCase().includes(query) ||
+            plot.notes.toLowerCase().includes(query);
+
+          if (query === '' || matchesQuery) {
+            plotElement.style.display = '';
+          } else {
+            plotElement.style.display = 'none';
+          }
+        });
+      }
+
+      updateStats() {
+        const stats = { available: 0, reserved: 0, occupied: 0 };
+        
+        Object.values(this.plots).forEach(plot => {
+          stats[plot.status]++;
+        });
+
+        document.getElementById('availableCount').textContent = stats.available;
+        document.getElementById('reservedCount').textContent = stats.reserved;
+        document.getElementById('occupiedCount').textContent = stats.occupied;
+      }
+
+      bindEvents() {
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+          this.searchPlots(e.target.value);
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            this.filterPlots(btn.dataset.filter);
+          });
+        });
+
+        // Modal events
+        document.querySelector('.close').addEventListener('click', () => {
+          this.closeModal();
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+          this.closeModal();
+        });
+
+        document.getElementById('plotForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.savePlotDetails();
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+          const modal = document.getElementById('plotModal');
+          if (e.target === modal) {
+            this.closeModal();
+          }
+        });
+      }
+    }
+
+    // Initialize the cemetery manager
+    const cemeteryManager = new CemeteryManager();
+  </script>
+</body>
+</html>
