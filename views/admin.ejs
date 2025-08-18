@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Enhanced Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div>
+          <h2>Everlasting<br><span>Peace</span><br>Memorial Park</h2>
+        </div>
+        <i class="fas fa-bars toggle-icon" id="toggleSidebar"></i>
+      </div>
+
+      <nav>
+        <ul>
+          <li class="active">
+            <a href="#" id="homeLink">
+              <i class="fas fa-home"></i>
+              <span>Home</span>
+            </a>
+          </li>
+          <li>
+            <a href="appointment.html" id="appointmentLink">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Appointment</span>
+            </a>
+            <ul class="submenu">
+              <li><a href="appointment.html" id="createAppointmentLink">Create appointment</a></li>
+              <li><a href="#" id="viewAppointmentLink">View appointment</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#" id="burialRecordsLink">
+              <i class="fas fa-book"></i>
+              <span>Burial Records</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="cemeteryMapLink">
+              <i class="fas fa-map"></i>
+              <span>Cemetery Map</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="supportLink">
+              <i class="fas fa-headset"></i>
+              <span>Support</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="settingsLink">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Enhanced Main Content -->
+    <main class="main-content">
+      <!-- Enhanced Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Dashboard</h2>
+          <div class="date-time" id="currentDateTime"></div>
+        </div>
+        <div class="icons">
+          <i class="fas fa-bell" id="notificationBtn">
+            <span class="notification-badge">5</span>
+          </i>
+          <i class="fas fa-user-circle" id="profileBtn"></i>
+        </div>
+      </header>
+
+      <!-- Welcome Section -->
+      <section class="dashboard-welcome">
+        <div class="welcome-content">
+          <h1>Welcome back, Gerrelle! 👋</h1>
+          <p>Here's what's happening at Everlasting Peace Memorial Park today</p>
+        </div>
+      </section>
+
+      <!-- Enhanced Search Section -->
+      <section class="search-section">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search appointments, records, or burial plots..." id="searchInput" />
+        </div>
+      </section>
+
+      <!-- Statistics Cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-change positive">+12%</div>
+          </div>
+          <div class="stat-number" id="todayAppointments">8</div>
+          <div class="stat-label">Today's Appointments</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-change positive">+5%</div>
+          </div>
+          <div class="stat-number" id="pendingRequests">23</div>
+          <div class="stat-label">Pending Requests</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-change negative">-2%</div>
+          </div>
+          <div class="stat-number" id="availablePlots">156</div>
+          <div class="stat-label">Available Plots</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-change positive">+8%</div>
+          </div>
+          <div class="stat-number" id="totalFamilies">1,247</div>
+          <div class="stat-label">Registered Families</div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div class="actions-grid">
+          <div class="action-btn" id="newAppointmentBtn">
+            <i class="fas fa-calendar-plus"></i>
+            <span>New Appointment</span>
+          </div>
+          <div class="action-btn" id="searchRecordsBtn">
+            <i class="fas fa-search"></i>
+            <span>Search Records</span>
+          </div>
+          <div class="action-btn" id="viewMapBtn">
+            <i class="fas fa-map"></i>
+            <span>Cemetery Map</span>
+          </div>
+          <div class="action-btn" id="generateReportBtn">
+            <i class="fas fa-chart-bar"></i>
+            <span>Generate Report</span>
+          </div>
+          <div class="action-btn" id="managePaymentsBtn">
+            <i class="fas fa-credit-card"></i>
+            <span>Manage Payments</span>
+          </div>
+          <div class="action-btn" id="contactSupportBtn">
+            <i class="fas fa-headset"></i>
+            <span>Contact Support</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Two Column Layout -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+          <h3><i class="fas fa-history"></i> Recent Activity</h3>
+          <div id="activityList">
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">New appointment scheduled</div>
+                <div class="activity-time">2 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">New family registration</div>
+                <div class="activity-time">15 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">Burial record updated</div>
+                <div class="activity-time">1 hour ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-credit-card"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">Payment received</div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendar Widget -->
+        <section class="calendar-widget">
+          <div class="calendar-header">
+            <h3><i class="fas fa-calendar"></i> Today's Schedule</h3>
+            <div class="calendar-nav">
+              <button id="prevDay"><i class="fas fa-chevron-left"></i></button>
+              <button id="nextDay"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="upcoming-events" id="upcomingEvents">
+            <div class="event-item">
+              <div>
+                <div class="event-title">Johnson Family Meeting</div>
+                <div class="event-time">9:00 AM</div>
+              </div>
+            </div>
+            <div class="event-item">
+              <div>
+                <div class="event-title">Plot Inspection</div>
+                <div class="event-time">11:30 AM</div>
+              </div>
+            </div>
+            <div class="event-item">
+              <div>
+                <div class="event-title">Memorial Service Planning</div>
+                <div class="event-time">2:00 PM</div>
+              </div>
+            </div>
+            <div class="event-item">
+              <div>
+                <div class="event-title">Smith Family Consultation</div>
+                <div class="event-time">4:00 PM</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        <span class="close" id="closeNotificationModal">&times;</span>
+      </div>
+      <div id="notificationsList">
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">Urgent: Plot maintenance required</div>
+            <div class="activity-time">5 minutes ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">Appointment reminder: Johnson Family</div>
+            <div class="activity-time">30 minutes ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-credit-card"></i>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">Payment overdue: Smith Family</div>
+            <div class="activity-time">2 hours ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class DashboardManager {
+      constructor() {
+        this.initializeDateTime();
+        this.bindEvents();
+        this.initializeSearch();
+        this.animateStats();
+      }
+
+      initializeDateTime() {
+        const updateDateTime = () => {
+          const now = new Date();
+          const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          };
+          document.getElementById('currentDateTime').textContent = 
+            now.toLocaleDateString('en-US', options);
+        };
+        
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Update every minute
+      }
+
+      bindEvents() {
+        // Sidebar toggle
+        document.getElementById('toggleSidebar').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+
+        // Navigation links
+        document.getElementById('homeLink').addEventListener('click', (e) => {
+          e.preventDefault();
+          this.setActiveNav('homeLink');
+        });
+
+        document.getElementById('createAppointmentLink').addEventListener('click', (e) => {
+          e.preventDefault();
+          this.showNotification('Redirecting to Create Appointment...', 'info');
+          // Simulate navigation
+          setTimeout(() => {
+            window.location.href = 'create-appointment.html';
+          }, 1000);
+        });
+
+        document.getElementById('cemeteryMapLink').addEventListener('click', (e) => {
+          e.preventDefault();
+          this.showNotification('Opening Cemetery Map...', 'info');
+          // Simulate navigation
+          setTimeout(() => {
+            window.location.href = 'cemetery-management.html';
+          }, 1000);
+        });
+
+        // Quick action buttons
+        document.getElementById('newAppointmentBtn').addEventListener('click', () => {
+          this.showNotification('Opening appointment form...', 'info');
+          setTimeout(() => {
+            window.location.href = 'create-appointment.html';
+          }, 1000);
+        });
+
+        document.getElementById('viewMapBtn').addEventListener('click', () => {
+          this.showNotification('Loading cemetery map...', 'info');
+          setTimeout(() => {
+            window.location.href = 'cemetery-management.html';
+          }, 1000);
+        });
+
+        document.getElementById('searchRecordsBtn').addEventListener('click', () => {
+          document.getElementById('searchInput').focus();
+          this.showNotification('Search activated', 'success');
+        });
+
+        document.getElementById('generateReportBtn').addEventListener('click', () => {
+          this.generateReport();
+        });
+
+        document.getElementById('managePaymentsBtn').addEventListener('click', () => {
+          this.showNotification('Payment management coming soon...', 'info');
+        });
+
+        document.getElementById('contactSupportBtn').addEventListener('click', () => {
+          this.contactSupport();
+        });
+
+        // Notification modal
+        document.getElementById('notificationBtn').addEventListener('click', () => {
+          document.getElementById('notificationModal').style.display = 'block';
+        });
+
+        document.getElementById('closeNotificationModal').addEventListener('click', () => {
+          document.getElementById('notificationModal').style.display = 'none';
+        });
+
+        // Profile button
+        document.getElementById('profileBtn').addEventListener('click', () => {
+          this.showNotification('Profile settings coming soon...', 'info');
+        });
+
+        // Calendar navigation
+        document.getElementById('prevDay').addEventListener('click', () => {
+          this.navigateDay(-1);
+        });
+
+        document.getElementById('nextDay').addEventListener('click', () => {
+          this.navigateDay(1);
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+          const modal = document.getElementById('notificationModal');
+          if (e.target === modal) {
+            modal.style.display = 'none';
+          }
+        });
+      }
+
+      initializeSearch() {
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            this.performSearch(e.target.value);
+          }, 300);
+        });
+      }
+
+      performSearch(query) {
+        if (query.length < 2) return;
+        
+        this.showNotification(`Searching for: "${query}"`, 'info');
+        
+        // Simulate search results
+        setTimeout(() => {
+          const results = [
+            'Johnson Family - Plot A-123',
+            'Smith Memorial Service - March 15',
+            'Brown Family Appointment - Today 2:00 PM'
+          ];
+          
+          if (results.length > 0) {
+            this.showNotification(`Found ${results.length} results`, 'success');
+          } else {
+            this.showNotification('No results found', 'warning');
+          }
+        }, 1000);
+      }
+
+      setActiveNav(activeId) {
+        document.querySelectorAll('nav li').forEach(li => li.classList.remove('active'));
+        document.getElementById(activeId).closest('li').classList.add('active');
+      }
+
+      animateStats() {
+        const animateNumber = (element, target) => {
+          let current = 0;
+          const increment = target / 50;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
+            }
+            element.textContent = Math.floor(current);
+          }, 20);
+        };
+
+        // Animate stats with delay
+        setTimeout(() => animateNumber(document.getElementById('todayAppointments'), 8), 200);
+        setTimeout(() => animateNumber(document.getElementById('pendingRequests'), 23), 400);
+        setTimeout(() => animateNumber(document.getElementById('availablePlots'), 156), 600);
+        setTimeout(() => animateNumber(document.getElementById('totalFamilies'), 1247), 800);
+      }
+
+      generateReport() {
+        this.showNotification('Generating report...', 'info');
+        
+        // Simulate report generation
+        setTimeout(() => {
+          const reportData = {
+            date: new Date().toLocaleDateString(),
+            appointments: 8,
+            revenue: '$12,450',
+            newRegistrations: 3
+          };
+          
+          this.showNotification('Report generated successfully!', 'success');
+          console.log('Report Data:', reportData);
+        }, 2000);
+      }
+
+      contactSupport() {
+        const supportOptions = [
+          'Phone: (555) 123-4567',
+          'Email: support@everlastingpeace.com',
+          'Live Chat: Available 24/7'
+        ];
+        
+        this.showNotification('Support Options:\n' + supportOptions.join('\n'), 'info');
+      }
+
+      navigateDay(direction) {
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() + direction);
+        
+        this.showNotification(`Viewing schedule for ${currentDate.toDateString()}`, 'info');
+        
+        // Update events based on selected day
+        this.updateSchedule(currentDate);
+      }
+
+      updateSchedule(date) {
+        const events = [
+          { title: 'Morning Consultation', time: '9:00 AM' },
+          { title: 'Site Inspection', time: '11:00 AM' },
+          { title: 'Family Meeting', time: '2:30 PM' },
+          { title: 'Memorial Planning', time: '4:00 PM' }
+        ];
+
+        const eventsContainer = document.getElementById('upcomingEvents');
+        eventsContainer.innerHTML = events.map(event => `
+          <div class="event-item">
+            <div>
+              <div class="event-title">${event.title}</div>
+              <div class="event-time">${event.time}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+          ${message}
+        `;
+        
+        Object.assign(notification.style, {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '1rem 1.5rem',
+          borderRadius: '10px',
+          color: 'white',
+          fontWeight: '600',
+          zIndex: '9999',
+          animation: 'slideInRight 0.3s ease',
+          background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8',
+          maxWidth: '300px',
+          wordWrap: 'break-word'
+        });
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+    }
+
+    // Initialize dashboard when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      new DashboardManager();
+    });
+
+    // Add CSS animations for notifications
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
