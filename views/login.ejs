@@ -1,108 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Everlasting Peace</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      min-height: 100vh;
-      background: #f3f4f6;
-    }
-
-    /* Sidebar styling */
-    .sidebar {
-      width: 200px;
-      background-color: #16a34a;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-    }
-    .sidebar a {
-      color: #fff;
-      text-decoration: none;
-      padding: 0.75rem 1rem;
-      margin: 0.25rem 0;
-      border-radius: 6px;
-    }
-    .sidebar a:hover {
-      background-color: #15803d;
-    }
-
-    /* Main content */
-    .main-content {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .login-container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: center;
-    }
-
-    form input {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-    }
-
-    form button {
-      width: 100%;
-      padding: 0.75rem;
-      background-color: #16a34a;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
-    form button:hover {
-      background-color: #15803d;
-    }
-
-    .login-container a {
-      display: block;
-      margin-top: 1rem;
-      color: #16a34a;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .login-container a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="sidebar">
-    <a href="/">Home</a>
-  </div>
-
-  <div class="main-content">
-    <div class="login-container">
-      <h2>Login</h2>
-      <form action="/login" method="POST">
-        <input type="text" name="username" placeholder="Username" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-      <a href="/register">Don't have an account? Register</a>
-    </div>
-  </div>
-
-</body>
-</html>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Everlast Cemetery | Login & Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="🪦">
+    <link rel="stylesheet" href="/stylesheets/login.css">
+  </head>
+  <body>
+      <div class="auth-container" id="authContainer">
+          <!-- Sliding Background Panel -->
+          <div class="sliding-panel" id="slidingPanel">
+              <div class="panel-content">
+                  <div class="panel-decorations decoration-1">🪦</div>
+                  <div class="panel-decorations decoration-2">🕊️</div>
+                  <div class="panel-decorations decoration-3">⚱️</div>
+                  
+                  <div id="panelContent">
+                      <h2>Welcome Back</h2>
+                      <p>Don't have an account yet?</p>
+                      <button class="toggle-btn" id="toggleBtn">Create Account</button>
+                  </div>
+              </div>
+          </div>
+  
+          <!-- Forms Container -->
+          <div class="forms-container">
+              <!-- Login Form -->
+              <div class="form-section login-form" id="loginForm">
+                  <div class="form-content">
+                      <div class="form-header">
+                          <div class="logo">
+                              <span>🪦</span>
+                              <h1>Everlast Cemetery</h1>
+                          </div>
+                          <h2>Welcome Back</h2>
+                          <p>Sign in to your account</p>
+                      </div>
+  
+                      <form>
+                          <div class="form-group">
+                              <label class="form-label" for="login-username">Username</label>
+                              <input class="form-input" type="text" id="login-username" placeholder="Enter your username" required>
+                          </div>
+  
+                          <div class="form-group">
+                              <label class="form-label" for="login-password">Password</label>
+                              <input class="form-input" type="password" id="login-password" placeholder="Enter your password" required>
+                          </div>
+  
+                          <div class="forgot-password">
+                              <a href="#">Forgot password?</a>
+                          </div>
+  
+                          <button type="submit" class="submit-btn">Sign In</button>
+                      </form>
+                  </div>
+              </div>
+  
+              <!-- Register Form -->
+              <div class="form-section register-form" id="registerForm">
+                  <div class="form-content">
+                      <div class="form-header">
+                          <div class="logo">
+                              <span>🪦</span>
+                              <h1>Everlast Cemetery</h1>
+                          </div>
+                          <h2>Create Account</h2>
+                          <p>Join our memorial community</p>
+                      </div>
+  
+                      <form>
+                          <div class="form-group">
+                              <label class="form-label" for="register-fullname">Full Name</label>
+                              <input class="form-input" type="text" id="register-fullname" placeholder="Enter your full name" required>
+                          </div>
+  
+                          <div class="form-group">
+                              <label class="form-label" for="register-username">Username</label>
+                              <input class="form-input" type="text" id="register-username" placeholder="Choose a username" required>
+                          </div>
+  
+                          <div class="form-group">
+                              <label class="form-label" for="register-email">Email</label>
+                              <input class="form-input" type="email" id="register-email" placeholder="Enter your email" required>
+                          </div>
+  
+                          <div class="form-group">
+                              <label class="form-label" for="register-password">Password</label>
+                              <input class="form-input" type="password" id="register-password" placeholder="Create a password" required>
+                          </div>
+  
+                          <button type="submit" class="submit-btn">Create Account</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+  
+      <script>
+          
+      class CemeteryAuth {
+          constructor() {
+              this.isLoginMode = true;
+              this.authContainer = document.getElementById('authContainer');
+              this.slidingPanel = document.getElementById('slidingPanel');
+              this.toggleBtn = document.getElementById('toggleBtn');
+              this.panelContent = document.getElementById('panelContent');
+  
+              this.init();
+          }
+  
+          init() {
+              this.toggleBtn.addEventListener('click', () => this.toggleMode());
+  
+              // Handle form submissions
+              document.querySelector('#loginForm form').addEventListener('submit', this.handleLogin.bind(this));
+              document.querySelector('#registerForm form').addEventListener('submit', this.handleRegister.bind(this));
+          }
+  
+          toggleMode() {
+              this.isLoginMode = !this.isLoginMode;
+  
+              if (this.isLoginMode) {
+                  this.authContainer.classList.remove('register-mode');
+                  this.slidingPanel.classList.remove('register-mode');
+                  this.panelContent.innerHTML = `
+                      <h2>Welcome Back</h2>
+                      <p>Don't have an account yet?</p>
+                      <button class="toggle-btn" id="toggleBtn">Create Account</button>
+                  `;
+              } else {
+                  this.authContainer.classList.add('register-mode');
+                  this.slidingPanel.classList.add('register-mode');
+                  this.panelContent.innerHTML = `
+                      <h2>Hello, Friend</h2>
+                      <p>Already have an account?</p>
+                      <button class="toggle-btn" id="toggleBtn">Sign In</button>
+                  `;
+              }
+  
+              // Rebind the toggle button after content update
+              this.toggleBtn = document.getElementById('toggleBtn');
+              this.toggleBtn.addEventListener('click', () => this.toggleMode());
+          }
+  
+          handleLogin(e) {
+              e.preventDefault();
+              const username = document.getElementById('login-username').value;
+              const password = document.getElementById('login-password').value;
+  
+              if (username && password) {
+                  // Simulated login: redirect
+                  window.location.href = 'homepage.html';
+              } else {
+                  alert('Please enter your username and password.');
+              }
+          }
+  
+          handleRegister(e) {
+              e.preventDefault();
+              const fullName = document.getElementById('register-fullname').value;
+              const username = document.getElementById('register-username').value;
+              const email = document.getElementById('register-email').value;
+              const password = document.getElementById('register-password').value;
+  
+              if (fullName && username && email && password) {
+                  // Simulated registration: redirect
+                  window.location.href = 'homepage.html';
+              } else {
+                  alert('Please fill in all fields.');
+              }
+          }
+      }
+  
+      // Initialize on DOM load
+      document.addEventListener('DOMContentLoaded', () => {
+          new CemeteryAuth();
+      });
+  
+  
+      </script>
+  </body>
+  </html>

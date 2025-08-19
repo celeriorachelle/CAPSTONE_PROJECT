@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support - Everlasting Peace Memorial Park</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/stylesheets/support.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="logo">Everlasting Peace Memorial Park</div>
+    <ul>
+        <li><a href="/">Home</a></li>
+
+        <li onclick="toggleSubmenu()">
+          <a href="javascript:void(0)">Appointment</a>
+        </li>
+        <ul class="submenu" id="appointment-submenu">
+          <li><a href="/appointment">Create Appointment</a></li>
+          <li><a href="/appointment/view">View Appointment</a></li>
+        </ul>
+        
+        <li><a href="/burial-records">Burial Records</a></li>
+        <li><a href="/support">Support</a></li>
+        <li><a href="/settings">Setting</a></li>        
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="content">
+    <header class="topbar">
+      <button class="toggle-btn" aria-label="Toggle Menu" onclick="toggleSidebar()">&#9776;</button>
+      <input class="search-box" type="search" placeholder="Search..." aria-label="Search"/>
+    </header>
+
+    <!-- Support Content -->
+    <h1>Support</h1>
+    <div class="card">
+      <h2>Frequently Asked Questions (FAQ)</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span><i class="fas fa-calendar-check"></i> How do I book an appointment?</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="faq-answer">
+          To book an appointment, go to the "Appointment" section in the sidebar and fill out the booking form.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span><i class="fas fa-clock"></i> Support Hours & Response Time</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="faq-answer">
+          Our team is available <strong>Monday–Friday, 8:00 AM to 5:00 PM</strong>.  
+          We typically respond within 24 hours.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    }
+
+    function toggleSubmenu() {
+      const submenu = document.getElementById('appointment-submenu');
+      submenu.style.display = submenu.style.display === "block" ? "none" : "block";
+    }
+
+    // FAQ toggle
+    document.querySelectorAll(".faq-item").forEach(item => {
+      item.addEventListener("click", () => {
+        item.classList.toggle("active");
+      });
+    });
+  </script>
+</body>
+</html>
