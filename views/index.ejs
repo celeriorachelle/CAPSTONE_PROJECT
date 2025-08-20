@@ -3,307 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everlasting Peace</title>
+    <title>Everlasting Peace Memorial Park Cemetery</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
-</head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head> 
 <body>
-    <header>
-        <div class="header-container">
+  <header class="header">
+        <div class="nav-container">
             <div class="logo">
-                <div class="logo-icon">🌿</div>
-                <div class="logo-text">
-                    <h1>Everlasting Peace Memorial Cemetery </h1>
-                    <p>Gardens of Peace</p>
-                </div>
+            <img src="/images/logo2.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
+            <span>MEMORIAL SERVICES</span>
             </div>
-            <nav>
-                <a href="/">Home</a>
-                <a href=/login>Log In</a>
-                <a href="/admin">Admin</a>
-            </nav>     
+            <nav class="nav-links">
+            <a href="#inquiries">INQUIRIES</a>
+            <a href="#support">SUPPORT</a>
+            <a href="#contact">CONTACT US</a>
+            </nav>
+          <div class="profile-dropdown-wrapper">
+            <!-- Profile Icon -->
+            <div class="profile-btn">
+                <i class="bi bi-person-circle"></i>
+            </div>
+
+            <!-- Dropdown Arrow -->
+            <div class="dropdown-toggle">
+                <i class="bi bi-caret-down-fill"></i>
+            </div>
+
+            <!-- Dropdown Menu -->
+           <div class="dropdown-menu">
+            <a href="#" class="dropdown-link">Sign In</a>
+            <a href="#" class="dropdown-link">Sign Up</a>
+            </div>
+
+            </div>
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
+            const dropdownMenu = document.querySelector(".dropdown-menu");
+            const profileBtn = document.querySelector(".profile-btn");
+            const dropdownToggle = document.querySelector(".dropdown-toggle");
+
+            // Toggle dropdown on profile or arrow click
+            [profileBtn, dropdownToggle].forEach(btn => {
+                btn.addEventListener("click", () => {
+                    profileBtn.classList.toggle("active");
+                    dropdownToggle.classList.toggle("active");
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest(".profile-dropdown-wrapper")) {
+                    profileBtn.classList.remove("active");
+                    dropdownToggle.classList.remove("active");
+                }
+            });
+        });
+        </script>
+
+        </div></div>
     </header>
 
     <!-- Main Content -->
-    <div class="main-container">
-        <div class="content-grid">
-            <!-- Left Content -->
-            <div class="hero-content">
-                <h2 class="hero-title">
-                    A Place  <span class="highlight">Remember</span>
-                </h2>
-                <p class="hero-description">
-                    Discover our beautifully landscaped memorial gardens where memories live forever. Explore different
-                    sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
+    <main class="main-container">
+        <div class="content-section">
+            <h1 class="cemetery-title">Everlasting Peace Memorial Park Cemetery</h1>
+            <p class="subtitle">Gardens of Peace</p>
+            
+            <div class="section-content">
+                <h2 class="section-header">A Place to Remember</h2>
+                <p class="section-description">
+                    Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
                 </p>
-              
+            </div>
+        </div>
 
-                <!-- Features -->
-                <div class="features-grid">
-                    <div class="feature">
-                        <div class="feature-icon green">🌿</div>
-                        <div class="feature-content">
-                            <h3>Beautiful Landscaping</h3>
-                            <p>Meticulously maintained gardens and natural beauty</p>
-                        </div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon blue">🕐</div>
-                        <div class="feature-content">
-                            <h3>24/7 Access</h3>
-                            <p>Visit your loved ones anytime, day or night</p>
-                        </div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon purple">⭐</div>
-                        <div class="feature-content">
-                            <h3>Premium Care</h3>
-                            <p>Professional maintenance and groundskeeping</p>
-                        </div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon amber">✉️</div>
-                        <div class="feature-content">
-                            <h3>Family Support</h3>
-                            <p>Compassionate guidance through every step</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="search-section">
+            <div class="search-grid">
+                <input type="text" class="search-input" placeholder="First Name" id="firstName">
+                <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
+                <input type="text" class="search-input" placeholder="Last Name" id="lastName">
+            </div>
+            
+            <div class="search-row">
+                <select class="search-select" id="yearBorn">
+                    <option value="">Year Born</option>
+                    <option value="1920">1920</option>
+                    <option value="1925">1925</option>
+                    <option value="1930">1930</option>
+                    <option value="1935">1935</option>
+                    <option value="1940">1940</option>
+                </select>
+                <select class="search-select" id="yearDied">
+                    <option value="">Year Died</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                </select>
             </div>
 
-            <!-- Interactive Map -->
-            <div class="map-section">
-                <div class="map-container">
-                    <h3 class="map-title">Memorial Grounds Map</h3>
-                    <p class="map-subtitle">Click on any area to learn more about available options</p>
+            <button class="search-btn" onclick="searchRecords()">SEARCH 🔍</button>
 
-                    <svg class="map-svg" viewBox="0 0 800 600">
-                        <!-- Background patterns and gradients -->
-                        <defs>
-                            <pattern id="grass" patternUnits="userSpaceOnUse" width="4" height="4">
-                                <rect width="4" height="4" fill="#f0f9f0"/>
-                                <circle cx="2" cy="2" r="0.5" fill="#e8f5e8"/>
-                            </pattern>
-                            <linearGradient id="water" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#bfdbfe"/>
-                                <stop offset="100%" stop-color="#93c5fd"/>
-                            </linearGradient>
-                        </defs>
-
-                        <!-- Pathways -->
-                        <path d="M50 300 Q200 280 350 300 T650 300" stroke="#d6d3d1" stroke-width="20" fill="none" opacity="0.8"/>
-                        <path d="M400 50 Q400 200 400 350 Q400 500 400 550" stroke="#d6d3d1" stroke-width="16" fill="none" opacity="0.8"/>
-                        <path d="M200 150 Q300 200 400 250" stroke="#d6d3d1" stroke-width="12" fill="none" opacity="0.6"/>
-
-                        <!-- Water feature -->
-                        <ellipse cx="600" cy="450" rx="80" ry="40" fill="url(#water)" opacity="0.7"/>
-                        <ellipse cx="600" cy="450" rx="60" ry="30" fill="#dbeafe" opacity="0.5"/>
-
-                        <!-- Trees -->
-                        <g>
-                            <circle cx="100" cy="100" r="25" fill="#22c55e" opacity="0.8"/>
-                            <rect x="95" y="120" width="10" height="20" fill="#92400e"/>
-                            <circle cx="700" cy="120" r="30" fill="#16a34a" opacity="0.8"/>
-                            <rect x="695" y="145" width="10" height="25" fill="#92400e"/>
-                            <circle cx="150" cy="500" r="20" fill="#22c55e" opacity="0.8"/>
-                            <rect x="145" y="515" width="10" height="15" fill="#92400e"/>
-                            <circle cx="650" cy="200" r="25" fill="#16a34a" opacity="0.8"/>
-                            <rect x="645" y="220" width="10" height="20" fill="#92400e"/>
-                        </g>
-
-                        <!-- Heritage Gardens (Block A) -->
-                        <rect class="map-area" data-area="heritage" x="80" y="150" width="180" height="120" 
-                              fill="#f0fdf4" stroke="#22c55e" stroke-width="2" rx="8"/>
-                        <text x="170" y="200" text-anchor="middle" class="map-label">Heritage</text>
-                        <text x="170" y="220" text-anchor="middle" class="map-label">Gardens</text>
-                        <circle cx="120" cy="180" r="3" fill="#22c55e"/>
-                        <circle cx="140" cy="190" r="3" fill="#22c55e"/>
-                        <circle cx="200" cy="185" r="3" fill="#22c55e"/>
-
-                        <!-- Family Estates (Block B) -->
-                        <rect class="map-area" data-area="family" x="300" y="80" width="200" height="140" 
-                              fill="#fffbeb" stroke="#f59e0b" stroke-width="2" rx="8"/>
-                        <text x="400" y="140" text-anchor="middle" class="map-label">Family Estates</text>
-                        <rect x="330" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
-                        <rect x="370" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
-                        <rect x="410" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
-                        <rect x="450" y="110" width="30" height="20" fill="#f59e0b" opacity="0.3" rx="2"/>
-
-                        <!-- Columbarium -->
-                        <rect class="map-area" data-area="columbarium" x="540" y="80" width="180" height="100" 
-                              fill="#f1f5f9" stroke="#6366f1" stroke-width="2" rx="8"/>
-                        <text x="630" y="125" text-anchor="middle" class="map-label">Serenity</text>
-                        <text x="630" y="145" text-anchor="middle" class="map-label">Columbarium</text>
-                        <rect x="560" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
-                        <rect x="580" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
-                        <rect x="600" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
-                        <rect x="620" y="100" width="8" height="50" fill="#6366f1" opacity="0.4"/>
-
-                        <!-- Garden of Remembrance -->
-                        <ellipse class="map-area" data-area="garden" cx="200" cy="400" rx="120" ry="80" 
-                                 fill="#fdf2f8" stroke="#f472b6" stroke-width="2"/>
-                        <text x="200" y="390" text-anchor="middle" class="map-label">Garden of</text>
-                        <text x="200" y="410" text-anchor="middle" class="map-label">Remembrance</text>
-                        <circle cx="160" cy="370" r="4" fill="#f472b6" opacity="0.6"/>
-                        <circle cx="180" cy="430" r="4" fill="#f472b6" opacity="0.6"/>
-                        <circle cx="220" cy="360" r="4" fill="#f472b6" opacity="0.6"/>
-                        <circle cx="240" cy="420" r="4" fill="#f472b6" opacity="0.6"/>
-
-                        <!-- Memorial Chapel -->
-                        <rect class="map-area" data-area="chapel" x="450" y="350" width="160" height="100" 
-                              fill="#faf5ff" stroke="#a855f7" stroke-width="2" rx="8"/>
-                        <text x="530" y="395" text-anchor="middle" class="map-label">Memorial Chapel</text>
-                        <text x="530" y="415" text-anchor="middle" class="map-label">& Administration</text>
-                        <polygon points="500,370 530,350 560,370" fill="#a855f7" opacity="0.5"/>
-                        <rect x="515" y="370" width="30" height="40" fill="#a855f7" opacity="0.3"/>
-
-                        <!-- Veterans Memorial -->
-                        <rect class="map-area" data-area="veterans" x="80" y="320" width="180" height="100" 
-                              fill="#fefefe" stroke="#ef4444" stroke-width="2" rx="8"/>
-                        <text x="170" y="365" text-anchor="middle" class="map-label">Veterans</text>
-                        <text x="170" y="385" text-anchor="middle" class="map-label">Memorial</text>
-                        <polygon points="140,340 150,330 160,340 160,350 140,350" fill="#ef4444" opacity="0.6"/>
-                        <rect x="145" y="350" width="10" height="15" fill="#92400e"/>
-
-                        <!-- Decorative elements -->
-                        <circle cx="350" cy="500" r="15" fill="#22c55e" opacity="0.4"/>
-                        <circle cx="450" cy="520" r="12" fill="#16a34a" opacity="0.4"/>
-                        <circle cx="550" cy="510" r="18" fill="#22c55e" opacity="0.4"/>
-                    </svg>
-                </div>
-
-                <!-- Info Card -->
-                <div id="info-card" class="info-card">
-                    <div class="info-card-header">
-                        <div>
-                            <h4 id="info-title" class="info-card-title"></h4>
-                            <p id="info-description" class="info-card-description"></p>
-                        </div>
-                        <button class="close-btn" onclick="closeInfoCard()">×</button>
-                    </div>
-                    <div class="info-grid">
-                        <div class="info-item green">
-                            <p class="info-item-label">Availability</p>
-                            <p id="info-availability" class="info-item-value"></p>
-                        </div>
-                        <div class="info-item blue">
-                            <p class="info-item-label">Pricing</p>
-                            <p id="info-price" class="info-item-value"></p>
-                        </div>
-               <div class="info-actions">
-                 <button class="btn btn-primary btn-sm" 
-                    id="schedule-visit-btn" 
-                    onclick="location.href='/appointment'">
-                    Schedule Visit
-                    </button>
-
-                <button class="btn btn-secondary btn-sm" 
-                   id="request-info-btn" 
-                   onclick="location.href='/maps'">
-                   Request Info
-                </button>
+            <!-- Cemetery Plot Visualization -->
+            <div class="plot-container">
+                <div class="plot-grid" id="plotGrid">
+                    <!-- Plots will be generated by JavaScript -->
                 </div>
             </div>
         </div>
-    </div>
-    </div>
+    </main>
+
+            <!-- Footer Information -->
+            <footer class="footer-info">
+                <div class="footer-content">
+                    
+                    <div class="footer-section">
+                        <h4>Office Hours</h4>
+                        <p>Mon-Fri: 8:00 AM - 6:00 PM<br>
+                        Sat-Sun: 9:00 AM - 4:00 PM</p>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Visit Us</h4>
+                        <p>123 Memorial Drive<br>
+                        Peaceful Valley, CA 90210</p>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Call Us</h4>
+                        <p><a href="tel:555-123-4567">(555) 123-4567</a><br>
+                        Available 24/7</p>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Email Us</h4>
+                        <p>
+                            <a href="mailto:info@everlastingpeace.com">info@everlastingpeace.com</a><br>
+                            <a href="mailto:support@everlastingpeace.com">support@everlastingpeace.com</a>
+                        </p>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <div style="display: flex; gap: 2rem; align-items: flex-start;">
+                            <div>
+                                <h4>Facebook Page</h4>
+                                <p><a href="#">Everlasting PEACE Memorial Park</a></p>
+                            </div>
+                            <div>
+                                <h4>Frequently Asked Questions</h4>
+                                <p><a href="#faq">FAQs</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </footer>
+
     <script>
-        // Area data
-        const areas = {
-            heritage: {
-                name: "Heritage Gardens",
-                description: "Traditional burial plots surrounded by mature oak trees and seasonal flowers.",
-                available: "24 plots available",
-                price: "Starting from ₱20,500"
-            },
-            family: {
-                name: "Family Estates",
-                description: "Spacious family plots with personalized memorial options and garden spaces.",
-                available: "12 family plots available",
-                price: "Starting from ₱35,500"
-            },
-            columbarium: {
-                name: "Serenity Columbarium",
-                description: "Beautiful indoor and outdoor niches with peaceful water features.",
-                available: "156 niches available",
-                price: "Starting from ₱40,200"
-            },
-            garden: {
-                name: "Garden of Remembrance",
-                description: "Tranquil memorial garden with benches, fountains, and reflection areas.",
-                available: "36 memorial spaces",
-                price: "Starting from ₱35,800"
-            },
-            chapel: {
-                name: "Memorial Chapel",
-                description: "Elegant chapel for services with adjacent administrative offices.",
-                available: "Services available",
-                price: "Contact for pricing"
-            },
-            veterans: {
-                name: "Veterans Memorial",
-                description: "Dedicated section honoring our military heroes with flag displays.",
-                available: "48 plots available",
-                price: "Starting from ₱45,000"
-            }
-        };
-
-        let selectedArea = null;
-
-        // Add click event listeners to map areas
-        document.addEventListener('DOMContentLoaded', function() {
-            const mapAreas = document.querySelectorAll('.map-area');
+        // Generate cemetery plots
+        function generatePlots() {
+            const plotGrid = document.getElementById('plotGrid');
+            const totalPlots = 144; // 12x12 grid
             
-            mapAreas.forEach(area => {
-                area.addEventListener('click', function() {
-                    const areaId = this.getAttribute('data-area');
-                    selectArea(areaId, this);
-                });
+            for (let i = 0; i < totalPlots; i++) {
+                const plot = document.createElement('div');
+                plot.className = 'plot';
+                
+                // Randomly assign occupied or available status
+                if (Math.random() > 0.4) {
+                    plot.classList.add('occupied');
+                } else {
+                    plot.classList.add('available');
+                }
+                
+                plot.addEventListener('click', () => selectPlot(plot, i));
+                plot.style.animationDelay = `${i * 0.01}s`;
+                
+                plotGrid.appendChild(plot);
+            }
+        }
 
-                area.addEventListener('mouseenter', function() {
-                    if (this !== selectedArea) {
-                        this.style.filter = 'brightness(1.1)';
-                    }
-                });
+        // Select plot functionality
+        function selectPlot(plot, index) {
+            // Remove previous selections
+            document.querySelectorAll('.plot.selected').forEach(p => {
+                p.classList.remove('selected');
+                p.style.background = p.classList.contains('occupied') ? '#fff' : 'rgba(255,255,255,0.2)';
+            });
+            
+            // Select current plot
+            plot.classList.add('selected');
+            plot.style.background = '#4a90e2';
+            plot.style.boxShadow = '0 0 20px rgba(74, 144, 226, 0.6)';
+            
+            // Show plot information (simulated)
+            showPlotInfo(index, plot.classList.contains('occupied'));
+        }
 
-                area.addEventListener('mouseleave', function() {
-                    if (this !== selectedArea) {
-                        this.style.filter = 'brightness(1)';
-                    }
-                });
+        // Show plot information
+        function showPlotInfo(plotNumber, isOccupied) {
+            const status = isOccupied ? 'Occupied' : 'Available';
+            const message = isOccupied 
+                ? `Plot ${plotNumber + 1} is occupied. Click to view memorial details.`
+                : `Plot ${plotNumber + 1} is available for purchase. Contact us for more information.`;
+            
+            // Create a temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0,0,0,0.9);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.2);
+                z-index: 10000;
+                max-width: 300px;
+                backdrop-filter: blur(10px);
+                animation: fadeInUp 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Search functionality
+        function searchRecords() {
+            const firstName = document.getElementById('firstName').value;
+            const middleName = document.getElementById('middleName').value;
+            const lastName = document.getElementById('lastName').value;
+            const yearBorn = document.getElementById('yearBorn').value;
+            const yearDied = document.getElementById('yearDied').value;
+            
+            // Simulate search with loading effect
+            const searchBtn = document.querySelector('.search-btn');
+            const originalText = searchBtn.textContent;
+            
+            searchBtn.textContent = 'SEARCHING...';
+            searchBtn.style.background = '#666';
+            searchBtn.disabled = true;
+            
+            setTimeout(() => {
+                searchBtn.textContent = originalText;
+                searchBtn.style.background = 'linear-gradient(135deg, #4a5d4a, #5a6d5a)';
+                searchBtn.disabled = false;
+                
+                // Show search results
+                showSearchResults(firstName, lastName);
+            }, 2000);
+        }
+
+        // Show search results
+        function showSearchResults(firstName, lastName) {
+            const hasQuery = firstName || lastName;
+            const resultMessage = hasQuery 
+                ? `Search results for: ${firstName} ${lastName}`.trim()
+                : 'Please enter search criteria';
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.95);
+                color: white;
+                padding: 2rem;
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.2);
+                z-index: 10000;
+                max-width: 400px;
+                text-align: center;
+                backdrop-filter: blur(15px);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            `;
+            
+            notification.innerHTML = `
+                <h3 style="margin-bottom: 1rem; color: #4a90e2;">${resultMessage}</h3>
+                <p style="margin-bottom: 1.5rem; color: #d0d0d0;">
+                    ${hasQuery ? 'Searching memorial records...' : 'Enter name or dates to search our records.'}
+                </p>
+                <button onclick="this.parentElement.remove()" style="
+                    background: linear-gradient(135deg, #4a5d4a, #5a6d5a);
+                    color: white;
+                    border: none;
+                    padding: 0.5rem 1.5rem;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">Close</button>
+            `;
+            
+            document.body.appendChild(notification);
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             });
         });
 
-        function selectArea(areaId, element) {
-            // Remove previous selection
-            if (selectedArea) {
-                selectedArea.classList.remove('selected');
-                selectedArea.style.filter = 'brightness(1)';
+        // Add input event listeners for real-time feedback
+        document.querySelectorAll('.search-input, .search-select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            generatePlots();
+            
+            // Add entrance animation delay
+            setTimeout(() => {
+                document.querySelector('.content-section').style.opacity = '1';
+                document.querySelector('.search-section').style.opacity = '1';
+            }, 300);
+        });
+
+        // Add keyboard support for search
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchRecords();
             }
-
-            // Set new selection
-            selectedArea = element;
-            element.classList.add('selected');
-            element.style.filter = 'brightness(1.2)';
-
-            // Update info card
-            const area = areas[areaId];
-            document.getElementById('info-title').textContent = area.name;
-            document.getElementById('info-description').textContent = area.description;
-            document.getElementById('info-availability').textContent = area.available;
-            document.getElementById('info-price').textContent = area.price;
-
-            // Show info card
-            document.getElementById('info-card').classList.add('active');
-        }
-
-        function closeInfoCard() {
-            document.getElementById('info-card').classList.remove('active');
-            if (selectedArea) {
-                selectedArea.classList.remove('selected');
-                selectedArea.style.filter = 'brightness(1)';
-                selectedArea = null;
-            }
-        }
+        });
     </script>
 </body>
 </html>
