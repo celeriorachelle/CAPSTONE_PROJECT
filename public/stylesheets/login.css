@@ -29,29 +29,6 @@ section {
     z-index: 10;
 }
 
-.home-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 25px;
-    color: #101b0d;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.home-btn:hover {
-    background-color: rgba(255, 255, 255, 1);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    color: #101b0d;
-}
-
 .login-container {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -79,9 +56,9 @@ section {
     font-size: 40px;
     font-family: 'cmu-serif', serif;
     font-weight: 300;
-    margin: 0;
+    margin: 0 0 0px 0;
     padding: 0;
-    line-height: 1.2;
+    line-height: 1.1;
 }
 .subtitle {
             font-size: 15px;
@@ -89,11 +66,11 @@ section {
             margin-bottom: 3rem;
             font-weight: 300;
             font-family: poppins, sans-serif;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-align: left;
 }
 .input-form {
-    width: 67%;
+    width: 60%;
     color: #d0d1d8;
 }
 
