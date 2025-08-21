@@ -8,52 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-      #map {
-        height: 400px;
-        width: 700px;
-        max-width: 100%;
-        aspect-ratio: 1.75;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        margin: 0 auto;
-        background: rgba(0, 0, 0, 0.344);
-        backdrop-filter: blur(5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.456);
-        opacity: 1;
-      }
-      
-      /* Adjust map image transparency */
-      #map .leaflet-image-layer {
-        opacity: 0.6 !important;
-      }
-      
-      /* Add padding to match image dimensions (1017x573) */
-      #map .leaflet-container {
-        padding: 20px;
-      }
-      
-      @media (max-width: 768px) {
-        #map {
-          height: 300px;
-          width: 525px;
-        }
-      }
-      
-      @media (max-width: 600px) {
-        #map {
-          height: 250px;
-          width: 437px;
-        }
-      }
-      
-      @media (max-width: 480px) {
-        #map {
-          height: 200px;
-          width: 350px;
-        }
-      }
-    </style>
+
 </head> 
 <body>
   <header class="header">
@@ -69,20 +24,15 @@
                 </nav>
             </div>
           <div class="profile-dropdown-wrapper">
-            <!-- Profile Icon -->
             <div class="profile-btn">
                 <i class="bi bi-person-circle"></i>
             </div>
-
-            <!-- Dropdown Arrow -->
             <div class="dropdown-toggle">
                 <i class="bi bi-caret-down-fill"></i>
             </div>
-
-            <!-- Dropdown Menu -->
            <div class="dropdown-menu">
-            <a href="#" class="dropdown-link">Sign In</a>
-            <a href="#" class="dropdown-link">Sign Up</a>
+            <a href="/login" class="dropdown-link">Sign In</a>
+            <a href="/register" class="dropdown-link">Sign Up</a>
             </div>
 
             </div>
@@ -93,7 +43,6 @@
             const profileBtn = document.querySelector(".profile-btn");
             const dropdownToggle = document.querySelector(".dropdown-toggle");
 
-            // Toggle dropdown on profile or arrow click
             [profileBtn, dropdownToggle].forEach(btn => {
                 btn.addEventListener("click", () => {
                     profileBtn.classList.toggle("active");
@@ -101,7 +50,6 @@
                 });
             });
 
-            // Close dropdown when clicking outside
             document.addEventListener("click", (e) => {
                 if (!e.target.closest(".profile-dropdown-wrapper")) {
                     profileBtn.classList.remove("active");
@@ -114,7 +62,6 @@
         </div></div>
     </header>
 
-    <!-- Main Content -->
     <main class="main-container">
         <div class="content-section">
             <div class="text-content">
@@ -163,26 +110,22 @@
                 <div id="map"></div>
                         <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const w = 1017; // image width
-    const h = 573;  // image height
+    const w = 1017; 
+    const h = 573;  
 
-    // Initialize map
     const map = L.map("map", {
         crs: L.CRS.Simple,
         minZoom: -1,
         maxZoom: 4
     });
 
-    // Set bounds and overlay image
     const bounds = [[0,0], [h,w]];
     L.imageOverlay("/images/map.png", bounds).addTo(map);
     map.fitBounds(bounds);
 
-    // --- CATEGORY DATA AND MARKERS ---
-    // Layer for plot markers
     const plotLayer = L.layerGroup().addTo(map);
 
-    // Categories with plots data
+    // Sample data for categories and plots
     const categories = [
         { name: "Garden A", coords: [100, 200], plots: [
             {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
@@ -319,51 +262,9 @@ map.on('click', function(e) {
         </div>
     </main>
 
-            <!-- Footer Information -->
-            <footer class="footer-info">
-                <div class="footer-content">
-                    
-                    <div class="footer-section">
-                        <h4>Office Hours</h4>
-                        <p>Mon-Fri: 8:00 AM - 6:00 PM<br>
-                        Sat-Sun: 9:00 AM - 4:00 PM</p>
-                    </div>
-                    
-                    <div class="footer-section">
-                        <h4>Visit Us</h4>
-                        <p>123 Memorial Drive<br>
-                        Peaceful Valley, CA 90210</p>
-                    </div>
-                    
-                    <div class="footer-section">
-                        <h4>Call Us</h4>
-                        <p><a href="tel:555-123-4567">(555) 123-4567</a><br>
-                        Available 24/7</p>
-                    </div>
-                    
-                    <div class="footer-section">
-                        <h4>Email Us</h4>
-                        <p>
-                            <a href="mailto:info@everlastingpeace.com">info@everlastingpeace.com</a><br>
-                            <a href="mailto:support@everlastingpeace.com">support@everlastingpeace.com</a>
-                        </p>
-                    </div>
-                    
-                    <div class="footer-section">
-                        <div style="display: flex; gap: 2rem; align-items: flex-start;">
-                            <div>
-                                <h4>Facebook Page</h4>
-                                <p><a href="#">Everlasting PEACE Memorial Park</a></p>
-                            </div>
-                            <div>
-                                <h4>Frequently Asked Questions</h4>
-                                <p><a href="#faq">FAQs</a></p>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </footer>
+           <footer>
+        <%- include('partials/footer') %>
+    </footer>
 
     <script>
     

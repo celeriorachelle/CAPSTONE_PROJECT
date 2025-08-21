@@ -1,0 +1,92 @@
+<style>
+    .footer-info {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        background: #101b0d;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        color: #fffff5;
+    }
+    .footer-content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding: 1.5rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        font-size: 0.95rem;
+    }
+    .footer-section {
+        min-width: 180px;
+        margin: 0.5rem 0;
+    }
+    .footer-section h4 {
+        margin-bottom: 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+    .footer-section a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    .footer-section a:hover {
+        text-decoration: underline;
+    }
+    @media (max-width: 800px) {
+        .footer-content {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1rem 0.5rem;
+        }
+        .footer-section {
+            min-width: unset;
+        }
+    }
+</style>
+
+<footer class="footer-info">
+    <div class="footer-content">
+        
+        <div class="footer-section">
+            <h4>Office Hours</h4>
+            <p>Mon-Fri: 8:00 AM - 6:00 PM<br>
+            Sat-Sun: 9:00 AM - 4:00 PM</p>
+        </div>
+        
+        <div class="footer-section">
+            <h4>Visit Us</h4>
+            <p>123 Memorial Drive<br>
+            Peaceful Valley, CA 90210</p>
+        </div>
+        
+        <div class="footer-section">
+            <h4>Call Us</h4>
+            <p><a href="tel:555-123-4567">(555) 123-4567</a><br>
+            Available 24/7</p>
+        </div>
+        
+        <div class="footer-section">
+            <h4>Email Us</h4>
+            <p>
+                <a href="mailto:info@everlastingpeace.com">info@everlastingpeace.com</a><br>
+                <a href="mailto:support@everlastingpeace.com">support@everlastingpeace.com</a>
+            </p>
+        </div>
+        
+        <div class="footer-section">
+            <div style="display: flex; gap: 2rem; align-items: flex-start;">
+                <div>
+                    <h4>Facebook Page</h4>
+                    <p><a href="#">Everlasting PEACE Memorial Park</a></p>
+                </div>
+                <div>
+                    <h4>Frequently Asked Questions</h4>
+                    <p><a href="#faq">FAQs</a></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</footer>
