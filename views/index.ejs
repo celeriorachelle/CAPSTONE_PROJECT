@@ -6,19 +6,68 @@
     <title>Everlasting Peace Memorial Park Cemetery</title>
     <link rel="stylesheet" href="/stylesheets/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 400px;
+        width: 700px;
+        max-width: 100%;
+        aspect-ratio: 1.75;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        margin: 0 auto;
+        background: rgba(0, 0, 0, 0.344);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.456);
+        opacity: 1;
+      }
+      
+      /* Adjust map image transparency */
+      #map .leaflet-image-layer {
+        opacity: 0.6 !important;
+      }
+      
+      /* Add padding to match image dimensions (1017x573) */
+      #map .leaflet-container {
+        padding: 20px;
+      }
+      
+      @media (max-width: 768px) {
+        #map {
+          height: 300px;
+          width: 525px;
+        }
+      }
+      
+      @media (max-width: 600px) {
+        #map {
+          height: 250px;
+          width: 437px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        #map {
+          height: 200px;
+          width: 350px;
+        }
+      }
+    </style>
 </head> 
 <body>
   <header class="header">
         <div class="nav-container">
-            <div class="logo">
-            <img src="/images/logo2.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
-            <span>MEMORIAL SERVICES</span>
+            <div class="left-nav-section">
+                <div class="logo">
+                    <img src="/images/logo2.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
+                </div>
+                <nav class="nav-links">
+                    <a href="#inquiries">INQUIRIES</a>
+                    <a href="#support">SUPPORT</a>
+                    <a href="#contact">CONTACT US</a>
+                </nav>
             </div>
-            <nav class="nav-links">
-            <a href="#inquiries">INQUIRIES</a>
-            <a href="#support">SUPPORT</a>
-            <a href="#contact">CONTACT US</a>
-            </nav>
           <div class="profile-dropdown-wrapper">
             <!-- Profile Icon -->
             <div class="profile-btn">
@@ -68,50 +117,204 @@
     <!-- Main Content -->
     <main class="main-container">
         <div class="content-section">
-            <h1 class="cemetery-title">Everlasting Peace Memorial Park Cemetery</h1>
-            <p class="subtitle">Gardens of Peace</p>
-            
-            <div class="section-content">
-                <h2 class="section-header">A Place to Remember</h2>
-                <p class="section-description">
-                    Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
-                </p>
+            <div class="text-content">
+                <h1 class="cemetery-title"><span class="title-main">Everlasting Peace Memorial</span> <span class="title-sub"> <br>Park Cemetery</span></h1>
+                <p class="subtitle">Gardens of Peace</p>
+                
+                <div class="section-content">
+                    <h2 class="section-header">A Place to Remember</h2>
+                    <p class="section-description">
+                        Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
+                    </p>
+                </div>
             </div>
         </div>
 
-        <div class="search-section">
-            <div class="search-grid">
-                <input type="text" class="search-input" placeholder="First Name" id="firstName">
-                <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
-                <input type="text" class="search-input" placeholder="Last Name" id="lastName">
-            </div>
-            
-            <div class="search-row">
-                <select class="search-select" id="yearBorn">
-                    <option value="">Year Born</option>
-                    <option value="1920">1920</option>
-                    <option value="1925">1925</option>
-                    <option value="1930">1930</option>
-                    <option value="1935">1935</option>
-                    <option value="1940">1940</option>
-                </select>
-                <select class="search-select" id="yearDied">
-                    <option value="">Year Died</option>
-                    <option value="2020">2020</option>
-                    <option value="2021">2021</option>
-                    <option value="2022">2022</option>
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                </select>
-            </div>
-
-            <button class="search-btn" onclick="searchRecords()">SEARCH 🔍</button>
-
-            <!-- Cemetery Plot Visualization -->
-            <div class="plot-container">
-                <div class="plot-grid" id="plotGrid">
-                    <!-- Plots will be generated by JavaScript -->
+        <div class="right-column">
+            <div class="search-fields">
+                <div class="search-grid">
+                    <input type="text" class="search-input" placeholder="First Name" id="firstName">
+                    <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
+                    <input type="text" class="search-input" placeholder="Last Name" id="lastName">
                 </div>
+                
+                <div class="search-row">
+                    <select class="search-select" id="yearBorn">
+                        <option value="">Year Born</option>
+                        <option value="1920">1920</option>
+                        <option value="1925">1925</option>
+                        <option value="1930">1930</option>
+                        <option value="1935">1935</option>
+                        <option value="1940">1940</option>
+                    </select>
+                    <select class="search-select" id="yearDied">
+                        <option value="">Year Died</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                    </select>
+                    <button class="search-btn" onclick="searchRecords()">SEARCH <i class="bi bi-search"></i></button>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                        <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const w = 1017; // image width
+    const h = 573;  // image height
+
+    // Initialize map
+    const map = L.map("map", {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 4
+    });
+
+    // Set bounds and overlay image
+    const bounds = [[0,0], [h,w]];
+    L.imageOverlay("/images/map.png", bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    // --- CATEGORY DATA AND MARKERS ---
+    // Layer for plot markers
+    const plotLayer = L.layerGroup().addTo(map);
+
+    // Categories with plots data
+    const categories = [
+        { name: "Garden A", coords: [100, 200], plots: [
+            {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
+            {coords: [130, 220], status: "occupied", info: "Plot 2: Jane Smith, 1930-1990"},
+            {coords: [125, 215], status: "reserved", info: "Plot 3: Reserved"}
+        ]},
+        { name: "Garden B", coords: [300, 500], plots: [
+            {coords: [310, 510], status: "available", info: "Plot 4: Someone Else"}
+        ]}
+    ];
+
+// Function to get color for plot status
+function getPlotColor(status) {
+    switch(status) {
+        case "available": return "green";
+        case "occupied": return "red";
+        case "reserved": return "yellow";
+        default: return "gray";
+    }
+}
+
+// Track currently zoomed plot
+let currentZoomedPlot = null;
+let originalView = null;
+
+// Show plot markers
+function showPlots(plots) {
+    plotLayer.clearLayers();
+    currentZoomedPlot = null; // Reset zoom state
+
+    plots.forEach((p, index) => {
+        const color = getPlotColor(p.status);
+        const borderColor = color; // same color for border
+
+        // Add spacing between icons - offset each plot by 60 pixels
+        const spacedCoords = [
+            p.coords[0] + (index * 60), // Add vertical spacing
+            p.coords[1] + (index * 60)  // Add horizontal spacing
+        ];
+
+        const icon = L.divIcon({
+            className: "plot-dot",
+            html: `<div style="
+                width: 50px;
+                height: 50px;
+                border-radius: 25%;
+                background-color: ${color};
+                border: 2px solid black;
+                margin: 10px;
+            "></div>`,
+            iconSize: [50, 50], // Updated to match the actual size
+            iconAnchor: [25, 25] // Center the larger dot
+        });
+
+        const marker = L.marker(spacedCoords, {icon: icon})
+         .addTo(plotLayer)
+         .bindPopup(p.info);
+
+        // Add click event for zoom functionality
+        marker.on('click', function(e) {
+            e.originalEvent.stopPropagation(); // Prevent map click event
+            
+            if (currentZoomedPlot === marker) {
+                // If clicking the same plot, zoom out
+                if (originalView) {
+                    map.setView(originalView.center, originalView.zoom);
+                }
+                currentZoomedPlot = null;
+                originalView = null;
+            } else {
+                // Store original view if not already stored
+                if (!originalView) {
+                    originalView = {
+                        center: map.getCenter(),
+                        zoom: map.getZoom()
+                    };
+                }
+                
+                // Zoom in to the clicked plot
+                map.setView(spacedCoords, 4); // Higher zoom level
+                currentZoomedPlot = marker;
+            }
+        });
+    });
+}
+
+// Icon for categories (larger dots)
+function addCategoryMarkers(categories) {
+    categories.forEach(cat => {
+        const icon = L.divIcon({
+            className: "category-dot",
+            html: `<div style="
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: yellow;
+                border: 2px solid yellow;
+            "></div>`,
+            iconSize: [10, 10],
+            iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker(cat.coords, {icon: icon}).addTo(map);
+        marker.bindPopup(`<b>${cat.name}</b><br>Click to view plots`);
+
+        marker.on('click', () => {
+            map.setView(cat.coords, 2); // zoom in
+            showPlots(cat.plots);
+        });
+    });
+}
+
+// Add categories to the map
+addCategoryMarkers(categories);
+
+// Add map click event to zoom out when clicking empty space
+map.on('click', function(e) {
+    if (currentZoomedPlot && originalView) {
+        map.setView(originalView.center, originalView.zoom);
+        currentZoomedPlot = null;
+        originalView = null;
+    } else if (map.getZoom() >= 2) {
+        // If we're zoomed in to a garden view, zoom out to main view and clear plots
+        map.fitBounds(bounds);
+        plotLayer.clearLayers();
+        currentZoomedPlot = null;
+        originalView = null;
+    }
+});
+
+});
+</script>
             </div>
         </div>
     </main>
@@ -163,148 +366,7 @@
             </footer>
 
     <script>
-        // Generate cemetery plots
-        function generatePlots() {
-            const plotGrid = document.getElementById('plotGrid');
-            const totalPlots = 144; // 12x12 grid
-            
-            for (let i = 0; i < totalPlots; i++) {
-                const plot = document.createElement('div');
-                plot.className = 'plot';
-                
-                // Randomly assign occupied or available status
-                if (Math.random() > 0.4) {
-                    plot.classList.add('occupied');
-                } else {
-                    plot.classList.add('available');
-                }
-                
-                plot.addEventListener('click', () => selectPlot(plot, i));
-                plot.style.animationDelay = `${i * 0.01}s`;
-                
-                plotGrid.appendChild(plot);
-            }
-        }
-
-        // Select plot functionality
-        function selectPlot(plot, index) {
-            // Remove previous selections
-            document.querySelectorAll('.plot.selected').forEach(p => {
-                p.classList.remove('selected');
-                p.style.background = p.classList.contains('occupied') ? '#fff' : 'rgba(255,255,255,0.2)';
-            });
-            
-            // Select current plot
-            plot.classList.add('selected');
-            plot.style.background = '#4a90e2';
-            plot.style.boxShadow = '0 0 20px rgba(74, 144, 226, 0.6)';
-            
-            // Show plot information (simulated)
-            showPlotInfo(index, plot.classList.contains('occupied'));
-        }
-
-        // Show plot information
-        function showPlotInfo(plotNumber, isOccupied) {
-            const status = isOccupied ? 'Occupied' : 'Available';
-            const message = isOccupied 
-                ? `Plot ${plotNumber + 1} is occupied. Click to view memorial details.`
-                : `Plot ${plotNumber + 1} is available for purchase. Contact us for more information.`;
-            
-            // Create a temporary notification
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: rgba(0,0,0,0.9);
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 8px;
-                border: 1px solid rgba(255,255,255,0.2);
-                z-index: 10000;
-                max-width: 300px;
-                backdrop-filter: blur(10px);
-                animation: fadeInUp 0.3s ease;
-            `;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Search functionality
-        function searchRecords() {
-            const firstName = document.getElementById('firstName').value;
-            const middleName = document.getElementById('middleName').value;
-            const lastName = document.getElementById('lastName').value;
-            const yearBorn = document.getElementById('yearBorn').value;
-            const yearDied = document.getElementById('yearDied').value;
-            
-            // Simulate search with loading effect
-            const searchBtn = document.querySelector('.search-btn');
-            const originalText = searchBtn.textContent;
-            
-            searchBtn.textContent = 'SEARCHING...';
-            searchBtn.style.background = '#666';
-            searchBtn.disabled = true;
-            
-            setTimeout(() => {
-                searchBtn.textContent = originalText;
-                searchBtn.style.background = 'linear-gradient(135deg, #4a5d4a, #5a6d5a)';
-                searchBtn.disabled = false;
-                
-                // Show search results
-                showSearchResults(firstName, lastName);
-            }, 2000);
-        }
-
-        // Show search results
-        function showSearchResults(firstName, lastName) {
-            const hasQuery = firstName || lastName;
-            const resultMessage = hasQuery 
-                ? `Search results for: ${firstName} ${lastName}`.trim()
-                : 'Please enter search criteria';
-            
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0,0,0,0.95);
-                color: white;
-                padding: 2rem;
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.2);
-                z-index: 10000;
-                max-width: 400px;
-                text-align: center;
-                backdrop-filter: blur(15px);
-                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            `;
-            
-            notification.innerHTML = `
-                <h3 style="margin-bottom: 1rem; color: #4a90e2;">${resultMessage}</h3>
-                <p style="margin-bottom: 1.5rem; color: #d0d0d0;">
-                    ${hasQuery ? 'Searching memorial records...' : 'Enter name or dates to search our records.'}
-                </p>
-                <button onclick="this.parentElement.remove()" style="
-                    background: linear-gradient(135deg, #4a5d4a, #5a6d5a);
-                    color: white;
-                    border: none;
-                    padding: 0.5rem 1.5rem;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: 600;
-                ">Close</button>
-            `;
-            
-            document.body.appendChild(notification);
-        }
-
+    
         // Smooth scrolling for navigation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -332,7 +394,7 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            generatePlots();
+        
             
             // Add entrance animation delay
             setTimeout(() => {
@@ -348,5 +410,6 @@
             }
         });
     </script>
+
 </body>
 </html>
