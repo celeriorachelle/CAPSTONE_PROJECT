@@ -8,8 +8,9 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { firstname, lastname, email, phone, password, confirm_password, role } = req.body;
-  const formData = { firstname, lastname, email, phone, role };
+  const { firstname, lastname, email, phone, password, confirm_password } = req.body;
+  const formData = { firstname, lastname, email, phone };
+  const role = 'user';
   let error = null;
 
   // 1. Validate First and Last name
@@ -38,20 +39,30 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Hash the password
+    // 5. Check if email already exists
+    const [existing] = await db.query(`SELECT * FROM user_tbl WHERE email = ?`, [email]);
+    if (existing.length > 0) {
+      error = 'Email already exists. Please use another email.';
+      return res.render('register', { error, formData });
+    }
+
+    // 6. Hash the password
     const password_hash = await bcrypt.hash(password, 10);
     
-    // Insert user into DB
-    const sql = `INSERT INTO user_tbl (firstName, lastName, email, contact_number, password_hash) VALUES (?, ?, ?, ?, ?)`;
-    await db.query(sql, [firstname, lastname, email, phone, password_hash || 'user']);
+    // 7. Insert user into DB
+    const sql = `
+      INSERT INTO user_tbl (firstName, lastName, email, contact_number, password_hash, role)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    await db.query(sql, [firstname, lastname, email, phone, password_hash, role]);
     
-    // Redirect to login or success page
+    // 8. Redirect to login or success page
     res.redirect('/login');
   } catch (e) {
-    error = 'Registration failed. Email may already be used.';
+    console.error(e); // log the actual error
+    error = 'Registration failed due to a server error.';
     res.render('register', { error, formData });
   }
 });
 
 module.exports = router;
-
