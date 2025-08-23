@@ -1,242 +1,267 @@
-:root {
-    --primary: #88aa7b;
-    --primary-light: #aac9a5;
-    --primary-dark: #6e8e64;
-    --accent-green: #b1d8a6;
-    --accent-red: #e58e8e;
-    --bg-light: #fdf3ea;
-    --bg-calendar: #e6f3dd;
-    --bg-form: #d1e4c6;
-    --text-dark: #111;
-    --transition: 0.3s ease;
-    --shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-  
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Roboto', sans-serif;
-  }
-  
-  body {
-    display: flex;
-    background-color: var(--bg-light);
-    min-height: 100vh;
-    color: var(--text-dark);
-    line-height: 1.6;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    width: 260px;
-    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 25px 20px;
-    transition: transform var(--transition);
-    box-shadow: var(--shadow);
-  }
-  .sidebar.hidden {
-    transform: translateX(-100%);
-  }
-  .logo {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 2.5rem;
-    text-align: center;
-  }
-  /* Sidebar */
-.sidebar ul li {
-    margin-bottom: 12px;
-    list-style: none;
-  }
-  
-  .sidebar ul li a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    background-color: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    cursor: pointer;
-    color: #fff;
-    font-weight: 500;
-    text-decoration: none;
-    transition: background-color var(--transition), transform var(--transition), color var(--transition);
-  }
-  
-  .sidebar ul li a:hover,
-  .sidebar ul li a:focus {
-    background-color: var(--primary-light);
-    color: var(--text-dark);
-    transform: translateX(6px);
-    outline: none;
-  }
-  
-  /* Active link */
-  .sidebar ul li a.active {
-    background-color: var(--primary-dark);
-    color: #fff;
-  }
-  
-  /* Submenu */
-  .submenu {
-    list-style: none;
-    margin-top: 6px;
-    margin-left: 18px;
-    display: none;
-  }
-  
-  .submenu li a {
-    display: block;
-    background-color: rgba(255,255,255,0.15);
-    color: #fff;
-    margin-bottom: 6px;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    text-decoration: none;
-    transition: background var(--transition), color var(--transition);
-  }
-  
-  .submenu li a:hover,
-  .submenu li a:focus {
-    background-color: var(--primary-light);
-    color: var(--text-dark);
-  }
-  
-  /* Topbar */
-  .topbar {
-    width: 100%;
-    padding: 18px 28px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--bg-light);
-    border-bottom: 1px solid #ddd;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-  .search-box {
-    padding: 10px 14px;
-    width: 240px;
-    border: 1px solid var(--primary);
-    border-radius: 25px;
-    transition: border-color var(--transition), box-shadow var(--transition);
-  }
-  .search-box:focus {
-    border-color: var(--primary-dark);
-    box-shadow: 0 0 6px var(--primary-light);
-    outline: none;
-  }
-  
-  /* Content */
-  .content {
-    flex: 1;
-    padding: 40px 50px;
-    overflow-x: hidden;
-  }
-  .content h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: var(--primary-dark);
-  }
-  
-  /* Sidebar toggle button */
-  .toggle-btn {
-    background: none;
-    border: none;
-    font-size: 28px;
-    cursor: pointer;
-    transition: transform var(--transition), color var(--transition);
-    color: var(--primary-dark);
-  }
-  .toggle-btn:hover {
-    transform: rotate(90deg);
-    color: var(--primary);
-  }
-  
-  /* Card FAQ */
-  .card {
-    background: #fff;
-    padding: 30px;
-    border-radius: 14px;
-    max-width: 800px;
-    box-shadow: var(--shadow);
-    border: 1px solid #eee;
-  }
-  .card h2 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--primary-dark);
-  }
-  .faq-item {
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    padding: 14px 0;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .faq-item:hover {
-    background-color: rgba(136,170,123,0.08);
-  }
-  .faq-question {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 15px;
-    font-weight: 600;
-  }
-  .faq-question i {
-    transition: transform var(--transition);
-  }
-  .faq-item.active .faq-question i {
-    transform: rotate(180deg);
-  }
-  .faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.3s ease;
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
-  }
-  .faq-item.active .faq-answer {
-    max-height: 300px;
-    padding-top: 8px;
-  }
-  
-  /* Responsive */
-  @media (max-width: 992px) {
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+    html, body { height: 100%; }
+    body {
+      display: flex;
+      background: #f4f4f4;
+    }
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: #0b2e0b;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.4s ease-in-out;
+  transform: translateX(0);
+  z-index: 1000;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid #1f3d1f;
+  animation: fadeIn 0.5s ease;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.sidebar nav {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  padding: 14px 20px;
+  text-decoration: none;
+  color: white;
+  border-radius: 10px;
+  margin: 6px 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.sidebar nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 20px;
+  height: 2px;
+  width: 0;
+  background: white;
+  transition: width 0.3s ease;
+}
+
+.sidebar nav a:hover {
+  background: #2e4d2e;
+}
+
+.sidebar nav a:hover::after {
+  width: 60%;
+}
+
+.sidebar-footer {
+  padding: 18px;
+  font-size: 13px;
+  border-top: 1px solid #1f3d1f;
+  text-align: center;
+  opacity: 0.85;
+}
+
+/* Toggle Button */
+.toggle-btn {
+  position: fixed;
+  top: 50%;
+  left: 250px;
+  transform: translateY(-50%);
+  background: #0b2e0b;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  transition: left 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  z-index: 1100;
+}
+
+.toggle-btn:hover {
+  background: #2e4d2e;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 0;
+}
+
+/* Main Content */
+.main {
+  margin-left: 250px;
+  transition: margin-left 0.4s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+
+/* Topbar */
+.topbar {
+  background: #0b2e0b;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 30px;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+
+    /* Content */
     .content {
-      padding: 25px;
-    }
-    .card {
-      padding: 20px;
-    }
-  }
-  @media (max-width: 768px) {
-    .sidebar {
-      position: absolute;
-      height: 100%;
-      z-index: 1000;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.25);
-    }
-    .search-box {
-      width: 160px;
-    }
-    .content h1 {
-      font-size: 1.6rem;
-    }
-  }
-  @media (max-width: 480px) {
-    .topbar {
+      padding: 30px;
+      display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
+      gap: 25px;
+      align-items: center; /* Center content horizontally */
     }
-    .search-box {
-      width: 100%;
+
+    /* FAQ Section */
+    .faq-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
     }
-  }
-  
+    .faq-container h2 {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #123a12;
+    }
+    .faq-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+      background: #fafafa;
+    }
+    .faq-item:hover {
+      background: #f1f1f1;
+    }
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.5;
+    }
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+      padding-top: 10px;
+    }
+
+    /* Contact Support */
+    .contact-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .contact-card h2 {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #123a12;
+    }
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 15px;
+      color: #444;
+    }
+    .contact-info div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .contact-info span {
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media(max-width:768px) {
+      .sidebar {
+        position: fixed;
+        height: 100%;
+        z-index: 100;
+        transform: translateX(-250px);
+      }
+      .sidebar.collapsed {
+        transform: translateX(-250px);
+      }
+      .sidebar:not(.collapsed) {
+        transform: translateX(0);
+      }
+      .toggle-btn {
+        top: 15px;
+        left: 15px;
+        transform: none;
+      }
+      .sidebar.collapsed + .toggle-btn {
+        left: 15px;
+      }
+      .main {
+        margin-left: 0 !important;
+      }
+    }
+    /* Animation keyframes */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes fadeInUp {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}

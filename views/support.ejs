@@ -4,80 +4,102 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support - Everlasting Peace Memorial Park</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/stylesheets/support.css">
+    <link rel="stylesheet" href="/stylesheets/support.css">
 </head>
 <body>
   <!-- Sidebar -->
-  <nav class="sidebar" id="sidebar" aria-label="Main navigation">
-    <div class="logo">Everlasting Peace Memorial Park</div>
-    <ul>
-        <li><a href="/">Home</a></li>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      </div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+  </div>
 
-        <li onclick="toggleSubmenu()">
-          <a href="javascript:void(0)">Appointment</a>
-        </li>
-        <ul class="submenu" id="appointment-submenu">
-          <li><a href="/appointment">Create Appointment</a></li>
-          <li><a href="/appointment/view">View Appointment</a></li>
-        </ul>
-        
-        <li><a href="/burial-records">Burial Records</a></li>
-        <li><a href="/support">Support</a></li>
-        <li><a href="/settings">Setting</a></li>        
-    </ul>
-  </nav>
+  <!-- Toggle Button -->
+  <div class="toggle-btn" id="toggleBtn">◀</div>
 
-  <!-- Main Content -->
-  <div class="content">
-    <header class="topbar">
-      <button class="toggle-btn" aria-label="Toggle Menu" onclick="toggleSidebar()">&#9776;</button>
-      <input class="search-box" type="search" placeholder="Search..." aria-label="Search"/>
-    </header>
+  <!-- Main -->
+  <div class="main" id="main">
+    <div class="topbar">
+      <!-- Hide old button -->
+      <!-- <button onclick="toggleSidebar()">☰</button> -->
+      <h1>Support</h1>
+      <div>🔔 👤</div>
+    </div>
 
-    <!-- Support Content -->
-    <h1>Support</h1>
-    <div class="card">
-      <h2>Frequently Asked Questions (FAQ)</h2>
+    <div class="content">
+      <!-- FAQ -->
+      <div class="faq-container">
+        <h2>Frequently Asked Questions (FAQ)</h2>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          <span><i class="fas fa-calendar-check"></i> How do I book an appointment?</span>
-          <i class="fas fa-chevron-down"></i>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>📅 How do I book an appointment?</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            To book an appointment, go to the "Book" section in the sidebar and fill out the booking form.
+          </div>
         </div>
-        <div class="faq-answer">
-          To book an appointment, go to the "Appointment" section in the sidebar and fill out the booking form.
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>⏰ Support Hours & Response Time</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            Our team is available <strong>Monday–Friday, 8:00 AM to 5:00 PM</strong>.  
+            We typically respond within 24 hours.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>📍 Where is the cemetery located?</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            You can view the full address and map in the "View Map" section of the sidebar.
+          </div>
         </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          <span><i class="fas fa-clock"></i> Support Hours & Response Time</span>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-          Our team is available <strong>Monday–Friday, 8:00 AM to 5:00 PM</strong>.  
-          We typically respond within 24 hours.
+      <!-- Contact Support -->
+      <div class="contact-card">
+        <h2>Contact Support</h2>
+        <div class="contact-info">
+          <div>📧 <span>Email:</span> support@everlastingpeace.com</div>
+          <div>📞 <span>Phone:</span> +63 9670072385</div>
+          <div>📍 <span>Address:</span> Everlasting Peace Memorial Park, Malabon City, Philippines</div>
         </div>
       </div>
-
     </div>
   </div>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
-    }
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleBtn");
 
-    function toggleSubmenu() {
-      const submenu = document.getElementById('appointment-submenu');
-      submenu.style.display = submenu.style.display === "block" ? "none" : "block";
-    }
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      toggleBtn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+    });
 
-    // FAQ toggle
+    // Accordion effect for FAQ
     document.querySelectorAll(".faq-item").forEach(item => {
       item.addEventListener("click", () => {
+        document.querySelectorAll(".faq-item").forEach(el => {
+          if (el !== item) el.classList.remove("active");
+        });
         item.classList.toggle("active");
       });
     });
