@@ -6,8 +6,8 @@
 
 
     body { 
-    background: linear-gradient(rgba(0, 0, 0, 0.401), rgba(0, 0, 0, 0.336)), 
-    url("/images/bg.jpg") center/cover no-repeat;
+    background: linear-gradient(rgba(0, 0, 0, 0.379), rgba(0, 0, 0, 0.336)), 
+    url("/images/system (2).png") center/cover no-repeat;
     background-size: cover;
     background-attachment: fixed;
     height: 100vh;
@@ -34,11 +34,9 @@
     flex: 1; /* This makes the main content expand to fill space */
     }
 
-    /* Footer styling - it will automatically stick to bottom */
-    footer {
-    margin: 0;
-    width: 100%;
-    margin-top: auto;
+    .right-column{
+    display: flex;
+    flex-direction: column;
     }
 
     #map {
@@ -238,12 +236,14 @@
     align-items: flex-start;
     }
 
-    .right-column {
+.right-column {
     display: flex;
     flex-direction: column;
-    gap: 4rem;
-    align-items: center;
-    }
+    gap: 2rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: 100%;
+}
 
     .search-fields {
     padding: 0;
@@ -256,6 +256,7 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-top: 2rem;
     }
 
     .cemetery-title {
@@ -287,7 +288,7 @@
     }
 
     .section-description {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
     color: #ffffff;
     margin-bottom: 2rem;
@@ -353,28 +354,37 @@
     }
 
     .search-btn {
-    background: #0000007f;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem; /* space between text and icon */
+    padding: 0.5rem 0.9rem;
+    font-size: 12px;
+    background: #000000a6;
     color: white;
     border: none;
     border-radius: 25px;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.75rem;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-left: 0.5rem;
-    white-space: nowrap;
-    min-width: auto;
+    transition: background 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-left: 36.5rem;
     }
 
     .search-btn:hover {
-    background: #7d8957df;
+    background: #101b0d;
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
+    .search-btn .icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    }
+
+
+    
     .plot-container {
     display: flex;
     flex-direction: column;

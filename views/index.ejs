@@ -21,6 +21,7 @@
                     <a href="#inquiries">INQUIRIES</a>
                     <a href="#support">SUPPORT</a>
                     <a href="#contact">CONTACT US</a>
+                    <a href="/book">BOOK</a>
                 </nav>
             </div>
           <div class="profile-dropdown-wrapper">
@@ -71,55 +72,76 @@
                 <div class="section-content">
                     <h2 class="section-header">A Place to Remember</h2>
                     <p class="section-description">
-                        Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
-                    </p>
+                       Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and
+                         serenity for families and visitors.
                 </div>
             </div>
         </div>
 
         <div class="right-column">
-            <div class="search-fields">
-                <div class="search-grid">
-                    <input type="text" class="search-input" placeholder="First Name" id="firstName">
-                    <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
-                    <input type="text" class="search-input" placeholder="Last Name" id="lastName">
-                </div>
+  <div class="search-fields">
+    <div class="search-grid">
+      <!-- Text inputs -->
+      <input type="text" class="search-input" placeholder="First Name" id="firstName">
+      <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
+      <input type="text" class="search-input" placeholder="Last Name" id="lastName">
 
-                <!-- Info Card -->
-                <div id="info-card" class="info-card">
-                    <div class="info-card-header">
-                        <div>
-                            <h4 id="info-title" class="info-card-title"></h4>
-                            <p id="info-description" class="info-card-description"></p>
-                        </div>
-                        <button class="close-btn" onclick="closeInfoCard()">×</button>
-                    </div>
-                    <div class="info-grid">
-                        <div class="info-item green">
-                            <p class="info-item-label">Availability</p>
-                            <p id="info-availability" class="info-item-value"></p>
-                        </div>
-                        <div class="info-item blue">
-                            <p class="info-item-label">Pricing</p>
-                            <p id="info-price" class="info-item-value"></p>
-                        </div>
-               <div class="info-actions">
-                 <button class="btn btn-primary btn-sm" 
-                    id="schedule-visit-btn" 
-                    onclick="location.href='/book'">
-                    Schedule Visit
-                    </button>
+      <!-- Dropdowns -->
+      <select class="search-input" id="yearBorn">
+        <option value="">Year Born</option>
+      </select>
+      <select class="search-input" id="yearDied">
+        <option value="">Year Died</option>
+      </select>
+    </div>
+    <!-- Search button -->
+    <div class="search-action">
+    <button type="button" class="search-btn" onclick="applySearch()">
+        SEARCH
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+    </button>
+    </div>
 
-                <button class="btn btn-secondary btn-sm" 
-                   id="request-info-btn" 
-                   onclick="location.href='/maps'">
-                   Request Info
-                </button>
-                </div>
-            </div>
-
-            <div class="map-container">
+      <div class="map-container">
                 <div id="map"></div>
+  </div>
+</div>
+
+<script>
+  // Populate dropdowns dynamically (1900–current year)
+  const currentYear = new Date().getFullYear();
+  const yearBornSelect = document.getElementById("yearBorn");
+  const yearDiedSelect = document.getElementById("yearDied");
+
+  for (let year = currentYear; year >= 1900; year--) {
+    let optionBorn = document.createElement("option");
+    optionBorn.value = year;
+    optionBorn.textContent = year;
+    yearBornSelect.appendChild(optionBorn);
+
+    let optionDied = document.createElement("option");
+    optionDied.value = year;
+    optionDied.textContent = year;
+    yearDiedSelect.appendChild(optionDied);
+  }
+
+  // Function to collect filters
+  function applySearch() {
+    const filters = {
+      firstName: document.getElementById("firstName").value.trim(),
+      middleName: document.getElementById("middleName").value.trim(),
+      lastName: document.getElementById("lastName").value.trim(),
+      yearBorn: document.getElementById("yearBorn").value,
+      yearDied: document.getElementById("yearDied").value
+    };
+    console.log("Applied Filters:", filters);
+    // 👉 You can send `filters` via fetch/ajax to your backend
+  }
+</script>
+          
                     <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const w = 1017; 
