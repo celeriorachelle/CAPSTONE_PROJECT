@@ -403,19 +403,6 @@
             box-shadow: 0 4px 15px rgba(255,255,255,0.5);
             z-index: 10;
         }
-        
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column; 
-                align-items: center;
-                text-align: center;
-            }
-
-            .footer-section {
-                min-width: auto;
-                flex: none;
-            }
-        }
 
         @media (max-width: 1024px) {
             .search-section {
