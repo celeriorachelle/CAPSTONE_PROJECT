@@ -1,3 +1,5 @@
+<% var error = typeof error === 'undefined' ? null : error; %>
+<% var formData = typeof formData === 'undefined' ? {} : formData; %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,25 +20,28 @@
                   <p class="subtitle">Gardens of Peace</p>
             </div>
             <div class="input-form">
+                <% if (typeof error === 'string' && error) { %>
+                  <div class="error-message" style="color:red; text-align:center; margin-bottom:10px;"><%= error %></div>
+                <% } %>
                 <form action="/register" method="POST">
                     <div class="input-columns" style="display: flex;">
                         <div class="input-group">
-                            <label for="fullname">First Name</label>
-                            <input type="text" id="firstname" name="firstname" required>
+                            <label for="firstname">First Name</label>
+                            <input type="text" id="firstname" name="firstname" required value="<%= formData.firstname || '' %>">
                         </div>
                         <div class="input-group">
                             <label for="lastname">Last Name</label>
-                            <input type="text" id="lastname" name="lastname" required>
+                            <input type="text" id="lastname" name="lastname" required value="<%= formData.lastname || '' %>">
                         </div>
                     </div>
                     <div class="input-columns">
                         <div class="input-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" required>
+                            <input type="email" id="email" name="email" required value="<%= formData.email || '' %>">
                         </div>
                         <div class="input-group">
                             <label for="phone">Phone Number</label>
-                            <input type="text" id="phone" name="phone" required>
+                            <input type="text" id="phone" name="phone" required maxlength="11" pattern="09[0-9]{9}" title="Must start with 09 and be 11 digits" value="<%= formData.phone || '' %>">
                         </div>
                     </div>
                     <div class="input-columns">
