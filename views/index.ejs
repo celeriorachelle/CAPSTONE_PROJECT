@@ -108,164 +108,162 @@
 
             <div class="map-container">
                 <div id="map"></div>
-                        <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const w = 1017; 
-    const h = 573;  
+                    <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const w = 1017; 
+                        const h = 573;  
 
-    const map = L.map("map", {
-        crs: L.CRS.Simple,
-        minZoom: -1,
-        maxZoom: 4
-    });
+                        const map = L.map("map", {
+                            crs: L.CRS.Simple,
+                            minZoom: -1,
+                            maxZoom: 4
+                        });
 
-    const bounds = [[0,0], [h,w]];
-    L.imageOverlay("/images/map.png", bounds).addTo(map);
-    map.fitBounds(bounds);
+                        const bounds = [[0,0], [h,w]];
+                        L.imageOverlay("/images/map.png", bounds).addTo(map);
+                        map.fitBounds(bounds);
 
-    const plotLayer = L.layerGroup().addTo(map);
+                        const plotLayer = L.layerGroup().addTo(map);
 
-    // Sample data for categories and plots
-    const categories = [
-        { name: "Garden A", coords: [100, 200], plots: [
-            {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
-            {coords: [130, 220], status: "occupied", info: "Plot 2: Jane Smith, 1930-1990"},
-            {coords: [125, 215], status: "reserved", info: "Plot 3: Reserved"}
-        ]},
-        { name: "Garden B", coords: [300, 500], plots: [
-            {coords: [310, 510], status: "available", info: "Plot 4: Someone Else"}
-        ]}
-    ];
+                        // Sample data for categories and plots
+                        const categories = [
+                            { name: "Garden A", coords: [100, 200], plots: [
+                                {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
+                                {coords: [130, 220], status: "occupied", info: "Plot 2: Jane Smith, 1930-1990"},
+                                {coords: [125, 215], status: "reserved", info: "Plot 3: Reserved"}
+                            ]},
+                            { name: "Garden B", coords: [300, 500], plots: [
+                                {coords: [310, 510], status: "available", info: "Plot 4: Someone Else"}
+                            ]}
+                        ];
 
-// Function to get color for plot status
-function getPlotColor(status) {
-    switch(status) {
-        case "available": return "green";
-        case "occupied": return "red";
-        case "reserved": return "yellow";
-        default: return "gray";
-    }
-}
+                    // Function to get color for plot status
+                    function getPlotColor(status) {
+                        switch(status) {
+                            case "available": return "green";
+                            case "occupied": return "red";
+                            case "reserved": return "yellow";
+                            default: return "gray";
+                        }
+                    }
 
-// Track currently zoomed plot
-let currentZoomedPlot = null;
-let originalView = null;
+                    // Track currently zoomed plot
+                    let currentZoomedPlot = null;
+                    let originalView = null;
 
-// Show plot markers
-function showPlots(plots) {
-    plotLayer.clearLayers();
-    currentZoomedPlot = null; // Reset zoom state
+                    // Show plot markers
+                    function showPlots(plots) {
+                        plotLayer.clearLayers();
+                        currentZoomedPlot = null; // Reset zoom state
 
-    plots.forEach((p, index) => {
-        const color = getPlotColor(p.status);
-        const borderColor = color; // same color for border
+                        plots.forEach((p, index) => {
+                            const color = getPlotColor(p.status);
+                            const borderColor = color; // same color for border
 
-        // Add spacing between icons - offset each plot by 60 pixels
-        const spacedCoords = [
-            p.coords[0] + (index * 60), // Add vertical spacing
-            p.coords[1] + (index * 60)  // Add horizontal spacing
-        ];
+                            // Add spacing between icons - offset each plot by 60 pixels
+                            const spacedCoords = [
+                                p.coords[0] + (index * 60), // Add vertical spacing
+                                p.coords[1] + (index * 60)  // Add horizontal spacing
+                            ];
 
-        const icon = L.divIcon({
-            className: "plot-dot",
-            html: `<div style="
-                width: 50px;
-                height: 50px;
-                border-radius: 25%;
-                background-color: ${color};
-                border: 2px solid black;
-                margin: 10px;
-            "></div>`,
-            iconSize: [50, 50], // Updated to match the actual size
-            iconAnchor: [25, 25] // Center the larger dot
-        });
+                            const icon = L.divIcon({
+                                className: "plot-dot",
+                                html: `<div style="
+                                    width: 50px;
+                                    height: 50px;
+                                    border-radius: 25%;
+                                    background-color: ${color};
+                                    border: 2px solid black;
+                                    margin: 10px;
+                                "></div>`,
+                                iconSize: [50, 50], // Updated to match the actual size
+                                iconAnchor: [25, 25] // Center the larger dot
+                            });
 
-        const marker = L.marker(spacedCoords, {icon: icon})
-         .addTo(plotLayer)
-         .bindPopup(p.info);
+                            const marker = L.marker(spacedCoords, {icon: icon})
+                            .addTo(plotLayer)
+                            .bindPopup(p.info);
 
-        // Add click event for zoom functionality
-        marker.on('click', function(e) {
-            e.originalEvent.stopPropagation(); // Prevent map click event
-            
-            if (currentZoomedPlot === marker) {
-                // If clicking the same plot, zoom out
-                if (originalView) {
-                    map.setView(originalView.center, originalView.zoom);
-                }
-                currentZoomedPlot = null;
-                originalView = null;
-            } else {
-                // Store original view if not already stored
-                if (!originalView) {
-                    originalView = {
-                        center: map.getCenter(),
-                        zoom: map.getZoom()
-                    };
-                }
-                
-                // Zoom in to the clicked plot
-                map.setView(spacedCoords, 4); // Higher zoom level
-                currentZoomedPlot = marker;
-            }
-        });
-    });
-}
+                            // Add click event for zoom functionality
+                            marker.on('click', function(e) {
+                                e.originalEvent.stopPropagation(); // Prevent map click event
+                                
+                                if (currentZoomedPlot === marker) {
+                                    // If clicking the same plot, zoom out
+                                    if (originalView) {
+                                        map.setView(originalView.center, originalView.zoom);
+                                    }
+                                    currentZoomedPlot = null;
+                                    originalView = null;
+                                } else {
+                                    // Store original view if not already stored
+                                    if (!originalView) {
+                                        originalView = {
+                                            center: map.getCenter(),
+                                            zoom: map.getZoom()
+                                        };
+                                    }
+                                    
+                                    // Zoom in to the clicked plot
+                                    map.setView(spacedCoords, 4); // Higher zoom level
+                                    currentZoomedPlot = marker;
+                                }
+                            });
+                        });
+                    }
 
-// Icon for categories (larger dots)
-function addCategoryMarkers(categories) {
-    categories.forEach(cat => {
-        const icon = L.divIcon({
-            className: "category-dot",
-            html: `<div style="
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: yellow;
-                border: 2px solid yellow;
-            "></div>`,
-            iconSize: [10, 10],
-            iconAnchor: [12, 12]
-        });
+                    // Icon for categories (larger dots)
+                    function addCategoryMarkers(categories) {
+                        categories.forEach(cat => {
+                            const icon = L.divIcon({
+                                className: "category-dot",
+                                html: `<div style="
+                                    width: 10px;
+                                    height: 10px;
+                                    border-radius: 50%;
+                                    background-color: yellow;
+                                    border: 2px solid yellow;
+                                "></div>`,
+                                iconSize: [10, 10],
+                                iconAnchor: [12, 12]
+                            });
 
-        const marker = L.marker(cat.coords, {icon: icon}).addTo(map);
-        marker.bindPopup(`<b>${cat.name}</b><br>Click to view plots`);
+                            const marker = L.marker(cat.coords, {icon: icon}).addTo(map);
+                            marker.bindPopup(`<b>${cat.name}</b><br>Click to view plots`);
 
-        marker.on('click', () => {
-            map.setView(cat.coords, 2); // zoom in
-            showPlots(cat.plots);
-        });
-    });
-}
+                            marker.on('click', () => {
+                                map.setView(cat.coords, 2); // zoom in
+                                showPlots(cat.plots);
+                            });
+                        });
+                    }
 
-// Add categories to the map
-addCategoryMarkers(categories);
+                    // Add categories to the map
+                    addCategoryMarkers(categories);
 
-// Add map click event to zoom out when clicking empty space
-map.on('click', function(e) {
-    if (currentZoomedPlot && originalView) {
-        map.setView(originalView.center, originalView.zoom);
-        currentZoomedPlot = null;
-        originalView = null;
-    } else if (map.getZoom() >= 2) {
-        // If we're zoomed in to a garden view, zoom out to main view and clear plots
-        map.fitBounds(bounds);
-        plotLayer.clearLayers();
-        currentZoomedPlot = null;
-        originalView = null;
-    }
-});
+                    // Add map click event to zoom out when clicking empty space
+                    map.on('click', function(e) {
+                        if (currentZoomedPlot && originalView) {
+                            map.setView(originalView.center, originalView.zoom);
+                            currentZoomedPlot = null;
+                            originalView = null;
+                        } else if (map.getZoom() >= 2) {
+                            // If we're zoomed in to a garden view, zoom out to main view and clear plots
+                            map.fitBounds(bounds);
+                            plotLayer.clearLayers();
+                            currentZoomedPlot = null;
+                            originalView = null;
+                        }
+                    });
 
-});
-</script>
+                    });
+                    </script>
             </div>
         </div>
     </main>
-
-           <footer>
+    <footer>
         <%- include('partials/footer') %>
     </footer>
-
     <script>
     
         // Smooth scrolling for navigation
@@ -311,6 +309,6 @@ map.on('click', function(e) {
             }
         });
     </script>
-
+    
 </body>
 </html>
