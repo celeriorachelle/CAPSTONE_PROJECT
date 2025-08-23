@@ -21,7 +21,6 @@
     flex-direction: column;
     }
 
-    /* Make main content grow to fill available space */
     .main-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -31,7 +30,7 @@
     gap: 4rem;
     align-items: start;
     min-height: auto;
-    flex: 1; /* This makes the main content expand to fill space */
+    flex: 1;
     }
 
     .right-column{
@@ -356,7 +355,7 @@
     .search-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem; /* space between text and icon */
+    gap: 0.5rem; 
     padding: 0.5rem 0.9rem;
     font-size: 12px;
     background: #000000a6;
@@ -451,7 +450,7 @@
     .main-container {
     grid-template-columns: 1fr;
     gap: 2rem;
-    flex: 1; /* Maintain flex behavior on mobile */
+    flex: 1; 
     }
 
     .cemetery-title {

@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 </head> 
 <body>
   <header class="header">
@@ -35,8 +34,7 @@
             <a href="/login" class="dropdown-link">Sign In</a>
             <a href="/register" class="dropdown-link">Sign Up</a>
             </div>
-
-            </div>
+        </div>
         <script>
         document.addEventListener("DOMContentLoaded", () => {
             const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
@@ -59,11 +57,10 @@
             });
         });
         </script>
-
-        </div></div>
+        </div>
+    </div>
     </header>
-
-    <main class="main-container">
+  <main class="main-container">
         <div class="content-section">
             <div class="text-content">
                 <h1 class="cemetery-title"><span class="title-main">Everlasting Peace Memorial</span> <span class="title-sub"> <br>Park Cemetery</span></h1>
@@ -81,12 +78,10 @@
         <div class="right-column">
   <div class="search-fields">
     <div class="search-grid">
-      <!-- Text inputs -->
       <input type="text" class="search-input" placeholder="First Name" id="firstName">
       <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
       <input type="text" class="search-input" placeholder="Last Name" id="lastName">
 
-      <!-- Dropdowns -->
       <select class="search-input" id="yearBorn">
         <option value="">Year Born</option>
       </select>
@@ -94,7 +89,7 @@
         <option value="">Year Died</option>
       </select>
     </div>
-    <!-- Search button -->
+
     <div class="search-action">
     <button type="button" class="search-btn" onclick="applySearch()">
         SEARCH
@@ -104,14 +99,13 @@
         </svg>
     </button>
     </div>
-
       <div class="map-container">
                 <div id="map"></div>
   </div>
 </div>
 
+
 <script>
-  // Populate dropdowns dynamically (1900–current year)
   const currentYear = new Date().getFullYear();
   const yearBornSelect = document.getElementById("yearBorn");
   const yearDiedSelect = document.getElementById("yearDied");
@@ -128,7 +122,6 @@
     yearDiedSelect.appendChild(optionDied);
   }
 
-  // Function to collect filters
   function applySearch() {
     const filters = {
       firstName: document.getElementById("firstName").value.trim(),
@@ -138,10 +131,8 @@
       yearDied: document.getElementById("yearDied").value
     };
     console.log("Applied Filters:", filters);
-    // 👉 You can send `filters` via fetch/ajax to your backend
   }
 </script>
-          
                     <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const w = 1017; 
@@ -159,7 +150,7 @@
 
                         const plotLayer = L.layerGroup().addTo(map);
 
-                        // Sample data for categories and plots
+                    
                         const categories = [
                             { name: "Garden A", coords: [100, 200], plots: [
                                 {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
@@ -171,8 +162,7 @@
                             ]}
                         ];
 
-                    // Function to get color for plot status
-                    function getPlotColor(status) {
+                        function getPlotColor(status) {
                         switch(status) {
                             case "available": return "green";
                             case "occupied": return "red";
@@ -180,21 +170,17 @@
                             default: return "gray";
                         }
                     }
-
-                    // Track currently zoomed plot
                     let currentZoomedPlot = null;
                     let originalView = null;
 
-                    // Show plot markers
                     function showPlots(plots) {
                         plotLayer.clearLayers();
-                        currentZoomedPlot = null; // Reset zoom state
+                        currentZoomedPlot = null; 
 
                         plots.forEach((p, index) => {
                             const color = getPlotColor(p.status);
-                            const borderColor = color; // same color for border
+                            const borderColor = color; 
 
-                            // Add spacing between icons - offset each plot by 60 pixels
                             const spacedCoords = [
                                 p.coords[0] + (index * 60), // Add vertical spacing
                                 p.coords[1] + (index * 60)  // Add horizontal spacing
@@ -296,7 +282,7 @@
         </div>
     </main>
     <footer>
-        <%- include('partials/footer') %>
+    <%- include('partials/footer') %>
     </footer>
     <script>
     
@@ -342,7 +328,6 @@
                 searchRecords();
             }
         });
-    </script>
-    
+    </script>    
 </body>
 </html>
