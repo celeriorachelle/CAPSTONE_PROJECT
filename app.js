@@ -15,6 +15,10 @@ var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register'); 
 var adminRouter = require('./routes/admin'); 
 var supportRouter = require('./routes/support');
+var boookRouter = require('./routes/book');
+var viewbookingRouter = require('./routes/viewbooking');
+var burialrecordRouter = require('./routes/burialrecord.js');
+
 
 const { register } = require('module');
 
@@ -41,6 +45,9 @@ app.use('/login', loginRouter);
 app.use ('/register', registerRouter);
 app.use('/admin', adminRouter); 
 app.use('/support', supportRouter);
+app.use('/book', boookRouter);
+app.use('/viewbooking', viewbookingRouter);
+app.use('/burialrecord', burialrecordRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -84,25 +84,37 @@
                     <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
                     <input type="text" class="search-input" placeholder="Last Name" id="lastName">
                 </div>
-                
-                <div class="search-row">
-                    <select class="search-select" id="yearBorn">
-                        <option value="">Year Born</option>
-                        <option value="1920">1920</option>
-                        <option value="1925">1925</option>
-                        <option value="1930">1930</option>
-                        <option value="1935">1935</option>
-                        <option value="1940">1940</option>
-                    </select>
-                    <select class="search-select" id="yearDied">
-                        <option value="">Year Died</option>
-                        <option value="2020">2020</option>
-                        <option value="2021">2021</option>
-                        <option value="2022">2022</option>
-                        <option value="2023">2023</option>
-                        <option value="2024">2024</option>
-                    </select>
-                    <button class="search-btn" onclick="searchRecords()">SEARCH <i class="bi bi-search"></i></button>
+
+                <!-- Info Card -->
+                <div id="info-card" class="info-card">
+                    <div class="info-card-header">
+                        <div>
+                            <h4 id="info-title" class="info-card-title"></h4>
+                            <p id="info-description" class="info-card-description"></p>
+                        </div>
+                        <button class="close-btn" onclick="closeInfoCard()">×</button>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item green">
+                            <p class="info-item-label">Availability</p>
+                            <p id="info-availability" class="info-item-value"></p>
+                        </div>
+                        <div class="info-item blue">
+                            <p class="info-item-label">Pricing</p>
+                            <p id="info-price" class="info-item-value"></p>
+                        </div>
+               <div class="info-actions">
+                 <button class="btn btn-primary btn-sm" 
+                    id="schedule-visit-btn" 
+                    onclick="location.href='/book'">
+                    Schedule Visit
+                    </button>
+
+                <button class="btn btn-secondary btn-sm" 
+                   id="request-info-btn" 
+                   onclick="location.href='/maps'">
+                   Request Info
+                </button>
                 </div>
             </div>
 
