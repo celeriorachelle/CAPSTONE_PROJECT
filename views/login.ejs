@@ -17,6 +17,11 @@
                 <h2>Everlasting Peace Memorial Park Cemetery</h2>
                 <p class="subtitle">Gardens of Peace</p>
             </div>
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="error-message" style="color:red; margin-bottom:10px;">
+                    <%= error %>
+                </div>
+            <% } %>
             <div class="input-form">
                 <form action="/login" method="POST">
                     <div class="input-columns">
@@ -31,7 +36,7 @@
                     </div>
                     <div class="input-row">
                         <div class="input-checkbox">
-                            <input type="checkbox" name="remember_me" id="remember-me">
+                            <input type="checkbox" name="remember_me" id="remember_me">
                             <label for="remember_me">Remember me</label>
                         </div>
                         <button type="submit">Login</button>

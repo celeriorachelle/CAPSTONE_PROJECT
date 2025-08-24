@@ -8,7 +8,14 @@ const notifications = [];
 async function sendEmail(email, subject, message) { console.log(`Email sent to ${email}`); return true; }
 async function sendSMS(phone, message) { console.log(`SMS sent to ${phone}`); return true; }
 
-router.get('/', (req, res) => {
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  next();
+}
+
+router.get('/', requireLogin, (req, res) => {
   res.render('appointment'); 
 });
 
