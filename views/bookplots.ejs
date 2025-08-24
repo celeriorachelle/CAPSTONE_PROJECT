@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/bookplots.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      </div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+    <div class="sidebar-footer">
+      &copy; 2025 Everlasting Peace
+    </div>
+  </div>
+
+    <div class="main" id="main">
+    <div class="topbar">
+      <h1>Book Plots</h1>
+      <div>🔔 👤</div>
+    </div>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="recommendations">
+                <h3>Recommended Plots for You</h3>
+                <table class="recommendations-table">
+                    <thead>
+                        <tr>
+                            <th>Plot Type</th>
+                            <th>Plot No.</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recommendations-body">
+                        <tr>
+                            <td>Heritage Plot</td>
+                            <td>No. 1</td>
+                            <td>Section A</td>
+                            <td class="price">₱12,000</td>
+                            <td>Available</td>
+                            <td class="action-buttons">
+                                <button class="btn-book" onclick="bookPlot('H001')">BOOK NOW</button>
+                                <button class="btn-reserve" onclick="reservePlot('H001')">RESERVE</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Heritage Plot</td>
+                            <td>No. 1</td>
+                            <td>Section A</td>
+                            <td class="price">₱12,000</td>
+                            <td>Available</td>
+                            <td class="action-buttons">
+                                <button class="btn-book" onclick="bookPlot('H002')">BOOK NOW</button>
+                                <button class="btn-reserve" onclick="reservePlot('H002')">RESERVE</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Heritage Plot</td>
+                            <td>No. 1</td>
+                            <td>Section A</td>
+                            <td class="price">₱12,000</td>
+                            <td>Available</td>
+                            <td class="action-buttons">
+                                <button class="btn-book" onclick="bookPlot('H003')">BOOK NOW</button>
+                                <button class="btn-reserve" onclick="reservePlot('H003')">RESERVE</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Heritage Plot</td>
+                            <td>No. 1</td>
+                            <td>Section A</td>
+                            <td class="price">₱12,000</td>
+                            <td>Available</td>
+                            <td class="action-buttons">
+                                <button class="btn-book" onclick="bookPlot('H004')">BOOK NOW</button>
+                                <button class="btn-reserve" onclick="reservePlot('H004')">RESERVE</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Heritage Plot</td>
+                            <td>No. 1</td>
+                            <td>Section A</td>
+                            <td class="price">₱12,000</td>
+                            <td>Available</td>
+                            <td class="action-buttons">
+                                <button class="btn-book" onclick="bookPlot('H005')">BOOK NOW</button>
+                                <button class="btn-reserve" onclick="reservePlot('H005')">RESERVE</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="plot-header">
+                <div class="plot-type-badge" id="categoryBadge">PLOT TYPE - HERITAGE GARDENS</div>
+                <div class="search-box">
+                    <input type="text" placeholder="SEARCH" />
+                </div>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="category-selector">
+                <h4>Select Category:</h4>
+                <div class="category-buttons">
+                    <button class="category-btn active" data-category="heritage_gardens">Heritage Gardens</button>
+                    <button class="category-btn" data-category="serenity_lawns">Serenity Lawns</button>
+                    <button class="category-btn" data-category="memorial_plaza">Memorial Plaza</button>
+                    <button class="category-btn" data-category="peaceful_valley">Peaceful Valley</button>
+                    <button class="category-btn" data-category="eternal_rest">Eternal Rest</button>
+                </div>
+                <div class="category-info" id="categoryInfo">
+                    <p><strong>Heritage Gardens:</strong> Premium garden plots with beautiful landscaping</p>
+                    <p>Total Plots: <span id="totalPlots">18</span> | Available: <span id="availablePlots">9</span></p>
+                </div>
+            </div>
+
+            <div class="plot-grid" id="plotGrid">
+                <!-- Plots will be generated by JavaScript -->
+            </div>
+
+            <!-- Plot List Table -->
+            <div class="plot-list-section">
+                <h4>All Plots in Category</h4>
+                <div class="plot-table-container">
+                    <table class="plot-table">
+                        <thead>
+                            <tr>
+                                <th>Plot No.</th>
+                                <th>Section</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plotTableBody">
+                            <!-- Plot data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+     <footer>
+          <%- include('partials/footer') %>
+    </footer>
+    <!-- Modal for plot booking -->
+    <div id="plotModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle">Plot Information</h3>
+            <div class="plot-info" id="plotInfo">
+                <!-- Plot information will be populated by JavaScript -->
+            </div>
+            <div class="modal-actions" id="modalActions">
+                <!-- Action buttons will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Plot data - in a real application, this would come from a database
+        const plotsData = {
+            'heritage_gardens': [
+                { id: 'H001', status: 'occupied', price: 15000, section: 'A', plotNo: '001', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H002', status: 'available', price: 15000, section: 'A', plotNo: '002', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H003', status: 'available', price: 15000, section: 'A', plotNo: '003', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H004', status: 'occupied', price: 15000, section: 'A', plotNo: '004', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H005', status: 'reserved', price: 15000, section: 'A', plotNo: '005', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H006', status: 'occupied', price: 15000, section: 'A', plotNo: '006', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H007', status: 'available', price: 15000, section: 'A', plotNo: '007', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H008', status: 'occupied', price: 15000, section: 'A', plotNo: '008', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H009', status: 'reserved', price: 15000, section: 'A', plotNo: '009', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H010', status: 'available', price: 15000, section: 'A', plotNo: '010', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H011', status: 'available', price: 15000, section: 'A', plotNo: '011', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H012', status: 'available', price: 15000, section: 'A', plotNo: '012', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H013', status: 'reserved', price: 15000, section: 'B', plotNo: '013', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H014', status: 'available', price: 15000, section: 'B', plotNo: '014', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H015', status: 'available', price: 15000, section: 'B', plotNo: '015', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H016', status: 'available', price: 15000, section: 'B', plotNo: '016', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H017', status: 'available', price: 15000, section: 'B', plotNo: '017', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' },
+                { id: 'H018', status: 'occupied', price: 15000, section: 'B', plotNo: '018', size: '2m × 1.5m', features: 'Premium garden view, marble headstone included' }
+            ],
+            'serenity_lawns': [
+                { id: 'S001', status: 'available', price: 12000, section: 'C', plotNo: '001', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S002', status: 'occupied', price: 12000, section: 'C', plotNo: '002', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S003', status: 'available', price: 12000, section: 'C', plotNo: '003', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S004', status: 'available', price: 12000, section: 'C', plotNo: '004', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S005', status: 'reserved', price: 12000, section: 'C', plotNo: '005', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S006', status: 'available', price: 12000, section: 'C', plotNo: '006', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S007', status: 'occupied', price: 12000, section: 'C', plotNo: '007', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S008', status: 'available', price: 12000, section: 'C', plotNo: '008', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S009', status: 'available', price: 12000, section: 'C', plotNo: '009', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S010', status: 'occupied', price: 12000, section: 'C', plotNo: '010', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S011', status: 'available', price: 12000, section: 'D', plotNo: '011', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S012', status: 'available', price: 12000, section: 'D', plotNo: '012', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S013', status: 'reserved', price: 12000, section: 'D', plotNo: '013', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S014', status: 'available', price: 12000, section: 'D', plotNo: '014', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S015', status: 'available', price: 12000, section: 'D', plotNo: '015', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S016', status: 'occupied', price: 12000, section: 'D', plotNo: '016', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S017', status: 'available', price: 12000, section: 'D', plotNo: '017', size: '2m × 1m', features: 'Open lawn area, peaceful setting' },
+                { id: 'S018', status: 'available', price: 12000, section: 'D', plotNo: '018', size: '2m × 1m', features: 'Open lawn area, peaceful setting' }
+            ],
+            'memorial_plaza': [
+                { id: 'M001', status: 'occupied', price: 18000, section: 'E', plotNo: '001', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M002', status: 'available', price: 18000, section: 'E', plotNo: '002', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M003', status: 'reserved', price: 18000, section: 'E', plotNo: '003', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M004', status: 'available', price: 18000, section: 'E', plotNo: '004', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M005', status: 'available', price: 18000, section: 'E', plotNo: '005', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M006', status: 'occupied', price: 18000, section: 'E', plotNo: '006', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M007', status: 'available', price: 18000, section: 'F', plotNo: '007', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M008', status: 'available', price: 18000, section: 'F', plotNo: '008', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M009', status: 'occupied', price: 18000, section: 'F', plotNo: '009', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M010', status: 'available', price: 18000, section: 'F', plotNo: '010', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M011', status: 'reserved', price: 18000, section: 'F', plotNo: '011', size: '2.5m × 2m', features: 'Central plaza location, monument included' },
+                { id: 'M012', status: 'available', price: 18000, section: 'F', plotNo: '012', size: '2.5m × 2m', features: 'Central plaza location, monument included' }
+            ],
+            'peaceful_valley': [
+                { id: 'P001', status: 'available', price: 10000, section: 'G', plotNo: '001', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P002', status: 'available', price: 10000, section: 'G', plotNo: '002', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P003', status: 'occupied', price: 10000, section: 'G', plotNo: '003', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P004', status: 'available', price: 10000, section: 'G', plotNo: '004', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P005', status: 'available', price: 10000, section: 'G', plotNo: '005', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P006', status: 'reserved', price: 10000, section: 'G', plotNo: '006', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P007', status: 'available', price: 10000, section: 'G', plotNo: '007', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P008', status: 'available', price: 10000, section: 'G', plotNo: '008', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P009', status: 'occupied', price: 10000, section: 'H', plotNo: '009', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P010', status: 'available', price: 10000, section: 'H', plotNo: '010', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P011', status: 'available', price: 10000, section: 'H', plotNo: '011', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P012', status: 'available', price: 10000, section: 'H', plotNo: '012', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P013', status: 'available', price: 10000, section: 'H', plotNo: '013', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P014', status: 'occupied', price: 10000, section: 'H', plotNo: '014', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P015', status: 'available', price: 10000, section: 'H', plotNo: '015', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P016', status: 'available', price: 10000, section: 'H', plotNo: '016', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P017', status: 'reserved', price: 10000, section: 'H', plotNo: '017', size: '1.8m × 1m', features: 'Valley view, basic headstone included' },
+                { id: 'P018', status: 'available', price: 10000, section: 'H', plotNo: '018', size: '1.8m × 1m', features: 'Valley view, basic headstone included' }
+            ],
+            'eternal_rest': [
+                { id: 'E001', status: 'available', price: 25000, section: 'I', plotNo: '001', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E002', status: 'occupied', price: 25000, section: 'I', plotNo: '002', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E003', status: 'available', price: 25000, section: 'I', plotNo: '003', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E004', status: 'available', price: 25000, section: 'I', plotNo: '004', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E005', status: 'reserved', price: 25000, section: 'I', plotNo: '005', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E006', status: 'available', price: 25000, section: 'I', plotNo: '006', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E007', status: 'occupied', price: 25000, section: 'J', plotNo: '007', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E008', status: 'available', price: 25000, section: 'J', plotNo: '008', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E009', status: 'available', price: 25000, section: 'J', plotNo: '009', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E010', status: 'available', price: 25000, section: 'J', plotNo: '010', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E011', status: 'reserved', price: 25000, section: 'J', plotNo: '011', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' },
+                { id: 'E012', status: 'available', price: 25000, section: 'J', plotNo: '012', size: '3m × 2.5m', features: 'Premium location, custom monument, perpetual care' }
+            ]
+        };
+
+        // Category information
+        const categories = {
+            'heritage_gardens': { 
+                name: 'Heritage Gardens', 
+                description: 'Premium garden plots with beautiful landscaping',
+                totalPlots: 18,
+                availablePlots: 9
+            },
+            'serenity_lawns': { 
+                name: 'Serenity Lawns', 
+                description: 'Peaceful open lawn areas with natural beauty',
+                totalPlots: 18,
+                availablePlots: 12
+            },
+            'memorial_plaza': { 
+                name: 'Memorial Plaza', 
+                description: 'Central plaza location with monument included',
+                totalPlots: 12,
+                availablePlots: 7
+            },
+            'peaceful_valley': { 
+                name: 'Peaceful Valley', 
+                description: 'Affordable valley view plots with basic amenities',
+                totalPlots: 18,
+                availablePlots: 13
+            },
+            'eternal_rest': { 
+                name: 'Eternal Rest', 
+                description: 'Premium luxury plots with custom monuments',
+                totalPlots: 12,
+                availablePlots: 8
+            }
+        };
+
+        // Current category
+        let currentCategory = 'heritage_gardens';
+
+        // Generate recommendations based on current category
+        function generateRecommendations() {
+            const recommendationsBody = document.getElementById('recommendations-body');
+            const plots = plotsData[currentCategory];
+            const availablePlots = plots.filter(plot => plot.status === 'available').slice(0, 5);
+            
+            recommendationsBody.innerHTML = '';
+            
+            availablePlots.forEach(plot => {
+                const categoryName = categories[currentCategory].name;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${categoryName}</td>
+                    <td>No. ${plot.plotNo}</td>
+                    <td>Section ${plot.section}</td>
+                    <td class="price">₱${plot.price.toLocaleString()}</td>
+                    <td>Available</td>
+                    <td class="action-buttons">
+                        <button class="btn-book" onclick="bookPlot('${plot.id}')">BOOK NOW</button>
+                        <button class="btn-reserve" onclick="reservePlot('${plot.id}')">RESERVE</button>
+                    </td>
+                `;
+                recommendationsBody.appendChild(row);
+            });
+        }
+
+        // Update category information
+        function updateCategoryInfo() {
+            const categoryInfo = categories[currentCategory];
+            const categoryBadge = document.getElementById('categoryBadge');
+            const categoryInfoDiv = document.getElementById('categoryInfo');
+            const totalPlotsSpan = document.getElementById('totalPlots');
+            const availablePlotsSpan = document.getElementById('availablePlots');
+            
+            categoryBadge.textContent = `PLOT TYPE - ${categoryInfo.name.toUpperCase()}`;
+            categoryInfoDiv.innerHTML = `
+                <p><strong>${categoryInfo.name}:</strong> ${categoryInfo.description}</p>
+                <p>Total Plots: <span id="totalPlots">${categoryInfo.totalPlots}</span> | Available: <span id="availablePlots">${categoryInfo.availablePlots}</span></p>
+            `;
+        }
+
+        // Switch category
+        function switchCategory(categoryKey) {
+            currentCategory = categoryKey;
+            updateCategoryInfo();
+            generatePlotGrid();
+            generatePlotTable();
+            generateRecommendations();
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${categoryKey}"]`).classList.add('active');
+        }
+            const plotGrid = document.getElementById('plotGrid');
+            const plots = plotsData[currentCategory];
+            
+            plotGrid.innerHTML = '';
+            
+            plots.forEach(plot => {
+                const plotElement = document.createElement('div');
+                plotElement.className = `plot ${plot.status}`;
+                plotElement.id = plot.id;
+                plotElement.textContent = plot.status.toUpperCase();
+                
+                plotElement.addEventListener('mouseenter', (e) => showTooltip(e, plot));
+                plotElement.addEventListener('mouseleave', hideTooltip);
+                plotElement.addEventListener('click', () => openPlotModal(plot));
+                
+                plotGrid.appendChild(plotElement);
+            });
+
+        // Tooltip functions
+        function showTooltip(e, plot) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <strong>Plot ${plot.plotNo}</strong><br>
+                Section: ${plot.section}<br>
+                Status: ${plot.status}<br>
+                Price: ₱${plot.price.toLocaleString()}
+            `;
+            tooltip.classList.add('show');
+            
+            const rect = e.target.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - 10) + 'px';
+            tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        // Modal functions
+        function openPlotModal(plot) {
+            if (plot.status !== 'available') return;
+            
+            const modal = document.getElementById('plotModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const plotInfo = document.getElementById('plotInfo');
+            const modalActions = document.getElementById('modalActions');
+            const categoryName = categories[currentCategory].name;
+            
+            modalTitle.textContent = `${categoryName} Plot ${plot.plotNo}`;
+            plotInfo.innerHTML = `
+                <p><strong>Plot Number:</strong> ${plot.plotNo}</p>
+                <p><strong>Section:</strong> ${plot.section}</p>
+                <p><strong>Category:</strong> ${categoryName}</p>
+                <p><strong>Price:</strong> ₱${plot.price.toLocaleString()}</p>
+                <p><strong>Status:</strong> ${plot.status}</p>
+                <p><strong>Size:</strong> ${plot.size}</p>
+                <p><strong>Features:</strong> ${plot.features}</p>
+            `;
+            modalActions.innerHTML = `
+                <button class="btn-book" onclick="bookPlot('${plot.id}')">BOOK NOW</button>
+                <button class="btn-reserve" onclick="reservePlot('${plot.id}')">RESERVE</button>
+            `;
+            
+            modal.style.display = 'block';
+        }modalTitle.textContent = `Heritage Plot ${plot.plotNo}`;
+            plotInfo.innerHTML = `
+                <p><strong>Plot Number:</strong> ${plot.plotNo}</p>
+                <p><strong>Section:</strong> ${plot.section}</p>
+                <p><strong>Category:</strong> Heritage Gardens</p>
+                <p><strong>Price:</strong> ₱${plot.price.toLocaleString()}</p>
+                <p><strong>Status:</strong> ${plot.status}</p>
+                <p><strong>Size:</strong> 2m × 1m</p>
+                <p><strong>Features:</strong> Premium location with garden view</p>
+            `;
+            modalActions.innerHTML = `
+                <button class="btn-book" onclick="bookPlot('${plot.id}')">BOOK NOW</button>
+                <button class="btn-reserve" onclick="reservePlot('${plot.id}')">RESERVE</button>
+            `;
+            
+            modal.style.display = 'block';
+
+        function closeModal() {
+            document.getElementById('plotModal').style.display = 'none';
+        }
+
+        // Booking functions
+        function bookPlot(plotId) {
+            const categoryName = categories[currentCategory].name;
+            const plot = plotsData[currentCategory].find(p => p.id === plotId);
+            
+            if (plot && plot.status === 'available') {
+                alert(`${categoryName} Plot ${plot.plotNo} has been booked successfully!`);
+                // Update plot status
+                plot.status = 'occupied';
+                
+                // Update counts
+                categories[currentCategory].availablePlots--;
+                
+                // Regenerate all displays
+                generatePlotGrid();
+                generatePlotTable();
+                generateRecommendations();
+                updateCategoryInfo();
+                closeModal();
+            }
+        }
+
+        function reservePlot(plotId) {
+            const categoryName = categories[currentCategory].name;
+            const plot = plotsData[currentCategory].find(p => p.id === plotId);
+            
+            if (plot && plot.status === 'available') {
+                alert(`${categoryName} Plot ${plot.plotNo} has been reserved successfully!`);
+                // Update plot status
+                plot.status = 'reserved';
+                
+                // Update counts
+                categories[currentCategory].availablePlots--;
+                
+                // Regenerate all displays
+                generatePlotGrid();
+                generatePlotTable();
+                generateRecommendations();
+                updateCategoryInfo();
+                closeModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('plotModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            generatePlotGrid();
+            generatePlotTable();
+            generateRecommendations();
+            updateCategoryInfo();
+            
+            // Add event listeners for category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const category = e.target.dataset.category;
+                    switchCategory(category);
+                });
+            });
+        });
+
+        // Search functionality for both grid and table
+        function setupSearch() {
+            const searchInput = document.querySelector('.search-box input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    
+                    // Filter plot grid
+                    const plots = document.querySelectorAll('.plot');
+                    plots.forEach(plot => {
+                        const plotData = plotsData[currentCategory].find(p => p.id === plot.id);
+                        if (plotData) {
+                            const searchContent = `${plotData.plotNo} ${plotData.section} ${plotData.status}`.toLowerCase();
+                            plot.style.display = searchContent.includes(searchTerm) ? 'flex' : 'none';
+                        }
+                    });
+                    
+                    // Filter plot table
+                    const tableRows = document.querySelectorAll('#plotTableBody tr');
+                    tableRows.forEach((row, index) => {
+                        const plotData = plotsData[currentCategory][index];
+                        if (plotData) {
+                            const searchContent = `${plotData.plotNo} ${plotData.section} ${plotData.status}`.toLowerCase();
+                            row.style.display = searchContent.includes(searchTerm) ? '' : 'none';
+                        }
+                    });
+                });
+            }
+        }
+
+        // Category click handler
+        function handleCategoryClick() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.getAttribute('data-category');
+                    
+                    if (category && categories[category]) {
+                        console.log(`Switching to category: ${category}`);
+                        switchCategory(category);
+                        
+                        // Clear search when switching categories
+                        const searchInput = document.querySelector('.search-box input');
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Enhanced category switching with logging
+        function switchCategory(categoryKey) {
+            console.log(`Switching to: ${categoryKey}`);
+            
+            if (!categories[categoryKey]) {
+                console.error(`Category ${categoryKey} not found`);
+                return;
+            }
+            
+            currentCategory = categoryKey;
+            
+            // Update all components
+            updateCategoryInfo();
+            generatePlotGrid();
+            generatePlotTable();
+            generateRecommendations();
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-category') === categoryKey) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            console.log(`Category switched successfully. Plots displayed: ${plotsData[categoryKey].length}`);
+        }
+    </script>
+</body>
+</html>
