@@ -7,7 +7,7 @@ body {
 
 section {
     height: 100%;
-    background-image: url('/images/bg.jpg');
+    background-image: url('/images/system (2).png');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -116,10 +116,16 @@ section {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: #ffffff;
 }
 
 .input-group label {
     margin-bottom: 8px;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
 }
 
 .input-group input {
@@ -148,6 +154,7 @@ button:hover {
 a {
     text-decoration: underline;
     color: #fffff5;
+    font-family: 'Poppins, sans-serif';
 }
 
 /* Responsive Design */
