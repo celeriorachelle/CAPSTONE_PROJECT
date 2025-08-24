@@ -375,17 +375,8 @@ body {
 }
 
 /* Footer (from book.css) */
-.footer {
-    background: #2d4a3e;
-    color: white;
-    padding: 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 20px;
-    font-size: 12px;
-    flex-direction: column;
-    text-align: center;
+footer {
+    margin-top: auto;
 }
 
 /* Tables & actions */
