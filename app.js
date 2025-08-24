@@ -19,6 +19,7 @@ var supportRouter = require('./routes/support');
 var boookRouter = require('./routes/book');
 var viewbookingRouter = require('./routes/viewbooking');
 var burialrecordRouter = require('./routes/burialrecord.js');
+var bookplotsRouter = require('./routes/bookplots.js');
 
 
 const { register } = require('module');
@@ -66,6 +67,7 @@ app.use('/support', supportRouter);
 app.use('/book', boookRouter);
 app.use('/viewbooking', viewbookingRouter);
 app.use('/burialrecord', burialrecordRouter);
+app.use('/bookplots', bookplotsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
