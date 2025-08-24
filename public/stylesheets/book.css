@@ -131,6 +131,10 @@ body {
   min-height: 100vh;
 }
 
+.main footer {
+  margin-top: auto;
+}
+
 .sidebar.collapsed ~ .main {
   margin-left: 0;
 }
