@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>View Bookings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/viewbooking.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header"><h2>Everlasting Peace<br>Memorial Park Cemetery</h2></div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Toggle Button -->
+  <div class="toggle-btn" id="toggleBtn">◀</div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>View Bookings</h1>
+      <div>🔔 👤</div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Plot Type</th><th>Plot No.</th><th>Section</th><th>Booking Date</th><th>Booking Time</th><th>Status</th><th>Remarks</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer from booking form page -->
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("toggleBtn");
+
+    btn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+    });
+  </script>
+</body>
+</html>

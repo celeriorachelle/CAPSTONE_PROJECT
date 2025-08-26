@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Records</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/burialrecord.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header"><h2>Everlasting Peace<br>Memorial Park Cemetery</h2></div>
+      <nav>
+       <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Toggle Button -->
+  <div class="toggle-btn" id="toggleBtn">◀</div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Booking Records</h1>
+      <div>🔔 👤</div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Deceased Name</th><th>Booking ID</th><th>Death Date</th><th>Plot No.</th><th>Booking Date</th><th>Status</th><th>Location</th></tr>
+        </thead>
+        <tbody>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+<footer>
+          <%- include('partials/footer') %>
+</footer>
+ 
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("toggleBtn");
+
+    btn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+
+      if(sidebar.classList.contains("collapsed")){
+        btn.textContent = "▶";
+      } else {
+        btn.textContent = "◀";
+      }
+    });
+  </script>
+</body>
+</html>

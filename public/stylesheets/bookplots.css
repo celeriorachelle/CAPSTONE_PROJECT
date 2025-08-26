@@ -1,0 +1,519 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    height: 100%;
+    background: white;
+    color: #2c3118;
+}
+
+body {
+    display: flex;
+}
+
+/* Sidebar (from book.css) */
+.sidebar {
+    width: 250px;
+    background: #0b2e0b;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transition: transform 0.4s ease-in-out;
+    transform: translateX(0);
+    z-index: 1000;
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.sidebar-header {
+    text-align: center;
+    padding: 24px 20px;
+    border-bottom: 1px solid #2c3118;
+    font-family: 'CMU Serif', serif;
+}
+
+.sidebar-header h2 {
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.sidebar nav {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar nav a {
+    padding: 14px 20px;
+    text-decoration: none;
+    color: white;
+    border-radius: 10px;
+    margin: 6px 18px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sidebar nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 20px;
+    height: 2px;
+    width: 0;
+    background: white;
+    transition: width 0.3s ease;
+}
+
+.sidebar nav a:hover {
+    background: #2e4d2e;
+}
+
+.sidebar nav a:hover::after {
+    width: 60%;
+}
+
+.sidebar-footer {
+    padding: 18px;
+    font-size: 13px;
+    border-top: 1px solid #2c3118;
+    text-align: center;
+    opacity: 0.85;
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 50%;
+    left: 250px;
+    transform: translateY(-50%);
+    background: #101b0d;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+    transition: left 0.3s ease;
+    z-index: 1100;
+}
+
+.toggle-btn:hover {
+    background: #2c3118;
+}
+
+.sidebar.collapsed + .toggle-btn {
+    left: 0;
+}
+
+/* Main content area */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .main {
+    margin-left: 0;
+}
+
+/* Topbar */
+.topbar {
+    background: #0b2e0b;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 30px;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Plot page specific styles */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Content Layout Container - NEW */
+.content-layout {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Recommended Plots Section - UPDATED */
+.recommended-section {
+    flex: 0 0 450px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.recommended-section h3 {
+    background: #2d4a3e;
+    color: white;
+    padding: 15px 20px;
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Plot Grid Section - UPDATED */
+.plot-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.plot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.plot-type-badge {
+    background: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    padding: 10px 40px 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    width: 200px;
+    outline: none;
+}
+
+.search-box::after {
+    content: "🔍";
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Plot Grid Container - UPDATED */
+.plot-grid-container {
+    background: #4a5d4a;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.category-info {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.category-info h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.category-info p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.plot-stats {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.plot-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    max-width: none;
+    width: 100%;
+}
+
+.plot {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.plot.available {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border-color: #4caf50;
+}
+
+.plot.occupied {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.plot.reserved {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #dc3545;
+}
+
+.plot:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.plot.available:hover {
+    background: #c8e6c9;
+    border-color: #388e3c;
+}
+
+/* Tooltip */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+}
+
+.close:hover {
+    color: black;
+}
+
+.modal h3 {
+    color: #2d4a3e;
+    margin-bottom: 20px;
+}
+
+/* Footer (from book.css) */
+footer {
+    margin-top: auto;
+}
+
+/* Tables & actions */
+.plot-table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 0 0 10px 10px;
+}
+
+.plot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.plot-table th {
+    background: #2d4a3e;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.plot-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.plot-table tr:hover {
+    background: #f8f9fa;
+}
+
+.plot-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-occupied {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-reserved {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.plot-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.plot-actions .btn-book,
+.plot-actions .btn-reserve {
+    padding: 5px 10px;
+    font-size: 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.plot-actions .btn-book {
+    background: #28a745;
+    color: white;
+}
+
+.plot-actions .btn-reserve {
+    background: #17a2b8;
+    color: white;
+}
+
+.plot-actions .btn-book:hover {
+    background: #218838;
+}
+
+.plot-actions .btn-reserve:hover {
+    background: #138496;
+}
+
+.plot-actions .btn-disabled {
+    background: #6c757d;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.plot-price {
+    font-weight: bold;
+    color: #2d4a3e;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .content-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .recommended-section {
+        flex: none;
+        width: 100%;
+    }
+    
+    .plot-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .plot {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .plot-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .plot {
+        width: 60px;
+        height: 60px;
+        font-size: 10px;
+    }
+}

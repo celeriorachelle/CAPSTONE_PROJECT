@@ -1,0 +1,247 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial;
+  scroll-behavior: smooth;
+}
+
+html, body {
+  height: 100%;
+  background: white;
+}
+
+body {
+  display: flex;
+  color: #2c3118;
+}
+
+.sidebar {
+  width: 250px;
+  background: #0b2e0b;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.4s ease-in-out;
+  transform: translateX(0);
+  z-index: 1000;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid #2c3118;
+  font-family: 'CMU Serif', serif;
+  animation: fadeIn 0.5s ease;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.sidebar nav {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  padding: 14px 20px;
+  text-decoration: none;
+  color: white;
+  border-radius: 10px;
+  margin: 6px 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.sidebar nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 20px;
+  height: 2px;
+  width: 0;
+  background: white;
+  transition: width 0.3s ease;
+}
+
+.sidebar nav a:hover {
+  background: #2e4d2e;
+}
+
+.sidebar nav a:hover::after {
+  width: 60%;
+}
+
+.sidebar-footer {
+  padding: 18px;
+  font-size: 13px;
+  border-top: 1px solid #2c3118;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 50%;
+  left: 250px;
+  transform: translateY(-50%);
+  background: #101b0d;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  transition: left 0.3s ease;
+  z-index: 1100;
+}
+
+.toggle-btn:hover {
+  background: #2c3118;
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 0;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main footer {
+  margin-top: auto;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+
+.topbar {
+  background: #0b2e0b;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.form-container {
+  background: #0b2e0b;
+  color: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 40px auto;
+  max-width: 1100px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  animation: fadeInUp 0.6s ease;
+}
+
+.form-container h2 {
+  text-align: left;
+  margin-bottom: 25px;
+  font-family: 'CMU Serif', serif;
+  font-size: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: bold;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #4f5e28;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #7d8957;
+  box-shadow: 0 0 0 2px #7d895765;
+}
+
+.form-group textarea {
+  resize: none;
+  height: 120px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end; /* align to right */
+  gap: 15px;
+  margin-top: 15px;
+}
+
+
+.form-actions button {
+  background: #7d8957;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  font-family: 'Poppins', Arial, sans-serif;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.form-actions button:hover {
+  background: #4f5e28;
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes fadeInUp {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/book.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      </div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+    <div class="sidebar-footer">
+      &copy; 2025 Everlasting Peace
+    </div>
+  </div>
+
+  <div class="toggle-btn" id="toggleBtn">◀</div>
+
+  <div class="main" id="main">
+    <div class="topbar">
+      <h1>Bookings</h1>
+      <div>🔔 👤</div>
+    </div>
+
+  <div class="form-container">
+  <h2>BOOKING FORM</h2>
+  <form class="form-grid">
+    <!-- RIGHT GROUP -->
+    <div class="form-group">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Full Name">
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Email Address">
+    </div>
+
+    <div class="form-group">
+      <label for="appointment-date">Date of Appointment</label>
+      <input type="date" id="appointment-date" min="">
+    </div>
+
+    <!-- CENTER GROUP -->
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <input type="text" id="phone" placeholder="Phone Number">
+    </div>
+
+    <div class="form-group">
+      <label for="visit-date">Preferred Visit Date</label>
+      <input type="date" id="visit-date">
+    </div>
+
+    <div class="form-group">
+      <label for="visit-time">Preferred Visit Time</label>
+      <select id="visit-time">
+        <option>08:00 AM</option>
+        <option>09:00 AM</option>
+        <option>10:00 AM</option>
+        <option>01:00 PM</option>
+        <option>02:00 PM</option>
+        <option>03:00 PM</option>
+        <option>04:00 PM</option>
+      </select>
+    </div>
+
+    <!-- LEFT GROUP -->
+    <div class="form-group">
+      <label for="reservation-date">Reservation Date</label>
+      <input type="date" id="reservation-date">
+    </div>
+
+    <div class="form-group" style="grid-column: span 1;">
+      <label for="notes">Notes / Special Requests</label>
+      <textarea id="notes" placeholder="Notes / Special Requests"></textarea>
+    </div>
+
+    <div class="form-actions" style="grid-column: span 3;">
+      <button type="reset">Clear</button>
+      <button type="submit">Next</button>
+    </div>
+  </form>
+</div>
+
+<footer>
+          <%- include('partials/footer') %>
+</footer>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("toggleBtn");
+
+    btn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+    });
+
+    const dateInput = document.getElementById("appointment-date");
+    const today = new Date().toISOString().split("T")[0];
+    dateInput.setAttribute("min", today);
+
+    const timeOptions = ["08:00 AM", "09:00 AM", "10:00 AM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"];
+    const bookedSlots = {
+      "2025-08-21": timeOptions,
+      "2025-08-22": ["09:00 AM", "03:00 PM", "04:00 PM"]
+    };
+
+    const timeslotsDiv = document.getElementById("timeslots");
+
+    dateInput.addEventListener("input", () => {
+      const selectedDate = dateInput.value;
+      timeslotsDiv.innerHTML = "";
+
+      if (bookedSlots[selectedDate] && bookedSlots[selectedDate].length === timeOptions.length) {
+        alert("This date is fully booked. Please choose another.");
+        dateInput.value = "";
+        return;
+      }
+
+      timeOptions.forEach(time => {
+        const slot = document.createElement("div");
+        slot.classList.add("timeslot");
+        slot.textContent = time;
+
+        if (bookedSlots[selectedDate] && bookedSlots[selectedDate].includes(time)) {
+          slot.classList.add("disabled");
+        } else {
+          slot.addEventListener("click", () => {
+            document.querySelectorAll(".timeslot").forEach(el => el.classList.remove("selected"));
+            slot.classList.add("selected");
+          });
+        }
+
+        timeslotsDiv.appendChild(slot);
+      });
+    });
+  </script>
+</body>
+</html>

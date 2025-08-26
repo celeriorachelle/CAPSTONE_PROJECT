@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support - Everlasting Peace Memorial Park</title>
+    <link rel="stylesheet" href="/stylesheets/support.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      </div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Toggle Button -->
+  <div class="toggle-btn" id="toggleBtn">◀</div>
+
+  <!-- Main -->
+  <div class="main" id="main">
+    <div class="topbar">
+      <!-- Hide old button -->
+      <!-- <button onclick="toggleSidebar()">☰</button> -->
+      <h1>Support</h1>
+      <div>🔔 👤</div>
+    </div>
+
+    <div class="content">
+      <!-- FAQ -->
+      <div class="faq-container">
+        <h2>Frequently Asked Questions (FAQ)</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>📅 How do I book an appointment?</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            To book an appointment, go to the "Book" section in the sidebar and fill out the booking form.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>⏰ Support Hours & Response Time</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            Our team is available <strong>Monday–Friday, 8:00 AM to 5:00 PM</strong>.  
+            We typically respond within 24 hours.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>📍 Where is the cemetery located?</span>
+            <span>▼</span>
+          </div>
+          <div class="faq-answer">
+            You can view the full address and map in the "View Map" section of the sidebar.
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Support -->
+      <div class="contact-card">
+        <h2>Contact Support</h2>
+        <div class="contact-info">
+          <div>📧 <span>Email:</span> support@everlastingpeace.com</div>
+          <div>📞 <span>Phone:</span> +63 9670072385</div>
+          <div>📍 <span>Address:</span> Everlasting Peace Memorial Park, Malabon City, Philippines</div>
+        </div>
+      </div>
+    </div>
+    <footer>
+          <%- include('partials/footer') %>
+</footer>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleBtn");
+
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      toggleBtn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+    });
+
+    // Accordion effect for FAQ
+    document.querySelectorAll(".faq-item").forEach(item => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".faq-item").forEach(el => {
+          if (el !== item) el.classList.remove("active");
+        });
+        item.classList.toggle("active");
+      });
+    });
+  </script>
+</body>
+</html>
