@@ -14,6 +14,8 @@ var notificationRouter = require('./routes/notification');
 var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register'); 
 var adminRouter = require('./routes/admin'); // Added admin route
+var adappoint= require ('./routes/adappoint');
+
 const { register } = require('module');
 
 var app = express();
