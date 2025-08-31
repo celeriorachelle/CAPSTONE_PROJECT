@@ -6,15 +6,14 @@
   <title>View Appointments | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
-</head>
 <body>
   <header class="admin-header">
     <h1>Admin Dashboard</h1>
     <nav>
       <ul>
         <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/admin/appointments" class="active"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/admin/bookings"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
         <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
     </nav>
@@ -24,8 +23,11 @@
     <aside class="sidebar">
       <h3><i class="fas fa-calendar-check"></i> Appointments</h3>
       <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
         <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/admin/appointments/view" class="active"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
       </ul>
 
       <h3><i class="fas fa-filter"></i> Filter by Status</h3>

@@ -1,0 +1,111 @@
+/* forgot.css */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('/images/system (2).png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.forgot-container {
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 2rem 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%; /* responsive */
+}
+
+.forgot-container h2 {
+    color: #fffff5;
+    font-size: 36px;
+    font-family: 'cmu-serif', serif;
+    font-weight: 300;
+    margin-bottom: 1rem;
+}
+
+.error-message, .success-message {
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.error-message {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    color: #ff6b6b;
+}
+
+.success-message {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    color: #28a745;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+}
+
+label {
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+input {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #101b0d;
+    color: #fffff5;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 15px;
+    font-family: 'cmu-serif', serif;
+}
+
+button:hover {
+    background-color: #172513;
+}
+
+a {
+    text-decoration: underline;
+    color: #fffff5;
+    font-family: 'Poppins, sans-serif';
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .forgot-container {
+        padding: 1.5rem;
+        width: 95%;
+    }
+
+    h2 {
+        font-size: 28px;
+    }
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profile - Everlasting Peace Memorial Park</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=CMU+Serif&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/stylesheets/profile.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/book">Booking</a>
+      <a href="/viewbooking">View Bookings</a>
+      <a href="/burialrecord">Booking Records</a>
+      <a href="/support">Support</a>
+      <a href="/map">View Map</a>
+    </nav>
+    <div class="sidebar-footer">
+      &copy; 2025 Everlasting Peace
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <h1>Profile</h1>
+      <div class="icon-buttons">
+        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
+        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
+      </div>
+    </div>
+
+    <!-- Notification Popup -->
+    <div id="notification-popup" class="notification-popup hidden">
+      <h3>Notifications</h3>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
+        <li><i class="fas fa-envelope"></i> New message from staff.</li>
+        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
+      </ul>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div class="form-container">
+      <div class="form-box">
+        <form action="/update-profile" method="POST">
+          <h2>Edit Profile</h2>
+          <label for="fullname">Full Name</label>
+          <input type="text" id="fullname" name="fullname" placeholder="Your full name" required>
+
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" placeholder="Your phone number" required>
+
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" placeholder="Your address" required>
+
+          <button type="submit">Update Profile</button>
+        </form>
+
+        <!-- Button to redirect to change password -->
+        <div style="text-align: right; margin-top: 10px;">
+          <a href="/setting" class="link-button">Back Profile Setting</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div>
+          <p><strong>Office Hours</strong><br>
+            Mon–Fri: 8:00 AM – 6:00 PM<br>
+            Sat–Sun: 9:00 AM – 4:00 PM</p>
+        </div>
+        <div>
+          <p><strong>Address:</strong><br>
+            Everlasting Peace Memorial Park,<br>
+            Malabon City, Philippines</p>
+        </div>
+        <div>
+          <p><strong>Support:</strong><br>
+            <a href="mailto:support@epcemetery.com">support@everlastingpeace.com</a><br>
+            <a href="tel:+639670072385">+63 9670072385</a></p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Script for Notification & Profile Button -->
+  <script>
+    const notifIcon = document.getElementById("notif-icon");
+    const notifPopup = document.getElementById("notification-popup");
+
+    notifIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifPopup.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+        notifPopup.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("profile-icon").addEventListener("click", () => {
+      window.location.href = "/setting";
+    });
+  </script>
+
+</body>
+</html>

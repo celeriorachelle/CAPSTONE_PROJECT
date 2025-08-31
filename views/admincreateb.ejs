@@ -5,70 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Appointment | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="/stylesheets/appointment.css" />
+  <link rel="stylesheet" href="/stylesheets/admincreateb.css">
   </head>
 <body>
-  <div class="container">
-    <aside class="sidebar" id="sidebar">
-      <div class="logo">
-        <div>
-          <h2>Everlasting<br><span>Peace</span><br>Memorial Park</h2>
-        </div>
-        <i class="fas fa-bars toggle-icon" id="toggleSidebar"></i>
+  <!-- Enhanced Admin Header -->
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/admincreateb" class="active"><i class="fas fa-calendar-alt"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <!-- Enhanced Sidebar from View Appointments -->
+    <aside class="sidebar">
+      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb" class="active"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+      </ul>
+
+      <h3><i class="fas fa-cog"></i> Appointment Tools</h3>
+      <div class="appointment-sections">
+        <button onclick="showQuickForm()" class="active" id="quick-form">
+          <i class="fas fa-bolt"></i> Quick Booking
+        </button>
+        <button onclick="showAdvancedForm()" id="advanced-form">
+          <i class="fas fa-cogs"></i> Advanced Options
+        </button>
+        <button onclick="showTemplates()" id="templates">
+          <i class="fas fa-file-alt"></i> Use Template
+        </button>
+        <button onclick="showBulkCreate()" id="bulk-create">
+          <i class="fas fa-layer-group"></i> Bulk Create
+        </button>
       </div>
-      <nav>
-        <ul>
-          <li>
-            <a href="/">
-              <i class="fas fa-home"></i>
-              <span>Home</span>
-            </a>
-          </li>
-          <li class="active">
-            <a href="#">
-              <i class="fas fa-calendar-alt"></i>
-              <span>Appointment</span>
-            </a>
-            <ul class="submenu">
-              <li><a href="/appointment">Create appointment</a></li>
-              <li><a href="#">View appointment</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#">
-              <i class="fas fa-book"></i>
-              <span>Burial Records</span>
-            </a>
-          </li>
-          <li>
-            <a href="/support">
-              <i class="fas fa-headset"></i>
-              <span>Support</span>
-            </a>
-          </li>
-          <li>
-            <a href="/settings">
-              <i class="fas fa-cog"></i>
-              <span>Settings</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
+
+      <h3><i class="fas fa-chart-line"></i> Quick Stats</h3>
+      <div class="appointment-sections">
+        <button onclick="showTodayStats()" style="background: rgba(40, 167, 69, 0.2); color: #155724;">
+          <i class="fas fa-calendar-day"></i> Today: 8 Appointments
+        </button>
+        <button onclick="showWeekStats()">
+          <i class="fas fa-calendar-week"></i> This Week: 23
+        </button>
+        <button onclick="showAvailableSlots()">
+          <i class="fas fa-clock"></i> Available Slots: 12
+        </button>
+      </div>
     </aside>
 
     <!-- Enhanced Main Content -->
-    <main class="main-content">
-      <header class="topbar">
-        <h2>Create New Appointment</h2>
-        <div class="icons">
-          <i class="fas fa-bell" id="notificationBtn">
-            <span class="notification-badge">3</span>
-          </i>
-          <i class="fas fa-user-circle" id="profileBtn"></i>
-        </div>
-      </header>
-
-      <section class="appointment-form">
+    <section class="content">
+      <h2><i class="fas fa-calendar-plus"></i> Create New Appointment</h2>
+      
+      <div class="appointment-form">
         <h1><i class="fas fa-calendar-plus"></i> Schedule Appointment</h1>
         <p class="form-subtitle">Please fill in the details below to book your appointment</p>
         
@@ -76,7 +76,7 @@
           <i class="fas fa-check-circle"></i> Appointment successfully created!
         </div>
 
-        <form id="appointmentForm" method="POST" action="/appointment">
+        <form id="appointmentForm" method="POST" action="/admincreateb">
           <div class="form-grid">
             <div class="form-group">
               <label for="fullname">
@@ -108,12 +108,12 @@
               </label>
               <select id="service" name="service" required>
                 <option value="" disabled selected>Select Service</option>
-                <option value="burial">Burial Service</option>
-                <option value="lot-inquiry">Lot Inquiry</option>
-                <option value="transfer">Transfer Request</option>
-                <option value="memorial">Memorial Service</option>
-                <option value="maintenance">Maintenance Request</option>
-                <option value="other">Other</option>
+                <option value="burial">🏛️ Burial Service</option>
+                <option value="lot-inquiry">🏞️ Lot Inquiry</option>
+                <option value="transfer">📋 Transfer Request</option>
+                <option value="memorial">🌹 Memorial Service</option>
+                <option value="maintenance">🔧 Maintenance Request</option>
+                <option value="other">📝 Other</option>
               </select>
               <div class="error-message" id="serviceError"></div>
             </div>
@@ -132,13 +132,13 @@
               </label>
               <select id="time" name="time" required>
                 <option value="" disabled selected>Select Time</option>
-                <option value="09:00">9:00 AM</option>
-                <option value="10:00">10:00 AM</option>
-                <option value="11:00">11:00 AM</option>
-                <option value="13:00">1:00 PM</option>
-                <option value="14:00">2:00 PM</option>
-                <option value="15:00">3:00 PM</option>
-                <option value="16:00">4:00 PM</option>
+                <option value="09:00">🌅 9:00 AM</option>
+                <option value="10:00">🌄 10:00 AM</option>
+                <option value="11:00">☀️ 11:00 AM</option>
+                <option value="13:00">🌞 1:00 PM</option>
+                <option value="14:00">🌤️ 2:00 PM</option>
+                <option value="15:00">🌇 3:00 PM</option>
+                <option value="16:00">🌆 4:00 PM</option>
               </select>
               <div class="error-message" id="timeError"></div>
             </div>
@@ -163,9 +163,9 @@
             </button>
           </div>
         </form>
-      </section>
-    </main>
-  </div>
+      </div>
+    </section>
+  </main>
 
   <!-- AI Suggestions Modal -->
   <div id="aiModal" class="modal">
@@ -176,16 +176,20 @@
       </div>
       <div id="suggestionsList">
         <div class="suggestion-item" data-service="burial" data-time="10:00">
-          <div class="suggestion-title">Morning Burial Service</div>
-          <div class="suggestion-desc">Recommended for peaceful ceremonies with better weather conditions</div>
+          <div class="suggestion-title">🌅 Morning Burial Service</div>
+          <div class="suggestion-desc">Recommended for peaceful ceremonies with better weather conditions and optimal lighting</div>
         </div>
         <div class="suggestion-item" data-service="lot-inquiry" data-time="14:00">
-          <div class="suggestion-title">Afternoon Lot Viewing</div>
-          <div class="suggestion-desc">Optimal lighting for viewing available plots and memorial sites</div>
+          <div class="suggestion-title">🌞 Afternoon Lot Viewing</div>
+          <div class="suggestion-desc">Perfect lighting for viewing available plots and memorial sites with clear visibility</div>
         </div>
         <div class="suggestion-item" data-service="memorial" data-time="09:00">
-          <div class="suggestion-title">Early Memorial Planning</div>
-          <div class="suggestion-desc">Quiet hours for detailed memorial service planning</div>
+          <div class="suggestion-title">🌄 Early Memorial Planning</div>
+          <div class="suggestion-desc">Quiet morning hours ideal for detailed memorial service planning and consultation</div>
+        </div>
+        <div class="suggestion-item" data-service="maintenance" data-time="11:00">
+          <div class="suggestion-title">🔧 Mid-Morning Maintenance</div>
+          <div class="suggestion-desc">Optimal time for site inspections and maintenance discussions with full daylight</div>
         </div>
       </div>
     </div>
@@ -202,15 +206,12 @@
 
       initializeEventListeners() {
         // Form submission
-        // this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
         
         // Button events
         document.getElementById('clearBtn').addEventListener('click', () => this.clearForm());
         document.getElementById('aiBtn').addEventListener('click', () => this.showAISuggestions());
         document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
-        
-        // Sidebar toggle
-        document.getElementById('toggleSidebar').addEventListener('click', () => this.toggleSidebar());
         
         // Real-time validation
         this.form.querySelectorAll('input, select, textarea').forEach(field => {
@@ -339,8 +340,6 @@
       }
 
       handleSubmit(e) {
-        e.preventDefault();
-        
         // Validate all fields
         let isFormValid = true;
         const requiredFields = this.form.querySelectorAll('[required]');
@@ -352,6 +351,7 @@
         });
 
         if (!isFormValid) {
+          e.preventDefault();
           this.showNotification('Please correct the errors above', 'error');
           return;
         }
@@ -361,33 +361,8 @@
         submitBtn.classList.add('loading');
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-        // Simulate API call
-        setTimeout(() => {
-          this.submitAppointment();
-        }, 2000);
-      }
-
-      submitAppointment() {
-        const formData = new FormData(this.form);
-        const appointmentData = Object.fromEntries(formData);
-        
-        // Here you would typically send data to your backend
-        console.log('Appointment Data:', appointmentData);
-        
-        // Show success message
-        document.getElementById('successMessage').style.display = 'block';
-        this.showNotification('Appointment successfully created!', 'success');
-        
-        // Reset form and button
-        this.clearForm();
-        this.clearSavedData();
-        
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.classList.remove('loading');
-        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Book Appointment';
-        
-        // Scroll to top to show success message
-        document.querySelector('.appointment-form').scrollIntoView({ behavior: 'smooth' });
+        // Allow form to submit naturally to the server
+        this.showNotification('Creating appointment...', 'info');
       }
 
       clearForm() {
@@ -430,11 +405,6 @@
         this.showNotification('AI suggestion applied successfully!', 'success');
       }
 
-      toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('collapsed');
-      }
-
       saveFormData() {
         const formData = new FormData(this.form);
         const data = Object.fromEntries(formData);
@@ -459,7 +429,6 @@
       }
 
       showNotification(message, type = 'info') {
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
@@ -467,23 +436,8 @@
           ${message}
         `;
         
-        // Add styles
-        Object.assign(notification.style, {
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          padding: '1rem 1.5rem',
-          borderRadius: '10px',
-          color: 'white',
-          fontWeight: '600',
-          zIndex: '9999',
-          animation: 'slideInRight 0.3s ease',
-          background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'
-        });
-        
         document.body.appendChild(notification);
         
-        // Remove after 3 seconds
         setTimeout(() => {
           notification.style.animation = 'slideOutRight 0.3s ease';
           setTimeout(() => notification.remove(), 300);
@@ -491,24 +445,50 @@
       }
     }
 
+    // Global functions for sidebar interactions
+    function showQuickForm() {
+      updateActiveButton('quick-form');
+      new AppointmentManager().showNotification('Quick booking mode activated', 'info');
+    }
+
+    function showAdvancedForm() {
+      updateActiveButton('advanced-form');
+      new AppointmentManager().showNotification('Advanced options coming soon...', 'info');
+    }
+
+    function showTemplates() {
+      updateActiveButton('templates');
+      new AppointmentManager().showNotification('Template selection coming soon...', 'info');
+    }
+
+    function showBulkCreate() {
+      updateActiveButton('bulk-create');
+      new AppointmentManager().showNotification('Bulk creation feature coming soon...', 'info');
+    }
+
+    function showTodayStats() {
+      new AppointmentManager().showNotification('Today: 8 appointments scheduled', 'info');
+    }
+
+    function showWeekStats() {
+      new AppointmentManager().showNotification('This week: 23 appointments total', 'info');
+    }
+
+    function showAvailableSlots() {
+      new AppointmentManager().showNotification('12 available time slots remaining today', 'success');
+    }
+
+    function updateActiveButton(activeId) {
+      document.querySelectorAll('.appointment-sections button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(activeId).classList.add('active');
+    }
+
     // Initialize the appointment manager when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
       new AppointmentManager();
     });
-
-    // Add CSS animations for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
   </script>
 </body>
 </html>

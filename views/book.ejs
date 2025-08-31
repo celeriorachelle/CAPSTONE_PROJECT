@@ -5,6 +5,7 @@
   <title>Booking Form</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/stylesheets/book.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="sidebar" id="sidebar">
@@ -14,7 +15,7 @@
       </div>
       <nav>
         <a href="/">Home</a>
-        <a href="/book">Book</a>
+        <a href="/book">Booking</a>
         <a href="/viewbooking">View Bookings</a>
         <a href="/burialrecord">Booking Records</a>
         <a href="/support">Support</a>
@@ -29,68 +30,104 @@
   <div class="toggle-btn" id="toggleBtn">◀</div>
 
   <div class="main" id="main">
-    <div class="topbar">
+    <div class="topbar" id="topbar">
       <h1>Bookings</h1>
-      <div>🔔 👤</div>
+      <div class="icon-buttons">
+        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
+        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
+      </div>
     </div>
 
-  <div class="form-container">
-  <h2>BOOKING FORM</h2>
-  <form class="form-grid">
-    <!-- RIGHT GROUP -->
-       <div class="form-group">
-      <label for="firstname">First Name</label>
-      <input type="text" id="lastname" placeholder="firstname">
-    </div>
-    <div class="form-group">
-      <label for="lastname">Last Name</label>
-      <input type="text" id="lastname" placeholder="lastname">
-    </div>
-    
-    <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Email Address">
+    <!-- Notification Popup -->
+    <div id="notification-popup" class="notification-popup hidden">
+      <h3>Notifications</h3>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
+        <li><i class="fas fa-envelope"></i> New message from staff.</li>
+        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
+      </ul>
     </div>
 
-    <!-- CENTER GROUP -->
-    <div class="form-group">
-      <label for="phone">Phone Number</label>
-      <input type="text" id="phone" placeholder="Phone Number">
+    <div class="form-container">
+      <h2>BOOKING FORM</h2>
+      <form class="form-grid">
+        <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input type="text" id="fullname" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="Email Address">
+        </div>
+        <div class="form-group">
+          <label for="appointment-date">Date of Appointment</label>
+          <input type="date" id="appointment-date" min="">
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" placeholder="Phone Number">
+        </div>
+        <div class="form-group">
+          <label for="visit-date">Preferred Visit Date</label>
+          <input type="date" id="visit-date">
+        </div>
+        <div class="form-group">
+          <label for="visit-time">Preferred Visit Time</label>
+          <select id="visit-time">
+            <option>08:00 AM</option>
+            <option>09:00 AM</option>
+            <option>10:00 AM</option>
+            <option>01:00 PM</option>
+            <option>02:00 PM</option>
+            <option>03:00 PM</option>
+            <option>04:00 PM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reservation-date">Reservation Date</label>
+          <input type="date" id="reservation-date">
+        </div>
+        <div class="form-group">
+          <label for="service-type">Service Type</label>
+          <select id="service-type" name="serviceType">
+            <option value="">-- Select Service Type --</option>
+            <option value="inquiries">Inquiries</option>
+            <option value="plot-booking">Plot Booking</option>
+            <option value="memorial">Memorial</option>
+            <option value="burial">Burial</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column: span 1;">
+          <label for="notes">Notes / Special Requests</label>
+          <textarea id="notes" placeholder="Notes / Special Requests"></textarea>
+        </div>
+        <div class="form-actions" style="grid-column: span 3;">
+          <button type="reset">Clear</button>
+          <button type="submit">Next</button>
+        </div>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label for="visit-date">Data of Appointment</label>
-      <input type="date" id="visit-date">
-    </div>
-
-    <div class="form-group">
-      <label for="visit-time"> Preferred Time</label>
-      <select id="visit-time">
-        <option>08:00 AM</option>
-        <option>09:00 AM</option>
-        <option>10:00 AM</option>
-        <option>01:00 PM</option>
-        <option>02:00 PM</option>
-        <option>03:00 PM</option>
-        <option>04:00 PM</option>
-      </select>
-    </div>
-
-    <div class="form-group" style="grid-column: span 1;">
-      <label for="notes">Notes / Special Requests</label>
-      <textarea id="notes" placeholder="Notes / Special Requests"></textarea>
-    </div>
-
-    <div class="form-actions" style="grid-column: span 3;">
-      <button type="reset">Clear</button>
-      <button type="submit">Next</button>
-    </div>
-  </form>
-</div>
-
-<footer>
-          <%- include('partials/footer') %>
-</footer>
+    <footer class="footer">
+      <div class="footer-content">
+        <div>
+          <p><strong>Office Hours</strong><br>
+            Mon–Fri: 8:00 AM – 6:00 PM<br>
+            Sat–Sun: 9:00 AM – 4:00 PM</p>
+        </div>
+        <div>
+          <p><strong>Address:</strong><br>
+            Everlasting Peace Memorial Park,<br>
+            Malabon City, Philippines</p>
+        </div>
+        <div>
+          <p><strong>Support:</strong><br>
+            <a href="mailto:support@epcemetery.com">support@everlastingpeace.com</a><br>
+            <a href="tel:+639670072385">+63 9670072385</a></p>
+        </div>
+      </div>
+    </footer>
+  </div>
 
   <script>
     const sidebar = document.getElementById("sidebar");
@@ -111,10 +148,12 @@
       "2025-08-22": ["09:00 AM", "03:00 PM", "04:00 PM"]
     };
 
+    // Handle available time slots (if needed in the future)
     const timeslotsDiv = document.getElementById("timeslots");
-
     dateInput.addEventListener("input", () => {
       const selectedDate = dateInput.value;
+      if (!timeslotsDiv) return;
+
       timeslotsDiv.innerHTML = "";
 
       if (bookedSlots[selectedDate] && bookedSlots[selectedDate].length === timeOptions.length) {
@@ -139,6 +178,26 @@
 
         timeslotsDiv.appendChild(slot);
       });
+    });
+
+    // Notification popup logic
+    const notifIcon = document.getElementById("notif-icon");
+    const notifPopup = document.getElementById("notification-popup");
+
+    notifIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifPopup.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+        notifPopup.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("profile-icon").addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.location.href = "/setting";
     });
   </script>
 </body>

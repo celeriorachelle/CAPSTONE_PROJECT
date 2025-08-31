@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Booking Records</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/stylesheets/burialrecord.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/burialrecord.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
 <body>
   <!-- Sidebar -->
@@ -12,8 +14,8 @@
     <div>
       <div class="sidebar-header"><h2>Everlasting Peace<br>Memorial Park Cemetery</h2></div>
       <nav>
-       <a href="/">Home</a>
-        <a href="/book">Book</a>
+        <a href="/">Home</a>
+        <a href="/book">Booking</a>
         <a href="/viewbooking">View Bookings</a>
         <a href="/burialrecord">Booking Records</a>
         <a href="/support">Support</a>
@@ -27,37 +29,98 @@
 
   <!-- Main -->
   <div class="main">
-    <div class="topbar">
+    <div class="topbar" id="topbar">
       <h1>Booking Records</h1>
-      <div>🔔 👤</div>
+      <div class="icon-buttons">
+        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
+        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
+      </div>
     </div>
+
+    <!-- 🛎 Notification Popup -->
+    <div id="notification-popup" class="notification-popup hidden">
+      <h3>Notifications</h3>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
+        <li><i class="fas fa-envelope"></i> New message from staff.</li>
+        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
+      </ul>
+    </div>
+
+    <!-- Table -->
     <div class="table-container">
       <table>
         <thead>
-          <tr><th>Deceased Name</th><th>Booking ID</th><th>Death Date</th><th>Plot No.</th><th>Booking Date</th><th>Status</th><th>Location</th></tr>
+          <tr>
+            <th>Deceased Name</th>
+            <th>Booking ID</th>
+            <th>Death Date</th>
+            <th>Plot No.</th>
+            <th>Booking Date</th>
+            <th>Status</th>
+            <th>Location</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
         </tbody>
       </table>
     </div>
-<footer>
-          <%- include('partials/footer') %>
-</footer>
- 
 
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div>
+          <p><strong>Office Hours</strong><br>
+            Mon–Fri: 8:00 AM – 6:00 PM<br>
+            Sat–Sun: 9:00 AM – 4:00 PM
+          </p>
+        </div>
+        <div>
+          <p><strong>Address:</strong><br>
+            Everlasting Peace Memorial Park,<br>
+            Malabon City, Philippines
+          </p>
+        </div>
+        <div>
+          <p><strong>Support:</strong><br>
+            <a href="mailto:support@epcemetery.com">support@everlastingpeace.com</a><br>
+            <a href="tel:+639670072385">+63 9670072385</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
   <script>
     const sidebar = document.getElementById("sidebar");
     const btn = document.getElementById("toggleBtn");
 
     btn.addEventListener("click", () => {
       sidebar.classList.toggle("collapsed");
+      btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+    });
 
-      if(sidebar.classList.contains("collapsed")){
-        btn.textContent = "▶";
-      } else {
-        btn.textContent = "◀";
+    const notifIcon = document.getElementById("notif-icon");
+    const notifPopup = document.getElementById("notification-popup");
+
+    notifIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifPopup.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+        notifPopup.classList.add("hidden");
       }
+    });
+
+    document.getElementById("profile-icon").addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.location.href = "/setting";
     });
   </script>
 </body>

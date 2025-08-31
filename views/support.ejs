@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support - Everlasting Peace Memorial Park</title>
-    <link rel="stylesheet" href="/stylesheets/support.css">
+  <link rel="stylesheet" href="/stylesheets/support.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <!-- Sidebar -->
@@ -15,7 +16,7 @@
       </div>
       <nav>
         <a href="/">Home</a>
-        <a href="/book">Book</a>
+        <a href="/book">Booking</a>
         <a href="/viewbooking">View Bookings</a>
         <a href="/burialrecord">Booking Records</a>
         <a href="/support">Support</a>
@@ -29,11 +30,22 @@
 
   <!-- Main -->
   <div class="main" id="main">
-    <div class="topbar">
-      <!-- Hide old button -->
-      <!-- <button onclick="toggleSidebar()">☰</button> -->
+    <div class="topbar" id="topbar">
       <h1>Support</h1>
-      <div>🔔 👤</div>
+      <div class="icon-buttons">
+        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
+        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
+      </div>
+    </div>
+
+    <!-- 🛎 Notification Popup -->
+    <div id="notification-popup" class="notification-popup hidden">
+      <h3>Notifications</h3>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
+        <li><i class="fas fa-envelope"></i> New message from staff.</li>
+        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
+      </ul>
     </div>
 
     <div class="content">
@@ -83,9 +95,6 @@
         </div>
       </div>
     </div>
-    <footer>
-          <%- include('partials/footer') %>
-</footer>
   </div>
 
   <script>
@@ -97,7 +106,7 @@
       toggleBtn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
     });
 
-    // Accordion effect for FAQ
+    // Accordion effect
     document.querySelectorAll(".faq-item").forEach(item => {
       item.addEventListener("click", () => {
         document.querySelectorAll(".faq-item").forEach(el => {
@@ -105,6 +114,26 @@
         });
         item.classList.toggle("active");
       });
+    });
+
+    // Notification popup toggle
+    const notifIcon = document.getElementById("notif-icon");
+    const notifPopup = document.getElementById("notification-popup");
+
+    notifIcon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifPopup.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+        notifPopup.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("profile-icon").addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.location.href = "/setting";
     });
   </script>
 </body>

@@ -4,7 +4,10 @@ const bcrypt = require('bcrypt');
 const db = require('../db');
 
 router.get('/', (req, res) => {
-  res.render('login'); 
+  res.render('login', { 
+    success: req.query.success || null,  // pass success from query string
+    error: null                          // ensure error is defined
+  });
 });
 
 // Logout route
@@ -20,7 +23,6 @@ router.get('/logout', (req, res) => {
 });
 
 
-// Handle POST /login
 router.post('/', async (req, res) => {
   const email = (req.body.username || '').trim();
   const password = (req.body.password || '');
@@ -32,13 +34,15 @@ router.post('/', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.render('login', { error: 'No account with that email address found.' });
+      return res.render('login', { error: 'No account with that email address found.', success: null });
     }
 
     const user = rows[0];
+
+    // Compare password
     const ok = await bcrypt.compare(password, user.password_hash || '');
     if (!ok) {
-      return res.render('login', { error: 'Incorrect password. Please try again.' });
+      return res.render('login', { error: 'Incorrect password. Please try again.', success: null });
     }
 
     // ✅ Store user info in session
@@ -59,7 +63,7 @@ router.post('/', async (req, res) => {
     res.redirect('/');
   } catch (error) {
     console.error('Login database query error:', error);
-    return res.render('login', { error: 'An internal error occurred. Please try again.' });
+    return res.render('login', { error: 'An internal error occurred. Please try again.', success: null });
   }
 });
 

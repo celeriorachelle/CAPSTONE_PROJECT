@@ -7,7 +7,6 @@ var session = require('express-session');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var appointmentRouter = require('./routes/appointment');
 var mapsRouter = require('./routes/maps');
 var settingsRouter = require('./routes/settings');
 var userhomeRouter = require('./routes/userhome');
@@ -18,10 +17,14 @@ var adminRouter = require('./routes/admin');
 var supportRouter = require('./routes/support');
 var boookRouter = require('./routes/book');
 var viewbookingRouter = require('./routes/viewbooking');
-var burialrecordRouter = require('./routes/burialrecord.js');
-var bookplotsRouter = require('./routes/bookplots.js');
-var admincreatebRouter = require('./routes/admincreateb.js');
-var adminviewappRouter = require('./routes/adminviewapp.js');
+var burialrecordRouter = require('./routes/burialrecord');
+var bookplotsRouter = require('./routes/bookplots');
+var admincreatebRouter = require('./routes/admincreateb');
+var adminviewappRouter = require('./routes/adminviewapp');
+var forgotpassRouter = require('./routes/forgotpass');
+var profileRouter = require('./routes/profile'); 
+var admin_inventoryRouter = require('./routes/admin_inventory');
+var admin_logsRouter = require('./routes/admin_logs');
 
 
 const { register } = require('module');
@@ -57,7 +60,6 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/appointment', appointmentRouter);
 app.use('/maps', mapsRouter);  
 app.use('/settings', settingsRouter);
 app.use('/userhome', userhomeRouter);
@@ -72,6 +74,10 @@ app.use('/burialrecord', burialrecordRouter);
 app.use('/bookplots', bookplotsRouter);
 app.use('/admincreateb', admincreatebRouter);
 app.use('/adminviewapp', adminviewappRouter);
+app.use('/forgotpass', forgotpassRouter);
+app.use('profile/', profileRouter);
+app.use('/admin_inventory', admin_inventoryRouter);
+app.use('/admin_logs', admin_logsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

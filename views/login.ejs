@@ -18,11 +18,21 @@
                 <h2>Everlasting Peace Memorial Park Cemetery</h2>
                 <p class="subtitle">Gardens of Peace</p>
             </div>
+
+            <!-- Error message -->
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="error-message" style="color:red; margin-bottom:10px;">
                     <%= error %>
                 </div>
             <% } %>
+
+            <!-- Success message from query string -->
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div id="success-message" class="success-message" style="color:green; margin-bottom:10px;">
+                    <%= success %>
+                </div>
+            <% } %>
+
             <div class="input-form">
                 <form action="/login" method="POST">
                     <div class="input-columns">
@@ -44,10 +54,21 @@
                     </div>
                 </form>
                 <p><a href="/register">Create an Account</a></p>
-                <p><a href="#">Forgot Password</a></p>
+                <p><a href="/forgotpass">Forgot Password</a></p>
             </div>
         </div>
     </section>
+
+    <!-- Optional: auto-hide success message after 5 seconds -->
+    <script>
+        const successMessage = document.getElementById('success-message');
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000); // 5000ms = 5 seconds
+        }
+    </script>
+
     <footer>
         <%- include('partials/footer') %>
     </footer>

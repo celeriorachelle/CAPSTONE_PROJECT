@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Logs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/stylesheets/admin_logs.css">
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <h2>Everlasting Peace <br>Memorial Park</h2>
+      <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#">Create Bookings</a>
+        <a href="#">View Bookings</a>
+        <a href="#" class="active">Activity Logs</a>
+        <a href="inventory.html">Inventory</a>
+        <a href="#">Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h1>Activity Logs</h1>
+      <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="content-area">
+      <table id="logsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function loadLogs() {
+      let logs = JSON.parse(localStorage.getItem("activityLogs")) || [];
+      const tbody = document.querySelector("#logsTable tbody");
+      tbody.innerHTML = "";
+      logs.forEach(log => {
+        let row = `<tr>
+          <td>${log.id}</td>
+          <td>${log.userId}</td>
+          <td>${log.action}</td>
+          <td>${log.details}</td>
+          <td>${log.timestamp}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function clearLogs() {
+      if (confirm("Are you sure you want to clear all logs?")) {
+        localStorage.removeItem("activityLogs");
+        loadLogs();
+      }
+    }
+
+    window.onload = loadLogs;
+  </script>
+</body>
+</html>

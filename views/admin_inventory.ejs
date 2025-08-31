@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plot Inventory</title>
+  <limk rel="stylesheet" href="/stylesheets/admin_inventory.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <h2>Everlasting Peace <br>Memorial Park</h2>
+      <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#">Create Bookings</a>
+        <a href="#">View Bookings</a>
+        <a href="activity-logs.html">Activity Logs</a>
+        <a href="#" class="active">Inventory</a>
+        <a href="#">Reports</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <h1>Plot Inventory</h1>
+      <button onclick="openPopup()">+ Add New Plot</button>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="content-area">
+      <table id="inventoryTable">
+        <thead>
+          <tr>
+            <th>Plot Name</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div><strong>Office Hours</strong><br>Mon-Fri: 8:00 AM - 6:00 PM</div>
+      <div><strong>Visit Us</strong><br>123 Memorial Drive</div>
+      <div><strong>Call Us</strong><br>(555) 123-4567</div>
+      <div><strong>Email Us</strong><br>info@everlastingpeace.com</div>
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div class="popup" id="plotPopup">
+    <div class="popup-content">
+      <h2 id="popupTitle">Add New Plot</h2>
+      <form id="plotForm">
+        <input type="hidden" id="editIndex">
+
+        <label>Plot Name</label>
+        <input type="text" id="plotName" readonly>
+
+        <label>Type</label>
+        <select id="plotType" required>
+          <option value="">Select</option>
+          <option>Lawn</option>
+          <option>Heritage</option>
+          <option>Mausoleum</option>
+          <option>Family Lot</option>
+        </select>
+
+        <label>Location</label>
+        <input type="text" id="location" required>
+
+        <label>Status</label>
+        <select id="status" required>
+          <option>Available</option>
+          <option>Reserved</option>
+          <option>Occupied</option>
+        </select>
+
+        <label>Price</label>
+        <input type="number" id="price" required>
+
+        <div class="popup-actions">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let plots = JSON.parse(localStorage.getItem("plots")) || [];
+
+    const tableBody = document.querySelector("#inventoryTable tbody");
+
+    // Generate next plot name
+    function generatePlotName() {
+      let nextNumber = plots.length + 1;
+      return "PLOT-" + String(nextNumber).padStart(3, "0");
+    }
+
+    // Save activity logs
+    function addLog(action, details) {
+      let logs = JSON.parse(localStorage.getItem("activityLogs")) || [];
+      let log = {
+        id: logs.length + 1,
+        userId: "Admin",
+        action: action,
+        details: details,
+        timestamp: new Date().toLocaleString()
+      };
+      logs.push(log);
+      localStorage.setItem("activityLogs", JSON.stringify(logs));
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = "";
+      plots.forEach((plot, index) => {
+        let row = `<tr>
+          <td>${plot.plotName}</td>
+          <td>${plot.plotType}</td>
+          <td>${plot.location}</td>
+          <td>${plot.status}</td>
+          <td>${plot.price}</td>
+          <td class="actions">
+            <button class="edit-btn" onclick="editPlot(${index})">Edit</button>
+            <button class="delete-btn" onclick="deletePlot(${index})">Delete</button>
+          </td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+      localStorage.setItem("plots", JSON.stringify(plots));
+    }
+
+    function openPopup(edit = false) {
+      document.getElementById("plotPopup").style.display = "flex";
+      document.getElementById("popupTitle").innerText = edit ? "Edit Plot" : "Add New Plot";
+
+      if (!edit) {
+        document.getElementById("plotName").value = generatePlotName();
+      }
+    }
+
+    function closePopup() {
+      document.getElementById("plotPopup").style.display = "none";
+      document.getElementById("plotForm").reset();
+      document.getElementById("editIndex").value = "";
+    }
+
+    document.getElementById("plotForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      let editIndex = document.getElementById("editIndex").value;
+
+      let plot = {
+        plotName: editIndex ? plots[editIndex].plotName : document.getElementById("plotName").value,
+        plotType: document.getElementById("plotType").value,
+        location: document.getElementById("location").value,
+        status: document.getElementById("status").value,
+        price: document.getElementById("price").value
+      };
+
+      if (editIndex) {
+        plots[editIndex] = plot;
+        addLog("Edit Plot", `Edited plot: ${plot.plotName}`);
+      } else {
+        plots.push(plot);
+        addLog("Add Plot", `Added new plot: ${plot.plotName}`);
+      }
+
+      renderTable();
+      closePopup();
+    });
+
+    function editPlot(index) {
+      let plot = plots[index];
+      document.getElementById("plotName").value = plot.plotName;
+      document.getElementById("plotType").value = plot.plotType;
+      document.getElementById("location").value = plot.location;
+      document.getElementById("status").value = plot.status;
+      document.getElementById("price").value = plot.price;
+      document.getElementById("editIndex").value = index;
+      openPopup(true);
+    }
+
+    function deletePlot(index) {
+      if (confirm("Are you sure you want to delete this plot?")) {
+        addLog("Delete Plot", `Deleted plot: ${plots[index].plotName}`);
+        plots.splice(index, 1);
+        renderTable();
+      }
+    }
+
+    // Initial render
+    renderTable();
+  </script>
+</body>
+</html>

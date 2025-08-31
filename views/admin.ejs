@@ -3,73 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Everlasting Peace Memorial Park</title>
+  <title>Admin Dashboard | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
 </head>
 <body>
-  <div class="container">
-    <!-- Enhanced Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="logo">
-        <div>
-          <h2>Everlasting<br><span>Peace</span><br>Memorial Park</h2>
-        </div>
-        <i class="fas fa-bars toggle-icon" id="toggleSidebar"></i>
+  <!-- Enhanced Admin Header -->
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/maps"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <!-- Enhanced Sidebar from View Appointments -->
+    <aside class="sidebar">
+      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <ul>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+      </ul>
+
+      <h3><i class="fas fa-chart-bar"></i> Quick Stats</h3>
+      <div class="dashboard-sections">
+        <button onclick="showSection('today')" class="active" id="section-today">
+          <i class="fas fa-calendar-day"></i> Today's Overview
+        </button>
+        <button onclick="showSection('appointments')" id="section-appointments">
+          <i class="fas fa-calendar-check"></i> Appointments
+        </button>
+        <button onclick="showSection('records')" id="section-records">
+          <i class="fas fa-file-alt"></i> Records
+        </button>
+        <button onclick="showSection('reports')" id="section-reports">
+          <i class="fas fa-chart-line"></i> Reports
+        </button>
+        <button onclick="showSection('settings')" id="section-settings">
+          <i class="fas fa-cog"></i> Settings
+        </button>
       </div>
 
-      <nav>
-        <ul>
-          <li class="active">
-            <a href="/" id="homeLink">
-              <i class="fas fa-home"></i>
-              <span>Home</span>
-            </a>
-          </li>
-          <li>
-            <a href="appointment.html" id="appointmentLink">
-              <i class="fas fa-calendar-alt"></i>
-              <span>Appointment</span>
-            </a>
-            <ul class="submenu">
-              <li><a href="/admincreateb">Create appointment</a></li>
-              <li><a href="/adminviewapp">View appointment</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="#" id="burialRecordsLink">
-              <i class="fas fa-book"></i>
-              <span>Burial Records</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" id="cemeteryMapLink">
-              <i class="fas fa-map"></i>
-              <span>Cemetery Map</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" id="supportLink">
-              <i class="fas fa-headset"></i>
-              <span>Support</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" id="settingsLink">
-              <i class="fas fa-cog"></i>
-              <span>Settings</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <h3><i class="fas fa-info-circle"></i> System Status</h3>
+      <div class="dashboard-sections">
+        <button onclick="checkSystemStatus()" style="background: rgba(40, 167, 69, 0.2); color: #155724;">
+          <i class="fas fa-check-circle"></i> All Systems Online
+        </button>
+        <button onclick="viewBackups()">
+          <i class="fas fa-database"></i> Last Backup: Today
+        </button>
+        <button onclick="viewUpdates()">
+          <i class="fas fa-download"></i> Updates Available
+        </button>
+      </div>
     </aside>
 
     <!-- Enhanced Main Content -->
-    <main class="main-content">
+    <section class="content">
       <!-- Enhanced Topbar -->
       <header class="topbar">
         <div class="topbar-left">
-          <h2>Dashboard</h2>
+          <h2>Dashboard Overview</h2>
           <div class="date-time" id="currentDateTime"></div>
         </div>
         <div class="icons">
@@ -256,8 +259,8 @@
           </div>
         </section>
       </div>
-    </main>
-  </div>
+    </section>
+  </main>
 
   <!-- Notification Modal -->
   <div id="notificationModal" class="modal">
@@ -327,40 +330,11 @@
       }
 
       bindEvents() {
-        // Sidebar toggle
-        document.getElementById('toggleSidebar').addEventListener('click', () => {
-          document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-
-        // Navigation links
-        document.getElementById('homeLink').addEventListener('click', (e) => {
-          e.preventDefault();
-          this.setActiveNav('homeLink');
-        });
-
-        document.getElementById('createAppointmentLink').addEventListener('click', (e) => {
-          e.preventDefault();
-          this.showNotification('Redirecting to Create Appointment...', 'info');
-          // Simulate navigation
-          setTimeout(() => {
-            window.location.href = 'create-appointment.html';
-          }, 1000);
-        });
-
-        document.getElementById('cemeteryMapLink').addEventListener('click', (e) => {
-          e.preventDefault();
-          this.showNotification('Opening Cemetery Map...', 'info');
-          // Simulate navigation
-          setTimeout(() => {
-            window.location.href = 'cemetery-management.html';
-          }, 1000);
-        });
-
         // Quick action buttons
         document.getElementById('newAppointmentBtn').addEventListener('click', () => {
           this.showNotification('Opening appointment form...', 'info');
           setTimeout(() => {
-            window.location.href = 'create-appointment.html';
+            window.location.href = '/admincreateb';
           }, 1000);
         });
 
@@ -453,11 +427,6 @@
         }, 1000);
       }
 
-      setActiveNav(activeId) {
-        document.querySelectorAll('nav li').forEach(li => li.classList.remove('active'));
-        document.getElementById(activeId).closest('li').classList.add('active');
-      }
-
       animateStats() {
         const animateNumber = (element, target) => {
           let current = 0;
@@ -537,26 +506,11 @@
 
       showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
+        notification.className = `notification ${type}`;
         notification.innerHTML = `
           <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
           ${message}
         `;
-        
-        Object.assign(notification.style, {
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          padding: '1rem 1.5rem',
-          borderRadius: '10px',
-          color: 'white',
-          fontWeight: '600',
-          zIndex: '9999',
-          animation: 'slideInRight 0.3s ease',
-          background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8',
-          maxWidth: '300px',
-          wordWrap: 'break-word'
-        });
         
         document.body.appendChild(notification);
         
@@ -567,24 +521,38 @@
       }
     }
 
+    // Global functions for sidebar interactions
+    function showSection(section) {
+      // Update active button
+      document.querySelectorAll('.dashboard-sections button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`section-${section}`).classList.add('active');
+      
+      // Show notification
+      const dashboard = new DashboardManager();
+      dashboard.showNotification(`Viewing ${section} section`, 'info');
+    }
+
+    function checkSystemStatus() {
+      const dashboard = new DashboardManager();
+      dashboard.showNotification('All systems are running normally', 'success');
+    }
+
+    function viewBackups() {
+      const dashboard = new DashboardManager();
+      dashboard.showNotification('Last backup completed successfully at 3:00 AM today', 'info');
+    }
+
+    function viewUpdates() {
+      const dashboard = new DashboardManager();
+      dashboard.showNotification('System updates available. Schedule maintenance?', 'info');
+    }
+
     // Initialize dashboard when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
       new DashboardManager();
     });
-
-    // Add CSS animations for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
   </script>
 </body>
 </html>
