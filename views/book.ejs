@@ -22,9 +22,6 @@
         <a href="/">View Map</a>
       </nav>
     </div>
-    <div class="sidebar-footer">
-      &copy; 2025 Everlasting Peace
-    </div>
   </div>
 
   <div class="toggle-btn" id="toggleBtn">◀</div>
@@ -52,8 +49,14 @@
       <h2>BOOKING FORM</h2>
       <form class="form-grid">
         <div class="form-group">
-          <label for="fullname">Full Name</label>
-          <input type="text" id="fullname" placeholder="Full Name">
+          <div class="form-group">
+          <label for="firstname">First Name</label>
+          <input type="text" id="firstname" placeholder="First Name">
+        </div>
+        </div>
+           <div class="form-group">
+          <label for="lastname">Last Name</label>
+          <input type="text" id="firstname" placeholder="Last Name">
         </div>
         <div class="form-group">
           <label for="email">Email Address</label>
@@ -100,25 +103,10 @@
       </form>
     </div>
 
-    <footer class="footer">
-      <div class="footer-content">
-        <div>
-          <p><strong>Office Hours</strong><br>
-            Mon–Fri: 8:00 AM – 6:00 PM<br>
-            Sat–Sun: 9:00 AM – 4:00 PM</p>
-        </div>
-        <div>
-          <p><strong>Address:</strong><br>
-            Everlasting Peace Memorial Park,<br>
-            Malabon City, Philippines</p>
-        </div>
-        <div>
-          <p><strong>Support:</strong><br>
-            <a href="mailto:support@epcemetery.com">support@everlastingpeace.com</a><br>
-            <a href="tel:+639670072385">+63 9670072385</a></p>
-        </div>
-      </div>
+    <footer>
+        <%- include('partials/footer') %>
     </footer>
+
   </div>
 
   <script>

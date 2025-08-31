@@ -194,37 +194,6 @@ button:hover {
   background-color: #145214;
 }
 
-/* Footer */
-.footer {
-  background: #0b2e0b;
-  color: white;
-  padding: 25px 40px;
-  font-size: 14px;
-  margin-top: auto;
-}
-
-.footer-content {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 25px;
-}
-
-.footer-content div {
-  flex: 1;
-  min-width: 180px;
-}
-
-.footer-content a {
-  color: #ddd;
-  text-decoration: underline;
-  transition: color 0.3s ease;
-}
-
-.footer-content a:hover {
-  color: #fff;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .main {
