@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plot Inventory</title>
-  <limk rel="stylesheet" href="/stylesheets/admin_inventory.css">
+  <link rel="stylesheet" href="/stylesheets/admin_inventory.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -49,14 +49,9 @@
       </table>
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-      <div><strong>Office Hours</strong><br>Mon-Fri: 8:00 AM - 6:00 PM</div>
-      <div><strong>Visit Us</strong><br>123 Memorial Drive</div>
-      <div><strong>Call Us</strong><br>(555) 123-4567</div>
-      <div><strong>Email Us</strong><br>info@everlastingpeace.com</div>
-    </div>
-  </div>
+     <footer>
+        <%- include('partials/footer') %>
+    </footer>
 
   <!-- Popup -->
   <div class="popup" id="plotPopup">
@@ -204,5 +199,6 @@
     // Initial render
     renderTable();
   </script>
+  
 </body>
 </html>

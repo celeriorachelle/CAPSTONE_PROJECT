@@ -28,6 +28,7 @@
       <button onclick="clearLogs()">Clear Logs</button>
     </div>
 
+    
     <div class="content-area">
       <table id="logsTable">
         <thead>
@@ -42,7 +43,11 @@
         <tbody></tbody>
       </table>
     </div>
+      <footer>
+        <%- include('partials/footer') %>
+    </footer>
   </div>
+  
 
   <script>
     function loadLogs() {
@@ -70,5 +75,6 @@
 
     window.onload = loadLogs;
   </script>
+  
 </body>
 </html>
