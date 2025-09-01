@@ -4,50 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Activity Logs</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/stylesheets/admin_logs.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/stylesheets/admin_logs.css">
 </head>
 <body>
-  <div class="sidebar">
-    <div>
-      <h2>Everlasting Peace <br>Memorial Park</h2>
+
+  <!-- ✅ Navbar -->
+  <header class="admin-navbar">
+    <div class="navbar-top">
+      <h1>Admin Dashboard</h1>
+    </div>
+    <nav class="navbar-links">
+      <ul>
+        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="#"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="#"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        <li><a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <!-- ✅ Sidebar -->
+    <div class="sidebar">
+      <h2><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h2>
       <div class="nav-links">
-        <a href="#">Home</a>
-        <a href="#">Create Bookings</a>
-        <a href="#">View Bookings</a>
-        <a href="#" class="active">Activity Logs</a>
-        <a href="inventory.html">Inventory</a>
-        <a href="#">Reports</a>
+        <a href="#"><i class="fas fa-calendar-plus"></i> Create Booking</a>
+        <a href="#"><i class="fas fa-calendar-check"></i> View Booking</a>
+        <a href="#"><i class="fas fa-file-alt"></i> Logs</a>
+        <a href="admin_inventory.html"><i class="fas fa-boxes"></i> Inventory</a>
+      </div>
+    </div>
+
+    <!-- ✅ Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <h1>Activity Logs</h1>
+        <button onclick="clearLogs()">Clear Logs</button>
+      </div>
+
+      <div class="content-area">
+        <table id="logsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Details</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </div>
-
-  <div class="main-content">
-    <div class="header">
-      <h1>Activity Logs</h1>
-      <button onclick="clearLogs()">Clear Logs</button>
-    </div>
-
-    
-    <div class="content-area">
-      <table id="logsTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Details</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-      <footer>
-        <%- include('partials/footer') %>
-    </footer>
-  </div>
-  
 
   <script>
     function loadLogs() {
@@ -75,6 +86,5 @@
 
     window.onload = loadLogs;
   </script>
-  
 </body>
 </html>
