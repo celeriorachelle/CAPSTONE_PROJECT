@@ -8,12 +8,13 @@
 </head>
 <body>
   <%- include('partials/sidebar') %>
+  <%- include('partials/topbar', { title: "Book" }) %>  
 
   <div class="main" id="main">
     <!-- Topbar -->
-    <%- include('partials/topbar', { title: "Book" }) %>
+    
         <!-- Plot List Table -->
-        <div class="plot-list-section">
+        <div class="plot-list-section" style="margin-left: 5%; margin-top: auto;">
           <h4>All Plots</h4>
           <div class="plot-table-container">
             <table class="plot-table">

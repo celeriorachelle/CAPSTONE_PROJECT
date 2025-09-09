@@ -74,20 +74,8 @@ router.post('/selectplot/:plotId', requireLogin, async (req, res) => {
 
     // Mark the plot as occupied
     await db.query(
-      `UPDATE plot_map_tbl SET status = 'occupied' WHERE plot_id = ?`,
+      `UPDATE plot_map_tbl SET status = 'available' WHERE plot_id = ?`,
       [plotId]
-    );
-
-    // Decrement available_plots in inventory_tbl
-    const [plotRows] = await db.query(
-      `SELECT item_id FROM plot_map_tbl WHERE plot_id = ?`,
-      [plotId]
-    );
-    const itemId = plotRows[0].item_id;
-
-    await db.query(
-      `UPDATE inventory_tbl SET available_plots = available_plots - 1 WHERE item_id = ?`,
-      [itemId]
     );
 
     // Save plotId in session for receipt

@@ -44,6 +44,18 @@ router.post('/approve/:id', async (req, res) => {
       [bookingId]
     );
 
+    // Get plot_id from the booking (to update plot status)
+    const [plotRes] = await db.query(
+      `SELECT plot_id FROM booking_tbl WHERE booking_id = ?`,
+      [bookingId]
+    );
+    if (plotRes[0] && plotRes[0].plot_id) {
+      await db.query(
+        `UPDATE plot_map_tbl SET status = 'occupied' WHERE plot_id = ?`,
+        [plotRes[0].plot_id]
+      );
+    }
+
     // Fetch user info for notification
     const [booking] = await db.query(
       `SELECT user_id, service_type, booking_date 
