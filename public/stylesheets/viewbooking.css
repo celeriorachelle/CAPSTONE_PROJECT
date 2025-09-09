@@ -395,3 +395,60 @@ tbody tr:hover {
     .hidden {
       display: none;
     }
+   /* Ensure main grows to push footer to bottom */
+.main {
+  margin-left: 250px;
+  transition: margin-left 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sidebar collapsed adjustment */
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+
+/* Content area grows to fill space */
+.main-content {
+  flex: 1;
+  padding: 20px 30px;
+}
+
+/* Footer alignment */
+.footer {
+  margin-top: auto; /* Push footer to bottom */
+  width: 100%;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination a {
+  display: inline-block;
+  margin: 0 5px;
+  padding: 6px 12px;
+  text-decoration: none;
+  border: 1px solid #001a5c;
+  border-radius: 5px;
+  color: #001a5c;
+  font-weight: bold;
+}
+
+.pagination a.active {
+  background-color: #001a5c;
+  color: white;
+}
+.rows-per-page {
+  margin: 10px 0;
+  text-align: right;
+}
+
+.rows-per-page select {
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid #001a5c;
+  font-weight: bold;
+}

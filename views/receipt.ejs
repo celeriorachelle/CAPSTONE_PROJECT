@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Receipt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/receipt.css">
+</head>
+<body>
+  <div class="receipt-container">
+    <h2>Booking Receipt</h2>
+
+    <div class="booking-details">
+      <h3>Your Booking Details</h3>
+      <p><strong>Name:</strong> <%= booking.firstname %> <%= booking.lastname %></p>
+      <p><strong>Email:</strong> <%= booking.email %></p>
+      <p><strong>Phone:</strong> <%= booking.phone %></p>
+      <p><strong>Service:</strong> <%= booking.service_type %></p>
+      <p><strong>Visit Date:</strong> <%= new Date(booking.booking_date).toLocaleDateString() %></p>
+      <p><strong>Visit Time:</strong> <%= booking.visit_time %></p>
+      <p><strong>Plot:</strong> <%= booking.plot_id ? booking.plot_id : 'N/A' %></p>
+      <p><strong>Notes:</strong> <%= booking.notes %></p>
+      <p><strong>Status:</strong> <span style="color:orange;"><%= booking.status %></span></p>
+    </div>
+
+    <div class="btn-container">
+      <a href="/" class="btn">Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>

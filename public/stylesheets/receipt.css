@@ -1,0 +1,91 @@
+ /* Reset & base */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f9;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding-top: 40px;
+    }
+
+    .receipt-container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 550px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    h3 {
+      color: #34495e;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+
+    .booking-details p {
+      margin: 10px 0;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .booking-details strong {
+      display: inline-block;
+      width: 120px;
+      color: #2c3e50;
+    }
+
+    .btn, button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: 0.3s;
+    }
+
+    .btn {
+      background-color: #3498db;
+      color: #fff;
+      margin-left: 10px;
+    }
+
+    .btn:hover {
+      background-color: #2980b9;
+    }
+
+    button[type="submit"] {
+      background-color: #27ae60;
+      color: #fff;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #1e8449;
+    }
+
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 500px) {
+      .booking-details strong {
+        width: 100px;
+      }
+    }

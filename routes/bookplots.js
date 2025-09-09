@@ -1,56 +1,129 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 const db = require('../db');
 
+// Middleware to require login
 function requireLogin(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect('/login');
-  }
+  if (!req.session.user) return res.redirect('/login');
   next();
 }
 
-/* GET home page. */
-router.get('/', requireLogin, async function(req, res, next) {
+// GET /bookplots → Show Plot Selection
+router.get('/', requireLogin, async (req, res) => {
+  if (!req.session.bookingData) return res.redirect('/book');
+
   try {
-    // Fetch all plots from the database
     const [plots] = await db.query(`
-      SELECT plot_id, plot_number, location, status, type, price, 
-             deceased_firstName, deceased_lastName, birth_date, death_date 
-      FROM plot_map_tbl 
+      SELECT plot_id, plot_number, location, status, type, price,
+             deceased_firstName, deceased_lastName, birth_date, death_date
+      FROM plot_map_tbl
       ORDER BY location, plot_number
     `);
 
-    // Transform status from numeric to string
+    // Use status as-is from DB (assumes strings 'available', 'occupied', 'reserved')
     const transformedPlots = plots.map(plot => ({
       ...plot,
-      status: plot.status === 0 ? 'available' : plot.status === 1 ? 'occupied' : 'reserved'
+      status: plot.status.toLowerCase() // optional: normalize casing
     }));
-
-    // Group plots by location for easier frontend handling
+    // Group plots by location
     const plotsByLocation = {};
     transformedPlots.forEach(plot => {
-      if (!plotsByLocation[plot.location]) {
-        plotsByLocation[plot.location] = [];
-      }
+      if (!plotsByLocation[plot.location]) plotsByLocation[plot.location] = [];
       plotsByLocation[plot.location].push(plot);
     });
-
-    console.log('Plots fetched:', transformedPlots.length);
-    console.log('Sample plot:', transformedPlots[0]);
 
     res.render('bookplots', { 
       title: 'Book Plots',
       plots: transformedPlots,
-      plotsByLocation: plotsByLocation
+      plotsByLocation
     });
   } catch (error) {
-    console.error('Error fetching plots:', error);
-    res.render('bookplots', { 
-      title: 'Book Plots',
-      plots: [],
-      plotsByLocation: {},
-      error: 'Unable to load plot data'
-    });
+    console.error(error);
+    res.render('bookplots', { plots: [], plotsByLocation: {} });
+  }
+});
+
+router.post('/selectplot/:plotId', requireLogin, async (req, res) => {
+  const plotId = req.params.plotId;
+  const bookingData = req.session.bookingData;
+
+  if (!bookingData) return res.status(400).send('No booking data in session');
+
+  try {
+    const notes = bookingData.notes || null;
+
+    // Save booking as pending
+    await db.query(
+      `INSERT INTO booking_tbl
+        (user_id, item_id, firstname, lastname, email, phone, visit_time, booking_date, service_type, notes, plot_id, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [
+        req.session.user.user_id,
+        null,
+        bookingData.firstname,
+        bookingData.lastname,
+        bookingData.email,
+        bookingData.phone,
+        bookingData.visitTime,
+        bookingData.bookingDate,
+        bookingData.serviceType,
+        notes,
+        plotId
+      ]
+    );
+
+    // Mark the plot as occupied
+    await db.query(
+      `UPDATE plot_map_tbl SET status = 'occupied' WHERE plot_id = ?`,
+      [plotId]
+    );
+
+    // Decrement available_plots in inventory_tbl
+    const [plotRows] = await db.query(
+      `SELECT item_id FROM plot_map_tbl WHERE plot_id = ?`,
+      [plotId]
+    );
+    const itemId = plotRows[0].item_id;
+
+    await db.query(
+      `UPDATE inventory_tbl SET available_plots = available_plots - 1 WHERE item_id = ?`,
+      [itemId]
+    );
+
+    // Save plotId in session for receipt
+    req.session.bookingData.plotId = plotId;
+
+    res.redirect('/bookplots/receipt');
+  } catch (err) {
+    console.error('Error saving booking:', err);
+    res.status(500).send('Failed to save booking');
+  }
+});
+
+
+// GET /bookplots/receipt → Show booking receipt (pending)
+router.get('/receipt', requireLogin, async (req, res) => {
+  const bookingData = req.session.bookingData;
+
+  if (!bookingData || !bookingData.plotId) return res.redirect('/book');
+
+  try {
+    const [booking] = await db.query(
+      `SELECT * FROM booking_tbl
+       WHERE email = ? AND plot_id = ? AND status = 'pending'
+       LIMIT 1`,
+      [bookingData.email, bookingData.plotId]
+    );
+
+    if (!booking[0]) {
+      return res.send('Your booking is either already approved by admin or does not exist.');
+    }
+
+    // Just show the booking; do NOT mark it as approved
+    res.render('receipt', { booking: booking[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to fetch booking receipt');
   }
 });
 

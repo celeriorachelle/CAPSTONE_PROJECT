@@ -8,49 +8,66 @@
   <link rel="stylesheet" href="/stylesheets/notification.css">
 </head>
 <body>
-  <section class="notifications-list">
-  <% if (notifications.length === 0) { %>
-    <p>No notifications yet.</p>
-  <% } else { %>
-    <% notifications.forEach(notif => { %>
-      <div class="notification-item">
-        <i class="fas fa-<%= notif.type === 'email' ? 'envelope' : 'sms' %>"></i>
-        <div>
-          <p class="message"><%= notif.message %></p>
-          <small><%= new Date(notif.created_at).toLocaleString() %></small>
-        </div>
-      </div>
-    <% }) %>
-  <% } %>
+
+<section id="notificationList" class="notifications-list">
+  <!-- JS will fill this -->
 </section>
 
-  <script>
-    async function loadNotifications() {
-  try {
-    const res = await fetch('/appointment/notifications'); // match the route above
-    const notifications = await res.json();
+<button id="markReadBtn">Mark all as read</button>
 
-    const list = document.getElementById('notificationsList');
+<script>
+async function loadNotifications() {
+  try {
+    const res = await fetch('/json'); // ✅ updated route
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+    const notifications = await res.json();
+    const list = document.getElementById('notificationList');
     list.innerHTML = '';
 
+    if (!notifications || notifications.length === 0) {
+      list.innerHTML = '<p>No notifications yet.</p>';
+      return;
+    }
+
     notifications.forEach(notif => {
+      const message = notif.message || 'No message';
+      const formattedDate = new Date(notif.created_at || notif.datestamp).toLocaleString();
+
       const item = document.createElement('div');
-      item.className = 'notification-item';
+      item.className = `notification-item ${notif.read ? 'read' : 'unread'}`;
       item.innerHTML = `
-        <i class="fas fa-${notif.type === 'email' ? 'envelope' : 'sms'}"></i>
+        <i class="fas fa-envelope"></i>
         <div>
-          <p class="message">${notif.message}</p>
-          <small>${new Date(notif.created_at).toLocaleString()}</small>
+          <p class="message">${message}</p>
+          <small>${formattedDate}</small>
         </div>
       `;
       list.appendChild(item);
     });
   } catch (err) {
     console.error("Error loading notifications:", err);
+    document.getElementById('notificationList').innerHTML =
+      '<p>Failed to load notifications.</p>';
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadNotifications);
-  </script>
+async function markAllRead() {
+  try {
+    const res = await fetch('/mark-read', { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to mark notifications read');
+    await loadNotifications();
+  } catch (err) {
+    console.error("Mark read error:", err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotifications();
+  document.getElementById('markReadBtn').addEventListener('click', markAllRead);
+  setInterval(loadNotifications, 30000); // auto-refresh
+});
+</script>
+
 </body>
 </html>

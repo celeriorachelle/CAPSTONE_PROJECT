@@ -1,8 +1,82 @@
-const express = require('express');
-const router = express.Router();
+const { Router } = require('express');
+const router = Router();
+const db = require('../db');
 
-router.get('/', (req, res) => {
-  res.render('admin_inventory'); 
+// GET inventory
+router.get('/', async (req, res) => {
+  try {
+    const [plots] = await db.query('SELECT * FROM inventory_tbl ORDER BY item_name');
+    res.render('admin_inventory', { plots });
+  } catch (err) {
+    console.error(err);
+    res.send('Failed to load inventory');
+  }
+});
+
+// Add or update plot/item
+router.post('/add', async (req, res) => {
+  const { item_id, item_name, category, default_price, total_plots, available_plots } = req.body;
+
+  try {
+    if (!item_name || !category) return res.status(400).send('Missing required fields');
+
+    let newItemId = item_id;
+
+    if (item_id) {
+      // Update existing item
+      await db.query(
+        `UPDATE inventory_tbl
+         SET item_name = ?, category = ?, default_price = ?, total_plots = ?, available_plots = ?, last_update = NOW()
+         WHERE item_id = ?`,
+        [item_name, category, default_price || 0, total_plots || 0, available_plots || 0, item_id]
+      );
+
+      // Delete old plots
+      await db.query(`DELETE FROM plot_map_tbl WHERE item_id = ?`, [item_id]);
+    } else {
+      // Insert new item
+      const [result] = await db.query(
+        `INSERT INTO inventory_tbl 
+         (item_name, category, default_price, total_plots, available_plots, last_update)
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [item_name, category, default_price || 0, total_plots || 0, total_plots || 0]
+      );
+      newItemId = result.insertId;
+    }
+
+    // Insert plots into plot_map_tbl
+    if (total_plots > 0) {
+      const plotInserts = [];
+      for (let i = 1; i <= total_plots; i++) {
+        const plotNumber = `${item_name.toUpperCase().substring(0,1)}-${String(i).padStart(3,'0')}`;
+        plotInserts.push([plotNumber, category, 'available', default_price || 0, newItemId]);
+      }
+      const placeholders = plotInserts.map(() => '(?, ?, ?, ?, ?)').join(',');
+      await db.query(
+        `INSERT INTO plot_map_tbl (plot_number, location, status, price, item_id) VALUES ${placeholders}`,
+        plotInserts.flat()
+      );
+    }
+
+    res.redirect('/admin_inventory');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to add/update item');
+  }
+});
+
+// Delete item
+router.post('/delete/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM inventory_tbl WHERE item_id = ?', [id]);
+    await db.query('DELETE FROM plot_map_tbl WHERE item_id = ?', [id]);
+    res.redirect('/admin_inventory');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to delete item');
+  }
 });
 
 module.exports = router;

@@ -157,69 +157,42 @@
     </div>
   </div>
 
-  <script>
-    class AppointmentManager {
-      constructor() {
-        this.appointments = [];
-        this.filteredAppointments = [];
-        this.currentFilter = 'all';
-        this.currentPage = 1;
-        this.itemsPerPage = 10;
-        this.searchTerm = '';
-        
-        this.initializeData();
-        this.bindEvents();
-      }
 
-      initializeData() {
-        // Simulate loading appointments data
-        setTimeout(() => {
-          this.appointments = this.generateSampleData();
-          this.filteredAppointments = [...this.appointments];
-          this.updateDisplay();
-          this.updateStatistics();
-          document.getElementById('loadingState').style.display = 'none';
-          document.getElementById('appointmentsTableContainer').style.display = 'block';
-          document.getElementById('paginationContainer').style.display = 'flex';
-        }, 1500);
-      }
+    <script>
+  // Load appointments passed from backend
+  window.appointments = <%- JSON.stringify(appointments) %>;
+    
 
-      generateSampleData() {
-        const statuses = ['pending', 'approved', 'ongoing', 'completed', 'cancelled'];
-        const services = ['burial', 'columbarium', 'consultation', 'memorial', 'maintenance'];
-        const names = [
-          'John Smith', 'Maria Garcia', 'Robert Johnson', 'Emily Davis',
-          'Michael Brown', 'Sarah Wilson', 'David Miller', 'Lisa Anderson',
-          'James Taylor', 'Jennifer Martinez', 'William Jones', 'Patricia Thomas'
-        ];
+   class AppointmentManager {
+  constructor() {
+    this.appointments = window.appointments || [];
+    this.filteredAppointments = [...this.appointments];
+    this.currentFilter = 'all';
+    this.currentPage = 1;
+    this.itemsPerPage = 10;
+    this.searchTerm = '';
 
-        return Array.from({ length: 45 }, (_, i) => ({
-          id: `APT-${String(i + 1).padStart(3, '0')}`,
-          clientName: names[Math.floor(Math.random() * names.length)],
-          date: this.getRandomDate(),
-          time: this.getRandomTime(),
-          service: services[Math.floor(Math.random() * services.length)],
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          notes: `Additional notes for appointment ${i + 1}`,
-          createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-          phone: `(555) ${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-          email: `client${i + 1}@example.com`
-        }));
-      }
+    this.updateDisplay();
+    this.updateStatistics();
 
-      getRandomDate() {
-        const start = new Date();
-        const end = new Date();
-        end.setDate(end.getDate() + 60);
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
-          .toISOString().split('T')[0];
-      }
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('appointmentsTableContainer').style.display = 'block';
+    document.getElementById('paginationContainer').style.display = 'flex';
 
-      getRandomTime() {
-        const hours = Math.floor(Math.random() * 8) + 9; // 9 AM to 5 PM
-        const minutes = Math.random() < 0.5 ? '00' : '30';
-        return `${String(hours).padStart(2, '0')}:${minutes}`;
-      }
+    this.bindEvents();
+  }
+
+        initializeData() {
+      // Use server-provided data
+      this.appointments = serverAppointments || [];
+      this.filteredAppointments = [...this.appointments];
+      this.updateDisplay();
+      this.updateStatistics();
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('appointmentsTableContainer').style.display = 'block';
+      document.getElementById('paginationContainer').style.display = 'flex';
+    }
+
 
       bindEvents() {
         // Search functionality
@@ -273,73 +246,77 @@
       }
 
       updateDisplay() {
-        const tbody = document.getElementById('appointmentsTableBody');
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        const pageAppointments = this.filteredAppointments.slice(startIndex, endIndex);
+  const tbody = document.getElementById('appointmentsTableBody');
+  const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+  const endIndex = startIndex + this.itemsPerPage;
+  const pageAppointments = this.filteredAppointments.slice(startIndex, endIndex);
 
-        if (pageAppointments.length === 0) {
-          document.getElementById('appointmentsTableContainer').style.display = 'none';
-          document.getElementById('emptyState').style.display = 'block';
-          document.getElementById('paginationContainer').style.display = 'none';
-          return;
-        }
+  if (pageAppointments.length === 0) {
+    document.getElementById('appointmentsTableContainer').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('paginationContainer').style.display = 'none';
+    return;
+  }
 
-        document.getElementById('appointmentsTableContainer').style.display = 'block';
-        document.getElementById('emptyState').style.display = 'none';
-        document.getElementById('paginationContainer').style.display = 'flex';
+  document.getElementById('appointmentsTableContainer').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('paginationContainer').style.display = 'flex';
 
-        tbody.innerHTML = pageAppointments.map(apt => `
-          <tr>
-            <td><strong>${apt.id}</strong></td>
+  tbody.innerHTML = pageAppointments.map(apt => `
+    <tr>
+      <td><strong>${apt.id}</strong></td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-user-circle" style="color: #8aac7c;"></i>
+          ${apt.clientName}
+        </div>
+      </td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-calendar" style="color: #8aac7c;"></i>
+          ${new Date(apt.date).toLocaleDateString()}
+        </div>
+      </td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-clock" style="color: #8aac7c;"></i>
+          ${apt.time}
+        </div>
+      </td>
+      <td>
+        <span style="text-transform: capitalize; font-weight: 600;">
+          ${this.getServiceIcon(apt.service)} ${apt.service}
+        </span>
+      </td>
+      <td>
+        <span class="status-badge status-${apt.status}">
+          ${this.getStatusIcon(apt.status)} ${apt.status}
+        </span>
+      </td>
             <td>
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-user-circle" style="color: #8aac7c;"></i>
-                ${apt.clientName}
-              </div>
-            </td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-calendar" style="color: #8aac7c;"></i>
-                ${new Date(apt.date).toLocaleDateString()}
-              </div>
-            </td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-clock" style="color: #8aac7c;"></i>
-                ${apt.time}
-              </div>
-            </td>
-            <td>
-              <span style="text-transform: capitalize; font-weight: 600;">
-                ${this.getServiceIcon(apt.service)} ${apt.service}
-              </span>
-            </td>
-            <td>
-              <span class="status-badge status-${apt.status}">
-                ${this.getStatusIcon(apt.status)} ${apt.status}
-              </span>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action btn-view" onclick="appointmentManager.viewAppointment('${apt.id}')">
-                  <i class="fas fa-eye"></i> View
-                </button>
-                <button class="btn-action btn-edit" onclick="appointmentManager.editAppointment('${apt.id}')">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn-action btn-delete" onclick="appointmentManager.deleteAppointment('${apt.id}')">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        `).join('');
+          <div class="action-buttons">
+            <button class="btn-action btn-view" onclick="appointmentManager.viewAppointment('${apt.id}')">
+              <i class="fas fa-eye"></i> View
+            </button>
+            ${apt.status === 'pending' ? `
+              <button class="btn-action btn-approve" onclick="updateStatus(${apt.id}, 'approved')">
+                <i class="fas fa-check"></i> Approve
+              </button>
+              <button class="btn-action btn-reject" onclick="updateStatus(${apt.id}, 'cancelled')">
+                <i class="fas fa-times"></i> Reject
+              </button>
+            ` : ''}
+          </div>
+        </td>
 
-        this.updatePagination();
-        document.getElementById('appointmentCount').textContent = 
-          `Showing ${startIndex + 1}-${Math.min(endIndex, this.filteredAppointments.length)} of ${this.filteredAppointments.length}`;
-      }
+    </tr>
+  `).join('');
+
+  this.updatePagination();
+  document.getElementById('appointmentCount').textContent = 
+    `Showing ${startIndex + 1}-${Math.min(endIndex, this.filteredAppointments.length)} of ${this.filteredAppointments.length}`;
+}
+
 
       getServiceIcon(service) {
         const icons = {
@@ -411,6 +388,7 @@
         
         this.updateDisplay();
       }
+
 
       viewAppointment(id) {
         const appointment = this.appointments.find(apt => apt.id === id);
@@ -538,8 +516,8 @@
       }
     }
 
-    // Global functions for onclick handlers
-    let appointmentManager;
+          // Global functions for onclick handlers
+      let appointmentManager;
 
     function filterStatus(status) {
       appointmentManager.filterStatus(status);
@@ -557,10 +535,36 @@
       appointmentManager.closeModal();
     }
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      appointmentManager = new AppointmentManager();
-    });
+              function updateStatus(id, status) {
+      fetch(`/adminviewapp/${status === 'approved' ? 'approve' : 'reject'}/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remarks: '' }) // send remarks if needed
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Use loose equality to match number/string ID
+          const apt = appointmentManager.appointments.find(a => a.id == id);
+          if (apt) {
+            apt.status = status;
+            appointmentManager.applyFilters(); // refresh table
+            appointmentManager.updateStatistics();
+            appointmentManager.showNotification(`Appointment ${id} marked as ${status}`, 'success');
+          }
+        } else {
+          alert('Failed to update status');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error updating status');
+      });
+      }
+
+
+
+
 
     // Add CSS animations for notifications
     const style = document.createElement('style');
@@ -575,6 +579,14 @@
       }
     `;
     document.head.appendChild(style);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Convert string dates to Date objects
+      window.appointments.forEach(apt => apt.createdAt = new Date(apt.createdAt));
+
+      // Instantiate the manager
+      appointmentManager = new AppointmentManager();
+    });
   </script>
 </body>
 </html>

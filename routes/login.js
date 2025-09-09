@@ -46,12 +46,13 @@ router.post('/', async (req, res) => {
     }
 
     // ✅ Store user info in session
-    req.session.user = {
-      id: user.user_id,
+      req.session.user = {
+      user_id: user.user_id, // use "user_id" instead of "id"
       email: user.email,
       name: user.firstName,
       role: user.role
     };
+
 
     // Handle "Remember me"
     if (req.body.remember_me) {

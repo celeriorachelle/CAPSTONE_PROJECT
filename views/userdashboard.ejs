@@ -2,91 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Booking Form</title>
+  <title>User Dashboard View</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/stylesheets/book.css">
+  <link rel="stylesheet" href="/stylesheets/userdashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Sidebar -->
-  <%- include('partials/sidebar') %>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-header">
+        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      </div>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/book">Book</a>
+        <a href="/viewbooking">View Bookings</a>
+        <a href="/burialrecord">Booking Records</a>
+        <a href="/support">Support</a>
+        <a href="/">View Map</a>
+      </nav>
+    </div>
+    <div class="sidebar-footer">
+      &copy; 2025 Everlasting Peace
+    </div>
+  </div>
 
-  <div class="main" id="main">
+  <!-- Toggle Button -->
+  <div class="toggle-btn" id="toggleBtn">◀</div>
+
+  <!-- Main content -->
+  <div class="main">
     <!-- Topbar -->
-    <%- include('partials/topbar', { title: "Book" }) %>
-
-    <div class="form-container">
-      <h2>BOOKING FORM</h2>
-      <form action="/book" method="POST" class="form-grid">
-        <div class="form-group">
-          <label for="firstname">First Name</label>
-          <input type="text" name="firstname" id="firstname" required>
-        </div>
-
-        <div class="form-group">
-          <label for="lastname">Last Name</label>
-          <input type="text" name="lastname" id="lastname" required>
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" name="email" id="email" required>
-        </div>
-
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input type="text" name="phone" id="phone" required>
-        </div>
-
-        <div class="form-group">
-          <label for="visit-time">Preferred Visit Time</label>
-          <select name="visitTime" id="visit-time" required>
-            <option>08:00 AM</option>
-            <option>09:00 AM</option>
-            <option>10:00 AM</option>
-            <option>01:00 PM</option>
-            <option>02:00 PM</option>
-            <option>03:00 PM</option>
-            <option>04:00 PM</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="booking-date">Booking Date</label>
-          <input type="date" name="bookingDate" id="booking-date" required>
-        </div>
-
-        <div class="form-group">
-          <label for="service-type">Service Type</label>
-          <select id="service-type" name="serviceType" required>
-            <option value="">-- Select Service Type --</option>
-            <option value="inquiries">Inquiries</option>
-            <option value="plot-booking">Plot Booking</option>
-            <option value="memorial">Memorial</option>
-            <option value="burial">Burial</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="notes">Notes / Special Requests</label>
-          <textarea id="notes" name="notes" placeholder="Optional"></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button type="reset">Clear</button>
-          <button type="submit">Next</button>
-        </div>
-      </form>
+    <div class="topbar">
+      <div class="icon-buttons">
+        <div class="icon-btn" id="notif-icon">🔔</div>
+        <div class="icon-btn">👤</div>
+      </div>
     </div>
 
-    <footer>
+    <!-- Dashboard Content -->
+    <div class="main-content dashboard-container">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <h2>Welcome, <%= user.firstname %>!</h2>
+        <p>Here’s what’s happening with your bookings and recommendations.</p>
+      </section>
+
+      <!-- Pending Bookings -->
+      <section class="pending-section">
+        <h3><i class="fas fa-clock"></i> Pending Bookings</h3>
+        <table class="pending-table">
+          <thead>
+            <tr>
+              <th>Service Type</th>
+              <th>Booking Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (pendingBookings && pendingBookings.length > 0) { %>
+              <% pendingBookings.forEach(b => { %>
+                <tr>
+                  <td><%= b.service_type %></td>
+                  <td><%= b.booking_date.toDateString() %></td>
+                  <td><span class="status pending">Pending</span></td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3">No pending bookings.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- AI Recommendations -->
+      <section class="ai-section">
+        <h3><i class="fas fa-robot"></i> AI-Recommended Plots</h3>
+        <div class="ai-cards">
+          <% if (recommendations && recommendations.length > 0) { %>
+            <% recommendations.forEach(r => { %>
+              <div class="ai-card">
+                <h4><%= r.plot_name %></h4>
+                <p>Category: <%= r.category %></p>
+                <p>Price: ₱<%= r.price %></p>
+                <button>View Details</button>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p>No recommendations available at the moment.</p>
+          <% } %>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
       <%- include('partials/footer') %>
     </footer>
   </div>
 
+  <!-- Scripts -->
   <script>
-    // Sidebar toggle
     const sidebar = document.getElementById("sidebar");
     const btn = document.getElementById("toggleBtn");
 
@@ -107,7 +127,6 @@
         const res = await fetch('/notifications/json');
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const notifications = await res.json();
-
         notifList.innerHTML = '';
         let unreadCount = 0;
 
@@ -123,10 +142,8 @@
               <div>
                 <p class="message">${notif.message}</p>
                 <small>${dateStr}</small>
-              </div>
-            `;
+              </div>`;
             notifList.appendChild(item);
-
             if (!notif.read) unreadCount++;
           });
         }
@@ -149,9 +166,6 @@
     notifIcon.addEventListener("click", (e) => {
       e.stopPropagation();
       notifPopup.classList.toggle("hidden");
-      if (!notifPopup.classList.contains("hidden")) {
-        markNotificationsRead();
-      }
     });
 
     document.addEventListener("click", function(e) {
@@ -159,16 +173,6 @@
         notifPopup.classList.add("hidden");
       }
     });
-
-    async function markNotificationsRead() {
-      try {
-        await fetch('/notifications/mark-read', { method: 'POST' });
-        notifBadge.classList.add('hidden');
-        notifCount.classList.add('hidden');
-      } catch (err) {
-        console.error("Error marking notifications read:", err);
-      }
-    }
 
     document.addEventListener("DOMContentLoaded", loadNotifications);
   </script>

@@ -14,19 +14,21 @@ var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register'); 
 var adminRouter = require('./routes/admin'); 
 var supportRouter = require('./routes/support');
-var boookRouter = require('./routes/book');
+var bookRouter = require('./routes/book');
+var bookplotsRouter = require('./routes/bookplots');
 var viewbookingRouter = require('./routes/viewbooking');
 var burialrecordRouter = require('./routes/burialrecord');
-var bookplotsRouter = require('./routes/bookplots');
 var admincreatebRouter = require('./routes/admincreateb');
 var adminviewappRouter = require('./routes/adminviewapp');
 var forgotpassRouter = require('./routes/forgotpass');
 var profileRouter = require('./routes/profile'); 
 var admin_inventoryRouter = require('./routes/admin_inventory');
 var admin_logsRouter = require('./routes/admin_logs');
+var userdashboardRouter = require('./routes/userdashboard');
 
 
 const { register } = require('module');
+
 
 var app = express();
 
@@ -66,16 +68,17 @@ app.use('/login', loginRouter);
 app.use ('/register', registerRouter);
 app.use('/admin', adminRouter); 
 app.use('/support', supportRouter);
-app.use('/book', boookRouter);
+app.use('/book', bookRouter);
+app.use('/bookplots', bookplotsRouter);
 app.use('/viewbooking', viewbookingRouter);
 app.use('/burialrecord', burialrecordRouter);
-app.use('/bookplots', bookplotsRouter);
 app.use('/admincreateb', admincreatebRouter);
 app.use('/adminviewapp', adminviewappRouter);
 app.use('/forgotpass', forgotpassRouter);
-app.use('profile/', profileRouter);
+app.use('/profile', profileRouter);
 app.use('/admin_inventory', admin_inventoryRouter);
 app.use('/admin_logs', admin_logsRouter);
+app.use('/userdashboard', userdashboardRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
