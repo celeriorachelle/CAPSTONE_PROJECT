@@ -73,25 +73,27 @@
   <!-- Popup Form -->
 <div class="popup" id="plotPopup">
   <div class="popup-content">
-    <h2>Add New Plots</h2>
-    <form id="plotForm" method="POST" action="/admin_inventory/add-plots">
+    <h2 id="popupTitle">Add New Plot</h2>
+    <form id="plotForm" method="POST" action="/admin_inventory/add">
+      <input type="hidden" name="item_id" id="itemId">
 
-      <label>Select Plot (Item Name)</label>
-      <select name="item_id" id="itemSelect" required>
-        <option value="">Select a Plot</option>
-        <% plots.forEach(plot => { %>
-          <option value="<%= plot.item_id %>"><%= plot.item_name %> - <%= plot.category %></option>
-        <% }); %>
-      </select>
+      <label>Item Name</label>
+      <input type="text" name="item_name" id="itemName" required>
 
-      <label>Number of Plots to Add</label>
-      <input type="number" name="new_plots" id="newPlots" required min="1">
+      <label>Category</label>
+      <input type="text" name="category" id="category" required>
+
+      <label>Total Plots</label>
+      <input type="number" name="total_plots" id="totalPlots" min="1" required>
+
+      <label>Available Plots</label>
+      <input type="number" name="available_plots" id="availablePlots" min="0" required>
 
       <label>Default Price</label>
-      <input type="number" name="default_price" id="price" required min="0">
+      <input type="number" name="default_price" id="defaultPrice" min="0" required>
 
       <div class="popup-actions">
-        <button type="submit" class="save-btn">Add Plots</button>
+        <button type="submit" class="save-btn" id="popupSubmitBtn">Add Plot</button>
         <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
       </div>
     </form>
@@ -99,11 +101,24 @@
 </div>
 
 <script>
-  function openPopup() {
+  // openPopup(edit = false, plot = null)
+  function openPopup(edit = false, plot = null) {
     document.getElementById("plotPopup").style.display = "flex";
     document.getElementById("plotForm").reset();
+    if (edit && plot) {
+      document.getElementById("popupTitle").innerText = "Edit Plot";
+      document.getElementById("popupSubmitBtn").innerText = "Update Plot";
+      document.getElementById("itemId").value = plot.item_id;
+      document.getElementById("itemName").value = plot.item_name;
+      document.getElementById("category").value = plot.category;
+      document.getElementById("totalPlots").value = plot.total_plots;
+      document.getElementById("availablePlots").value = plot.available_plots;
+      document.getElementById("defaultPrice").value = plot.default_price;
+    } else {
+      document.getElementById("popupTitle").innerText = "Add New Plot";
+      document.getElementById("popupSubmitBtn").innerText = "Add Plot";
+    }
   }
-
   function closePopup() {
     document.getElementById("plotPopup").style.display = "none";
     document.getElementById("plotForm").reset();

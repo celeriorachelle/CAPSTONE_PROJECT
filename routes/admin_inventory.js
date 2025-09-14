@@ -5,7 +5,19 @@ const db = require('../db');
 // GET inventory
 router.get('/', async (req, res) => {
   try {
-    const [plots] = await db.query('SELECT * FROM inventory_tbl ORDER BY item_name');
+    const [plots] = await db.query(`
+      SELECT 
+        i.item_id,
+        i.item_name,
+        i.category,
+        i.default_price,
+        COUNT(p.item_id) AS total_plots,
+        SUM(CASE WHEN p.status = 'available' THEN 1 ELSE 0 END) AS available_plots,
+        i.last_update
+      FROM inventory_tbl i
+      LEFT JOIN plot_map_tbl p ON i.item_id = p.item_id
+      GROUP BY i.item_id, i.item_name, i.category, i.default_price, i.last_update
+    `);
     res.render('admin_inventory', { plots });
   } catch (err) {
     console.error(err);
