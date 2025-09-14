@@ -9,44 +9,11 @@
 </head>
 <body>
   <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div>
-      <div class="sidebar-header">
-        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
-      </div>
-      <nav>
-        <a href="/">Home</a>
-        <a href="/book">Booking</a>
-        <a href="/viewbooking">View Bookings</a>
-        <a href="/burialrecord">Booking Records</a>
-        <a href="/support">Support</a>
-        <a href="/">View Map</a>
-      </nav>
-    </div>
-  </div>
+  <%- include('partials/sidebar') %>
 
-  <!-- Toggle Button -->
-  <div class="toggle-btn" id="toggleBtn">◀</div>
-
-  <!-- Main -->
   <div class="main" id="main">
-    <div class="topbar" id="topbar">
-      <h1>Support</h1>
-      <div class="icon-buttons">
-        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
-        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
-      </div>
-    </div>
-
-    <!-- 🛎 Notification Popup -->
-    <div id="notification-popup" class="notification-popup hidden">
-      <h3>Notifications</h3>
-      <ul>
-        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
-        <li><i class="fas fa-envelope"></i> New message from staff.</li>
-        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
-      </ul>
-    </div>
+    <!-- Topbar -->
+    <%- include('partials/topbar', { title: "Support" }) %>
 
     <div class="content">
       <!-- FAQ -->

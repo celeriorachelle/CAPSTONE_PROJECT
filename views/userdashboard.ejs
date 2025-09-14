@@ -11,12 +11,13 @@
 <body>
   <!-- Sidebar -->
   <%- include('partials/sidebar') %>      
+
   <div class="main" id="main">    
     <!-- Topbar --> 
     <%- include('partials/topbar', { title: "Dashboard" }) %>
 
     <!-- Dashboard Content -->
-    <div class="main-content dashboard-container">
+    <div class="dashboard-container">
       <!-- Welcome Section -->
       <section class="welcome-section">
         <h2>Welcome, <%= user.firstname %>!</h2>
