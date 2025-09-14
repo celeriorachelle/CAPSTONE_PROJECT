@@ -47,22 +47,22 @@ router.post('/', requireLogin, async (req, res) => {
     }
 
     // For other services, insert booking directly
-    const [result] = await db.query(
-      `INSERT INTO booking_tbl
-        (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        userId,
-        bookingData.firstname,
-        bookingData.lastname,
-        bookingData.email,
-        bookingData.phone,
-        bookingData.bookingDate,
-        bookingData.visitTime,
-        bookingData.serviceType,
-        bookingData.notes
-      ]
-    );
+      const [result] = await db.query(
+        `INSERT INTO booking_tbl
+          (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [
+          userId,
+          bookingData.firstname,
+          bookingData.lastname,
+          bookingData.email,
+          bookingData.phone,
+          bookingData.bookingDate,
+          bookingData.visitTime,
+          bookingData.serviceType,
+          bookingData.notes
+        ]
+      );
 
     res.redirect('/dashboard');
 

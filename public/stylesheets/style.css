@@ -6,12 +6,11 @@
 
 
     body { 
-    background: linear-gradient(rgba(0, 0, 0, 0.171), rgba(0, 0, 0, 0.138)), 
-    url("/images/system (2).png") center/cover no-repeat;
+    background:url("/images/system (2).png") center/cover no-repeat;
     background-size: cover;
     background-attachment: fixed;
     height: 100vh;
-    color: white;
+    color: white; 
     overflow-x: hidden;
     font-family: 'Poppins', sans-serif;
     line-height: 1.6;
@@ -44,7 +43,7 @@
     width: 700px;
     max-width: 100%;
     aspect-ratio: 1.75;
-    border: 2px solid #ccc;
+    border: 2px solid #ffffff;
     border-radius: 8px;
     margin: 0 auto;
     background: rgba(0, 0, 0, 0.344);
@@ -56,8 +55,8 @@
     }
 
     .header {
-    background: #00000098; 
-    -webkit-backdrop-filter: blur(10px);
+    background: #0000006b; 
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(3px);
     padding: 1rem 0;
     position: sticky;
@@ -129,7 +128,7 @@
     .profile-btn {
     width: 40px;
     height: 40px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.179);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -145,7 +144,7 @@
     .profile-btn.active {
     background: rgba(255,255,255,0.25);
     transform: scale(1.05);
-    color: #bddc6f; 
+    color: #9dab6c; 
     }
 
     .dropdown-toggle {
@@ -156,7 +155,7 @@
     }
 
     .dropdown-toggle:hover {
-    color: #bddc6f;
+    color: #9dab6c;
     transform: translateY(-2px);
     }
 
@@ -187,7 +186,8 @@
     display: block;
     animation: fadeInUp 0.3s ease;
     }
-
+    
+    
     .dropdown-menu .dropdown-link {
     display: block;
     padding: 0.7rem 1.2rem;
@@ -222,7 +222,7 @@
     }
 
     .dropdown-menu .dropdown-link:active {
-    background: #4a5d4a;
+    background: #9dab6c;
     color: #fff;
     opacity: 0.7;
     }

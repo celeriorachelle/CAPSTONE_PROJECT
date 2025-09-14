@@ -7,107 +7,85 @@
   <link rel="stylesheet" href="/stylesheets/viewbooking.css">
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div>
-      <div class="sidebar-header">
-        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
-      </div>
-      <nav>
-        <a href="/">Home</a>
-        <a href="/book">Book</a>
-        <a href="/viewbooking">View Bookings</a>
-        <a href="/burialrecord">Booking Records</a>
-        <a href="/support">Support</a>
-        <a href="/">View Map</a>
-      </nav>
-    </div>
-    <div class="sidebar-footer">
-      &copy; 2025 Everlasting Peace
-    </div>
-  </div>
+ <!-- Sidebar -->
+  <%- include('partials/sidebar') %>
 
-  <!-- Toggle Button -->
-  <div class="toggle-btn" id="toggleBtn">◀</div>
-
-  <!-- Main content -->
-  <div class="main">
+  <div class="main" id="main">
     <!-- Topbar -->
-    <div class="topbar">
-      <h1>View Bookings</h1>
-      <div class="icon-buttons">
-        <div class="icon-btn">🔔</div>
-        <div class="icon-btn">👤</div>
-      </div>
-    </div>
+    <%- include('partials/topbar', { title: "Schedule a Service" }) %>
 
     <!-- Content area -->
     <div class="main-content">
       <div class="rows-per-page">
-      <form method="GET" action="/viewbooking">
-        <label for="limit">Rows per page:</label>
-        <select name="limit" id="limit" onchange="this.form.submit()">
-          <option value="10" <%= limit === 10 ? 'selected' : '' %>>10</option>
-          <option value="20" <%= limit === 20 ? 'selected' : '' %>>20</option>
-          <option value="50" <%= limit === 50 ? 'selected' : '' %>>50</option>
-        </select>
-        <input type="hidden" name="page" value="<%= page %>">
-      </form>
-    </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Plot Type</th>
-            <th>Plot Number</th>
-            <th>Location</th>
-            <th>Plot ID</th>
-            <th>Booking Date</th>
-            <th>Visit Time</th>
-            <th>Status</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (bookings.length > 0) { %>
-            <% bookings.forEach(booking => { %>
-              <tr>
-                <td><%= booking.plot_type || '-' %></td>
-                <td><%= booking.plot_number || '-' %></td>
-                <td><%= booking.location || '-' %></td>
-                <td><%= booking.plot_id || '-' %></td>
-                <td><%= booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : '-' %></td>
-                <td><%= booking.visit_time || '-' %></td>
-                <td><%= booking.status || '-' %></td>
-                <td><%= booking.notes || '-' %></td>
-              </tr>
-            <% }); %>
-          <% } else { %>
-            <tr>
-              <td colspan="8">No bookings found.</td>
-            </tr>
-          <% } %>
-        </tbody>
-        <div class="pagination">
-        <% if (totalPages > 1) { %>
-          <% if (page > 1) { %>
-            <a href="/viewbooking?page=<%= page - 1 %>&limit=<%= limit %>">Previous</a>
-          <% } %>
-
-          <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="/viewbooking?page=<%= i %>&limit=<%= limit %>" 
-              class="<%= i === page ? 'active' : '' %>">
-              <%= i %>
-            </a>
-          <% } %>
-
-          <% if (page < totalPages) { %>
-            <a href="/viewbooking?page=<%= page + 1 %>&limit=<%= limit %>">Next</a>
-          <% } %>
-        <% } %>
+        <form method="GET" action="/viewbooking">
+          <label for="limit">Rows per page:</label>
+          <select name="limit" id="limit" onchange="this.form.submit()">
+            <option value="10" <%= limit === 10 ? 'selected' : '' %>>10</option>
+            <option value="20" <%= limit === 20 ? 'selected' : '' %>>20</option>
+            <option value="50" <%= limit === 50 ? 'selected' : '' %>>50</option>
+          </select>
+          <input type="hidden" name="page" value="<%= page %>">
+        </form>
       </div>
-      </table>
-      <div class="back-button">
-        <a href="/book">← Back to Booking Page</a>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Plot Type</th>
+              <th>Plot Number</th>
+              <th>Location</th>
+              <th>Plot ID</th>
+              <th>Booking Date</th>
+              <th>Visit Time</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (bookings.length > 0) { %>
+              <% bookings.forEach(booking => { %>
+                <tr>
+                  <td data-label="Plot Type"><%= booking.plot_type || '-' %></td>
+                  <td data-label="Plot Number"><%= booking.plot_number || '-' %></td>
+                  <td data-label="Location"><%= booking.location || '-' %></td>
+                  <td data-label="Plot ID"><%= booking.plot_id || '-' %></td>
+                  <td data-label="Booking Date"><%= booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : '-' %></td>
+                  <td data-label="Visit Time"><%= booking.visit_time || '-' %></td>
+                  <td data-label="Status"><%= booking.status || '-' %></td>
+                  <td data-label="Notes"><%= booking.notes || '-' %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="8">No bookings found.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <% if (totalPages > 1) { %>
+            <% if (page > 1) { %>
+              <a href="/viewbooking?page=<%= page - 1 %>&limit=<%= limit %>">Previous</a>
+            <% } %>
+
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="/viewbooking?page=<%= i %>&limit=<%= limit %>" 
+                 class="<%= i === page ? 'active' : '' %>">
+                <%= i %>
+              </a>
+            <% } %>
+
+            <% if (page < totalPages) { %>
+              <a href="/viewbooking?page=<%= page + 1 %>&limit=<%= limit %>">Next</a>
+            <% } %>
+          <% } %>
+        </div>
+
+        <div class="back-button">
+          <a href="/book">← Back to Booking Page</a>
+        </div>
       </div>
     </div>
 

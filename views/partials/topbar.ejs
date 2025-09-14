@@ -25,7 +25,9 @@
 <style>
 /* TOPBAR */
 .topbar {
-  background: #101b0d;
+   background: #0000006b; 
+   -webkit-blur: 3px;
+   backdrop-filter: blur(3px);
   color: rgb(29, 21, 21);
   display: flex;
   justify-content: space-between;
@@ -35,18 +37,17 @@
   top: 0;
   z-index: 900;
   font-weight: 600;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
 }
 .topbar h1 {
   font-family: 'CMU Serif', serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
   color: #ffffff;
   letter-spacing: 0.5px;
   transition: color 0.3s ease;
 }
 .topbar h1:hover {
-  color: #9fef9f;
+  color: #e7ff92;
 }
 
 /* ICON BUTTONS */
@@ -56,11 +57,10 @@
 }
 
 .icon-btn {
-  background-color: #ffffff1c;
-  border: 1px solid #b2d8b2;
+  background-color: #eef0ee;
   border-radius: 50%;
-  width: 42px;
-  height: 42px;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,9 +73,9 @@
 }
 
 .icon-btn:hover {
-  background: linear-gradient(135deg, #4caf50, #7cb342);
+  background: #9dab6c;
+  color: #fff;
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6);
 }
 
 .icon-btn:active {

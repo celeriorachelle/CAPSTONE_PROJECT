@@ -10,37 +10,10 @@
 </head>
 <body>
   <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div>
-      <div class="sidebar-header">
-        <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
-      </div>
-      <nav>
-        <a href="/">Home</a>
-        <a href="/book">Book</a>
-        <a href="/viewbooking">View Bookings</a>
-        <a href="/burialrecord">Booking Records</a>
-        <a href="/support">Support</a>
-        <a href="/">View Map</a>
-      </nav>
-    </div>
-    <div class="sidebar-footer">
-      &copy; 2025 Everlasting Peace
-    </div>
-  </div>
-
-  <!-- Toggle Button -->
-  <div class="toggle-btn" id="toggleBtn">◀</div>
-
-  <!-- Main content -->
-  <div class="main">
-    <!-- Topbar -->
-    <div class="topbar">
-      <div class="icon-buttons">
-        <div class="icon-btn" id="notif-icon">🔔</div>
-        <div class="icon-btn">👤</div>
-      </div>
-    </div>
+  <%- include('partials/sidebar') %>      
+  <div class="main" id="main">    
+    <!-- Topbar --> 
+    <%- include('partials/topbar', { title: "Dashboard" }) %>
 
     <!-- Dashboard Content -->
     <div class="main-content dashboard-container">
