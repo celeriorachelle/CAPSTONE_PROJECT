@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Installments - Booking <%= booking.booking_id %></title>
+  <link rel="stylesheet" href="/stylesheets/installments.css">
+</head>
+<body>
+
+  <div class="main" id="main">
+    <h2>Installments for Booking #<%= booking.booking_id %></h2>
+
+    <div class="booking-details">
+      <p><strong>Plot ID:</strong> <%= booking.plot_id %></p>
+      <p><strong>Plot Availability:</strong> <%= booking.availability %></p>
+      <p><strong>Booking Status:</strong> <%= booking.booking_status %></p>
+      <p><strong>Total Price:</strong> ₱<%= booking.price.toLocaleString() %></p>
+      <p><strong>Total Paid:</strong> ₱<%= totalPaid.toLocaleString() %></p>
+      <p><strong>Remaining Balance:</strong> ₱<%= remaining.toLocaleString() %></p>
+    </div>
+
+    <h3>Payment History</h3>
+    <table class="installments-table">
+      <thead>
+        <tr>
+          <th>Payment ID</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th>Paid At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (payments.length > 0) { %>
+          <% payments.forEach(payment => { %>
+            <tr>
+              <td><%= payment.payment_id %></td>
+              <td>₱<%= payment.amount.toLocaleString() %></td>
+              <td><%= payment.method %></td>
+              <td><%= payment.status %></td>
+              <td><%= payment.paid_at.toLocaleString() %></td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="5">No payments found.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+    <% if (remaining > 0) { %>
+      <div class="payment-actions" style="margin-top: 20px;">
+        <form action="/bookplots/create-checkout-session" method="POST">
+          <input type="hidden" name="plot_id" value="<%= booking.plot_id %>">
+          <input type="hidden" name="amount" value="<%= remaining %>">
+          <button type="submit" class="pay-btn">Pay Remaining Balance</button>
+        </form>
+      </div>
+    <% } else { %>
+      <p style="color: green; font-weight: bold;">✅ This booking is fully paid.</p>
+    <% } %>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Appointments | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
+</head>
+<body>
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <aside class="sidebar">
+      <h3><i class="fas fa-calendar-check"></i> Appointments</h3>
+      <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/installments_reminders"><i class="fas fa-bell"></i> Installment Reminders</a></li>
+      </ul>
+
+      <h3><i class="fas fa-filter"></i> Filter by Status</h3>
+      <div class="filters">
+        <button onclick="filterStatus('all')" class="active" id="filter-all"><i class="fas fa-list"></i> All Appointments</button>
+        <button onclick="filterStatus('pending')" id="filter-pending"><i class="fas fa-clock"></i> Pending</button>
+        <button onclick="filterStatus('reserved')" id="filter-reserved"><i class="fas fa-bookmark"></i> Reserved</button>
+        <button onclick="filterStatus('occupied')" id="filter-occupied"><i class="fas fa-user-slash"></i> Occupied</button>
+        <button onclick="filterStatus('cancelled')" id="filter-cancelled"><i class="fas fa-times-circle"></i> Cancelled</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="content-header">
+        <h2>All Appointments</h2>
+        <div class="search-controls">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search appointments..." id="searchInput">
+          </div>
+          <button class="btn-export" onclick="exportAppointments()"><i class="fas fa-download"></i> Export</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-number" id="totalAppointments"><%= stats.totalAppointments %></div>
+          <div class="stat-label">Total Appointments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-number" id="pendingCount"><%= stats.pendingCount %></div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔒</div>
+          <div class="stat-number" id="reservedCount"><%= stats.reservedCount %></div>
+          <div class="stat-label">Reserved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-number" id="paidCount"><%= stats.fullyPaidCount %></div>
+          <div class="stat-label">Fully Paid</div>
+        </div>
+      </div>
+
+      <!-- Type Filters -->
+      <div class="type-filters">
+        <button onclick="appointmentManager.changeType('all')" class="active" id="type-all">All</button>
+        <button onclick="appointmentManager.changeType('plot-booking')" id="type-plot">Plot Bookings</button>
+        <button onclick="appointmentManager.changeType('memorial')" id="type-memorial">Memorial</button>
+        <button onclick="appointmentManager.changeType('burial')" id="type-burial">Burial</button>
+      </div>
+
+      <!-- Appointment Table -->
+      <div class="appointments-container">
+        <div class="table-header">
+          <h3><i class="fas fa-calendar-alt"></i> Appointments List</h3>
+          <span id="appointmentCount">Loading...</span>
+        </div>
+
+        <div id="loadingState" class="loading">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="appointmentsTableContainer" style="display:none;">
+          <table class="appointments-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <i class="fas fa-calendar-times"></i>
+          <h3>No Appointments Found</h3>
+          <p>No appointments match your current filter criteria.</p>
+        </div>
+
+        <div class="pagination" id="paginationContainer" style="display:none;">
+          <button onclick="changePage('prev')" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+          <span id="pageInfo">Page 1 of 1</span>
+          <button onclick="changePage('next')" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div id="appointmentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-info-circle"></i> Appointment Details</h3>
+          <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div id="appointmentDetails"></div>
+      </div>
+    </div>
+  </main>
+
+<script>
+  window.appointments = <%- JSON.stringify(appointments) %>;
+
+  class AppointmentManager {
+    constructor() {
+      this.appointments = window.appointments || [];
+      this.filtered = [...this.appointments];
+      this.currentPage = 1;
+      this.itemsPerPage = 10;
+      this.searchTerm = '';
+      this.currentFilter = 'all';
+      this.currentType = 'all';
+      this.init();
+    }
+
+    init() {
+      this.updateDisplay();
+      this.updateStats();
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('appointmentsTableContainer').style.display = 'block';
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        this.searchTerm = e.target.value.toLowerCase();
+        this.applyFilters();
+      });
+    }
+
+    changeType(type) {
+      this.currentType = type;
+      document.querySelectorAll('.type-filters button').forEach(btn => btn.classList.remove('active'));
+      if (type === 'all') document.getElementById('type-all').classList.add('active');
+      else if (type === 'plot-booking') document.getElementById('type-plot').classList.add('active');
+      else if (type === 'memorial') document.getElementById('type-memorial').classList.add('active');
+      else if (type === 'burial') document.getElementById('type-burial').classList.add('active');
+      this.applyFilters();
+    }
+
+    applyFilters() {
+      let list = [...this.appointments];
+
+      // Filter by type
+      if (this.currentType !== 'all') {
+        list = list.filter(a => {
+          if (this.currentType === 'plot-booking') return a.service?.toLowerCase().includes('plot');
+          if (this.currentType === 'memorial') return a.service?.toLowerCase().includes('memorial');
+          if (this.currentType === 'burial') return a.service?.toLowerCase().includes('burial');
+          return true;
+        });
+      }
+
+      // Filter by status
+      if (this.currentFilter !== 'all') {
+        list = list.filter(a => a.displayStatus === this.currentFilter);
+      }
+
+      // Filter by search term
+      if (this.searchTerm) {
+        list = list.filter(a =>
+          (a.clientName || '').toLowerCase().includes(this.searchTerm) ||
+          (a.service || '').toLowerCase().includes(this.searchTerm) ||
+          (a.plot_number || '').toLowerCase().includes(this.searchTerm)
+        );
+      }
+
+      this.filtered = list;
+      this.currentPage = 1;
+      this.updateDisplay();
+    }
+
+    updateDisplay() {
+      const tbody = document.getElementById('appointmentsTableBody');
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      const pageData = this.filtered.slice(start, end);
+
+      if (pageData.length === 0) {
+        document.getElementById('appointmentsTableContainer').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('appointmentsTableContainer').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+
+      tbody.innerHTML = pageData.map(a => {
+        const dateStr = a.date ? new Date(a.date).toLocaleDateString() : '';
+        const canApprove = a.displayStatus === 'pending';
+        const isPlot = a.service?.toLowerCase().includes('plot');
+
+        return `
+          <tr>
+            <td>${a.id}</td>
+            <td>${a.clientName}</td>
+            <td>${a.service}</td>
+            <td>${dateStr}</td>
+            <td><span class="status-badge status-${a.displayStatus}">${a.displayStatus}</span></td>
+            <td>
+              ${isPlot ? `
+                ${a.paymentStatus} <br>
+                Paid: ₱${a.totalPaid.toFixed(2)} <br>
+                Price: ₱${a.totalAmount.toFixed(2)} <br>
+                Min Down: ₱${a.minDownPayment.toFixed(2)}
+              ` : 'N/A'}
+            </td>
+            <td>
+              <button class="btn-action btn-view" onclick="appointmentManager.view(${a.id})"><i class="fas fa-eye"></i></button>
+              ${canApprove ? `<button class="btn-action btn-approve" onclick="updateStatus(${a.id}, 'approve', '${a.service}')"><i class="fas fa-check"></i></button>` : ''}
+              ${a.displayStatus === 'pending' ? `<button class="btn-action btn-reject" onclick="updateStatus(${a.id}, 'reject', '${a.service}')"><i class="fas fa-times"></i></button>` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      this.updatePagination();
+    }
+
+    view(id) {
+      const apt = this.appointments.find(a => a.id == id);
+      if (!apt) return;
+      document.getElementById('appointmentDetails').innerHTML = `
+        <p><strong>Client:</strong> ${apt.clientName}</p>
+        <p><strong>Email:</strong> ${apt.email}</p>
+        <p><strong>Phone:</strong> ${apt.phone}</p>
+        <p><strong>Service:</strong> ${apt.service}</p>
+        <p><strong>Status:</strong> ${apt.displayStatus}</p>
+        <p><strong>Payment Status:</strong> ${apt.paymentStatus}</p>
+        <p><strong>Total Paid:</strong> ₱${apt.totalPaid.toFixed(2)}</p>
+        <p><strong>Price:</strong> ₱${apt.totalAmount.toFixed(2)}</p>
+        <p><strong>Min Downpayment:</strong> ₱${apt.minDownPayment.toFixed(2)}</p>
+        <p><strong>Plot:</strong> ${apt.plot_number || '—'} (${apt.location || '—'})</p>
+      `;
+      document.getElementById('appointmentModal').style.display = 'block';
+    }
+
+    updatePagination() {
+      const totalPages = Math.max(1, Math.ceil(this.filtered.length / this.itemsPerPage));
+      document.getElementById('pageInfo').textContent = `Page ${this.currentPage} of ${totalPages}`;
+    }
+
+    updateStats() {
+      document.getElementById('totalAppointments').textContent = this.appointments.length;
+      document.getElementById('pendingCount').textContent = this.appointments.filter(a => a.displayStatus === 'pending').length;
+      document.getElementById('reservedCount').textContent = this.appointments.filter(a => a.displayStatus === 'reserved').length;
+      document.getElementById('paidCount').textContent = this.appointments.filter(a => a.paymentStatus === 'Fully Paid').length;
+    }
+  }
+
+  function updateStatus(id, action, serviceType) {
+    let url = '';
+    const typeLower = serviceType?.toLowerCase() || '';
+    if (action === 'approve') {
+      if (typeLower.includes('plot') || typeLower.includes('burial')) {
+        url = `/adminviewapp/auto-approve/${id}`;
+      } else url = `/adminviewapp/approve/${id}`;
+    } else if (action === 'reject') url = `/adminviewapp/reject/${id}`;
+
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(res => res.json())
+      .then(data => data?.success ? location.reload() : alert(data?.error || 'Failed to update status'))
+      .catch(err => { console.error(err); alert('Request failed'); });
+  }
+
+  function closeModal() {
+    document.getElementById('appointmentModal').style.display = 'none';
+  }
+
+  function filterStatus(status) {
+    appointmentManager.currentFilter = status;
+    document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+    if (status === 'all') document.getElementById('filter-all').classList.add('active');
+    else if (status === 'pending') document.getElementById('filter-pending').classList.add('active');
+    else if (status === 'reserved') document.getElementById('filter-reserved').classList.add('active');
+    else if (status === 'occupied') document.getElementById('filter-occupied').classList.add('active');
+    else if (status === 'cancelled') document.getElementById('filter-cancelled').classList.add('active');
+    appointmentManager.applyFilters();
+  }
+
+  let appointmentManager;
+  document.addEventListener('DOMContentLoaded', () => {
+    appointmentManager = new AppointmentManager();
+  });
+</script>
+
+</body>
+</html>

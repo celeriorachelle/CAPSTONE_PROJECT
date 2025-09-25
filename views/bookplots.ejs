@@ -11,77 +11,54 @@
   <%- include('partials/topbar', { title: "Book" }) %>  
 
   <div class="main" id="main">
-    <!-- Topbar -->
-    
-        <!-- Plot List Table -->
-        <div class="plot-list-section" style="margin-left: 5%; margin-top: auto;">
-          <h4>All Plots</h4>
-          <div class="plot-table-container">
-            <table class="plot-table">
-              <thead>
-                <tr>
-                  <th>Plot No.</th>
-                  <th>Location</th>
-                  <th>Type</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="plotTableBody">
-                <% plots.forEach(plot => { %>
-                  <tr>
-                    <td><%= plot.plot_number %></td>
-                    <td><%= plot.location %></td>
-                    <td><%= plot.type %></td>
-                    <td>₱<%= plot.price.toLocaleString() %></td>
-                    <td><%= plot.status %></td>
-                    <td>
-                      <% if(plot.status === 'available') { %>
-                        <form method="POST" action="/bookplots/selectplot/<%= plot.plot_id %>" style="display:inline">
-                          <button type="submit">BOOK</button>
-                        </form>
-                      <% } else if(plot.status === 'pending') { %>
-                        <span style="color:orange;">Pending Approval</span>
-                      <% } else { %>
-                        <span>Not Available</span>
-                      <% } %>
-                    </td>
-                  </tr>
-                <% }); %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div class="plot-list-section" style="margin-left: 5%; margin-top: auto;">
+      <h4>All Plots</h4>
+      <div class="plot-table-container">
+        <table class="plot-table">
+          <thead>
+            <tr>
+              <th>Plot No.</th>
+              <th>Location</th>
+              <th>Type</th>
+              <th>Price</th>
+              <th>Availability</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plotTableBody">
+            <% plots.forEach(plot => { %>
+              <tr>
+                <td><%= plot.plot_number %></td>
+                <td><%= plot.location %></td>
+                <td><%= plot.type %></td>
+                <td>₱<%= plot.price.toLocaleString() %></td>
+                <td><%= plot.availability %></td>
+                <td>
+                  <% if(plot.availability === 'available') { %>
+                    <!-- BOOK button redirects to payment option page -->
+                    <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
+                      <button type="submit">BOOK</button>
+                    </form>
+                  <% } else if(plot.availability === 'pending') { %>
+                    <span style="color:orange;">Pending Approval</span>
+                  <% } else if(plot.availability === 'reserved') { %>
+                    <span style="color:blue;">Reserved</span>
+                  <% } else if(plot.availability === 'occupied') { %>
+                    <span style="color:red;">Occupied</span>
+                  <% } else { %>
+                    <span>Not Available</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
 
-    <footer>
-      <%- include('partials/footer') %>
-    </footer>
-
-    <script>
-       // Sidebar toggle
-    const sidebar = document.getElementById("sidebar");
-    const btn = document.getElementById("toggleBtn");
-
-    btn.addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
-      btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
-    });
-  
-      const searchInput = document.getElementById('plotSearch');
-      searchInput.addEventListener('input', () => {
-        const term = searchInput.value.toLowerCase();
-        document.querySelectorAll('.plot-table tbody tr').forEach(row => {
-          const text = row.innerText.toLowerCase();
-          row.style.display = text.includes(term) ? '' : 'none';
-        });
-        document.querySelectorAll('#plotGrid .plot').forEach(div => {
-          const text = div.innerText.toLowerCase();
-          div.style.display = text.includes(term) ? 'block' : 'none';
-        });
-      });
-    </script>
-  </body>
+  <footer>
+    <%- include('partials/footer') %>
+  </footer>
+</body>
 </html>

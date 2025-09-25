@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -25,12 +27,57 @@ var profileRouter = require('./routes/profile');
 var admin_inventoryRouter = require('./routes/admin_inventory');
 var admin_logsRouter = require('./routes/admin_logs');
 var userdashboardRouter = require('./routes/userdashboard');
+var paymentRouter = require('./routes/payment');
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 
 const { register } = require('module');
 
 
 var app = express();
+
+const bodyParser = require("body-parser");
+
+app.post("/webhook", bodyParser.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    const bookingId = session.metadata.booking_id;
+    const userId = session.metadata.user_id;
+    const amount = session.amount_total / 100; // Stripe uses cents
+
+    try {
+      const db = require("./db"); // import your DB connection
+
+      // Insert into payment_tbl
+      await db.query(
+        `INSERT INTO payment_tbl 
+         (booking_id, user_id, amount, payment_date, method, status) 
+         VALUES (?, ?, ?, NOW(), 'Stripe', 'paid')`,
+        [bookingId, userId, amount]
+      );
+
+      console.log(`Payment recorded for booking ${bookingId}, user ${userId}, ₱${amount}`);
+    } catch (dbErr) {
+      console.error("Failed to insert payment into DB:", dbErr);
+    }
+  }
+
+  res.json({ received: true });
+});
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -79,6 +126,7 @@ app.use('/profile', profileRouter);
 app.use('/admin_inventory', admin_inventoryRouter);
 app.use('/admin_logs', admin_logsRouter);
 app.use('/userdashboard', userdashboardRouter);
+app.use('/payment', require('./routes/payment'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

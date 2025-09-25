@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Installment Reminders</title>
+  <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
+</head>
+<body>
+  <div class="main" id="main">
+    <h2>Upcoming / Overdue Installments</h2>
+
+    <table class="appointments-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Client</th>
+          <th>Plot</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (reminders.length > 0) { %>
+          <% reminders.forEach(r => { %>
+            <tr>
+              <td>#<%= r.booking_id %></td>
+              <td><%= r.clientName %></td>
+              <td><%= r.plot_number || '-' %> (<%= r.location || '-' %>)</td>
+              <td>₱<%= r.amount.toLocaleString() %></td>
+              <td><%= new Date(r.due_date).toLocaleDateString() %></td>
+              <td>
+                <% if (new Date(r.due_date) < new Date()) { %>
+                  <span style="color:red;">Overdue</span>
+                <% } else { %>
+                  <span style="color:orange;">Due Soon</span>
+                <% } %>
+              </td>
+              <td>
+                <!-- Only keep Installments + Reminder -->
+                <a class="btn-action btn-view" href="/bookplots/installments/<%= r.booking_id %>">
+                  <i class="fas fa-file-invoice-dollar"></i> View Installments
+                </a>
+                <form method="POST" action="/notifications/send-reminder" style="display:inline;">
+                  <input type="hidden" name="booking_id" value="<%= r.booking_id %>">
+                  <button type="submit" class="btn-action btn-remind">
+                    <i class="fas fa-bell"></i> Send Reminder
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="7">✅ No upcoming or overdue installments</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

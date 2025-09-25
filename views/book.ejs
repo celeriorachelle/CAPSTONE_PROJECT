@@ -9,68 +9,78 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Sidebar -->
   <%- include('partials/sidebar') %>
 
   <div class="main" id="main">
-    <!-- Topbar -->
     <%- include('partials/topbar', { title: "Schedule a Service" }) %>
 
     <div class="form-container">
       <h2>BOOKING FORM</h2>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-message" style="color:red; margin-bottom:10px;">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <% const data = (typeof bookingData !== 'undefined' && bookingData) ? bookingData : {}; %>
+
       <form action="/book" method="POST" class="form-grid">
         <div class="form-group">
           <label for="firstname">First Name</label>
-          <input type="text" name="firstname" id="firstname" required>
+          <input type="text" name="firstname" id="firstname" required value="<%= data.firstname || '' %>">
         </div>
 
         <div class="form-group">
           <label for="lastname">Last Name</label>
-          <input type="text" name="lastname" id="lastname" required>
+          <input type="text" name="lastname" id="lastname" required value="<%= data.lastname || '' %>">
         </div>
 
         <div class="form-group">
           <label for="email">Email Address</label>
-          <input type="email" name="email" id="email" required>
+          <input type="email" name="email" id="email" required value="<%= data.email || '' %>">
         </div>
 
         <div class="form-group">
           <label for="phone">Phone Number</label>
-          <input type="text" name="phone" id="phone" required>
-        </div>
-
-        <div class="form-group">
-          <label for="visit-time">Preferred Visit Time</label>
-          <select name="visitTime" id="visit-time" required>
-            <option>08:00 AM</option>
-            <option>09:00 AM</option>
-            <option>10:00 AM</option>
-            <option>01:00 PM</option>
-            <option>02:00 PM</option>
-            <option>03:00 PM</option>
-            <option>04:00 PM</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="booking-date">Booking Date</label>
-          <input type="date" name="bookingDate" id="booking-date" required>
+          <input type="text" name="phone" id="phone" required value="<%= data.phone || '' %>">
         </div>
 
         <div class="form-group">
           <label for="service-type">Service Type</label>
           <select id="service-type" name="serviceType" required>
             <option value="">-- Select Service Type --</option>
-            <option value="inquiries">Inquiries</option>
-            <option value="plot-booking">Plot Booking</option>
-            <option value="memorial">Memorial</option>
-            <option value="burial">Burial</option>
+            <option value="plot-booking" <%= data.serviceType === 'plot-booking' ? 'selected' : '' %>>Plot Booking</option>
+            <option value="memorial" <%= data.serviceType === 'memorial' ? 'selected' : '' %>>Memorial</option>
+            <option value="burial" <%= data.serviceType === 'burial' ? 'selected' : '' %>>Burial</option>
           </select>
+        </div>
+
+        <!-- Booking Date (required for all services) -->
+        <div class="form-group">
+          <label for="booking-date">Booking Date</label>
+          <input type="date" name="bookingDate" id="booking-date" required value="<%= data.bookingDate || '' %>">
+        </div>
+
+        <!-- Schedule fields for memorial/burial (visit time only) -->
+        <div id="schedule-fields" style="display:none;">
+          <div class="form-group">
+            <label for="visit-time">Preferred Visit Time</label>
+            <select name="visitTime" id="visit-time">
+              <option <%= data.visitTime === '08:00 AM' ? 'selected' : '' %>>08:00 AM</option>
+              <option <%= data.visitTime === '09:00 AM' ? 'selected' : '' %>>09:00 AM</option>
+              <option <%= data.visitTime === '10:00 AM' ? 'selected' : '' %>>10:00 AM</option>
+              <option <%= data.visitTime === '01:00 PM' ? 'selected' : '' %>>01:00 PM</option>
+              <option <%= data.visitTime === '02:00 PM' ? 'selected' : '' %>>02:00 PM</option>
+              <option <%= data.visitTime === '03:00 PM' ? 'selected' : '' %>>03:00 PM</option>
+              <option <%= data.visitTime === '04:00 PM' ? 'selected' : '' %>>04:00 PM</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">
           <label for="notes">Notes / Special Requests</label>
-          <textarea id="notes" name="notes" placeholder="Optional"></textarea>
+          <textarea id="notes" name="notes" placeholder="Optional"><%= data.notes || '' %></textarea>
         </div>
 
         <div class="form-actions">
@@ -89,88 +99,27 @@
     // Sidebar toggle
     const sidebar = document.getElementById("sidebar");
     const btn = document.getElementById("toggleBtn");
-
     btn.addEventListener("click", () => {
       sidebar.classList.toggle("collapsed");
       btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
     });
 
-    // Notification logic
-    const notifIcon = document.getElementById("notif-icon");
-    const notifPopup = document.getElementById("notification-popup");
-    const notifList = document.getElementById("notificationsList");
-    const notifBadge = document.getElementById("notif-badge");
-    const notifCount = document.getElementById("notif-count");
+    // Show schedule fields only for memorial or burial
+    const serviceType = document.getElementById('service-type');
+    const scheduleFields = document.getElementById('schedule-fields');
 
-    async function loadNotifications() {
-      try {
-        const res = await fetch('/notifications/json');
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const notifications = await res.json();
-
-        notifList.innerHTML = '';
-        let unreadCount = 0;
-
-        if (!notifications || notifications.length === 0) {
-          notifList.innerHTML = '<p>No notifications yet.</p>';
-        } else {
-          notifications.forEach(notif => {
-            const item = document.createElement('div');
-            item.className = 'notification-item';
-            const dateStr = notif.datestamp ? new Date(notif.datestamp).toLocaleString() : '';
-            item.innerHTML = `
-              <i class="fas fa-envelope"></i>
-              <div>
-                <p class="message">${notif.message}</p>
-                <small>${dateStr}</small>
-              </div>
-            `;
-            notifList.appendChild(item);
-
-            if (!notif.read) unreadCount++;
-          });
-        }
-
-        if (unreadCount > 0) {
-          notifBadge.textContent = unreadCount;
-          notifBadge.classList.remove('hidden');
-          notifCount.textContent = unreadCount;
-          notifCount.classList.remove('hidden');
-        } else {
-          notifBadge.classList.add('hidden');
-          notifCount.classList.add('hidden');
-        }
-      } catch (err) {
-        console.error("Error loading notifications:", err);
-        notifList.innerHTML = '<p>Failed to load notifications.</p>';
+    function toggleScheduleFields() {
+      if (serviceType.value === 'memorial' || serviceType.value === 'burial') {
+        scheduleFields.style.display = 'block';
+        scheduleFields.querySelectorAll('select').forEach(el => el.required = true);
+      } else {
+        scheduleFields.style.display = 'none';
+        scheduleFields.querySelectorAll('select').forEach(el => el.required = false);
       }
     }
 
-    notifIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      notifPopup.classList.toggle("hidden");
-      if (!notifPopup.classList.contains("hidden")) {
-        markNotificationsRead();
-      }
-    });
-
-    document.addEventListener("click", function(e) {
-      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
-        notifPopup.classList.add("hidden");
-      }
-    });
-
-    async function markNotificationsRead() {
-      try {
-        await fetch('/notifications/mark-read', { method: 'POST' });
-        notifBadge.classList.add('hidden');
-        notifCount.classList.add('hidden');
-      } catch (err) {
-        console.error("Error marking notifications read:", err);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadNotifications);
+    serviceType.addEventListener('change', toggleScheduleFields);
+    window.addEventListener('DOMContentLoaded', toggleScheduleFields);
   </script>
 </body>
 </html>

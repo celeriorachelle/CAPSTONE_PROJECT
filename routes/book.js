@@ -9,83 +9,148 @@ function requireLogin(req, res, next) {
 }
 
 // GET /book → Booking Form
-router.get('/', requireLogin, (req, res) => {
-  res.render('book', { title: 'Booking Form' });
+router.get('/', requireLogin, async (req, res) => {
+  const userId = req.session.user.user_id;
+
+  try {
+    const [userBookings] = await db.query(
+      `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
+       FROM booking_tbl b
+       LEFT JOIN plot_map_tbl p ON b.plot_id = p.plot_id
+       WHERE b.user_id = ?
+       ORDER BY b.booking_date DESC`,
+      [userId]
+    );
+
+    res.render('book', { 
+      title: 'Booking Form', 
+      bookingData: null,
+      bookings: userBookings
+    });
+  } catch (err) {
+    console.error('Error fetching bookings:', err);
+    res.render('book', { 
+      title: 'Booking Form', 
+      bookingData: null,
+      bookings: [] 
+    });
+  }
 });
 
+// POST /book → Submit booking
 router.post('/', requireLogin, async (req, res) => {
   const bookingData = {
     firstname: req.body.firstname,
     lastname: req.body.lastname,
     email: req.body.email,
     phone: req.body.phone,
-    visitTime: req.body.visitTime,
-    bookingDate: req.body.bookingDate,
     serviceType: req.body.serviceType,
+    visitTime: req.body.visitTime || null,
+    bookingDate: req.body.bookingDate || null,
     notes: req.body.notes || null
   };
 
   const userId = req.session.user.user_id;
 
-  try {
-    // Check if booking already exists for this user/date/service
-    const [existing] = await db.query(
-      'SELECT * FROM booking_tbl WHERE user_id = ? AND booking_date = ? AND service_type = ?',
-      [userId, bookingData.bookingDate, bookingData.serviceType]
-    );
+  const validServices = ['plot-booking', 'memorial', 'burial'];
+  if (!validServices.includes(bookingData.serviceType)) {
+    return res.render('book', { 
+      title: 'Booking Form', 
+      error: 'Please select a valid service type.', 
+      bookingData, 
+      bookings: [] 
+    });
+  }
 
-    if (existing.length > 0) {
-      return res.send('You already have a booking for this date/service.');
+  // Validate booking date for all types
+  if (!bookingData.bookingDate) {
+    return res.render('book', {
+      title: 'Booking Form',
+      error: 'Please select a booking date.',
+      bookingData,
+      bookings: []
+    });
+  }
+
+  // Validate visit time for Memorial/Burial
+  if ((bookingData.serviceType === 'memorial' || bookingData.serviceType === 'burial') &&
+      !bookingData.visitTime) {
+    return res.render('book', {
+      title: 'Booking Form',
+      error: 'Please select a visit time for Memorial/Burial service.',
+      bookingData,
+      bookings: []
+    });
+  }
+
+  try {
+    // Double booking check only for Memorial/Burial
+    if (bookingData.serviceType === 'memorial' || bookingData.serviceType === 'burial') {
+      const [existing] = await db.query(
+        `SELECT * FROM booking_tbl
+         WHERE booking_date = ? AND visit_time = ? AND service_type = ? AND status != 'cancelled'`,
+        [bookingData.bookingDate, bookingData.visitTime, bookingData.serviceType]
+      );
+
+      if (existing.length > 0) {
+        return res.render('book', {
+          title: 'Booking Form',
+          error: 'This time slot is already booked. Please choose another schedule.',
+          bookingData,
+          bookings: []
+        });
+      }
     }
 
-    // Store booking data in session only
-    req.session.bookingData = bookingData;
-
-    // Redirect to plot selection if required
+    // Plot Booking: no limit, just store the date
     if (bookingData.serviceType === 'plot-booking') {
+      req.session.bookingData = bookingData;
       return res.redirect('/bookplots');
     }
 
-    // For other services, insert booking directly
-      const [result] = await db.query(
-        `INSERT INTO booking_tbl
-          (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-        [
-          userId,
-          bookingData.firstname,
-          bookingData.lastname,
-          bookingData.email,
-          bookingData.phone,
-          bookingData.bookingDate,
-          bookingData.visitTime,
-          bookingData.serviceType,
-          bookingData.notes
-        ]
-      );
+    // Insert booking for Memorial/Burial
+    await db.query(
+      `INSERT INTO booking_tbl
+       (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [
+        userId,
+        bookingData.firstname,
+        bookingData.lastname,
+        bookingData.email,
+        bookingData.phone,
+        bookingData.bookingDate,
+        bookingData.visitTime,
+        bookingData.serviceType,
+        bookingData.notes
+      ]
+    );
 
-    res.redirect('/dashboard');
+    const [userBookings] = await db.query(
+      `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
+       FROM booking_tbl b
+       LEFT JOIN plot_map_tbl p ON b.plot_id = p.plot_id
+       WHERE b.user_id = ?
+       ORDER BY b.booking_date DESC`,
+      [userId]
+    );
+
+    res.render('book', {
+      title: 'Booking Form',
+      bookingData: null,
+      success: 'Your booking has been submitted and is pending approval.',
+      bookings: userBookings
+    });
 
   } catch (err) {
     console.error('Error saving booking:', err);
-    res.send('Failed to create booking');
+    res.render('book', {
+      title: 'Booking Form',
+      error: 'Failed to create booking. Please try again.',
+      bookingData,
+      bookings: []
+    });
   }
 });
-
-
-// Fetch notifications as JSON for frontend
-router.get('/json', requireLogin, async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      'SELECT * FROM notification_tbl WHERE user_id = ? ORDER BY datestamp DESC',
-      [req.session.user.user_id]
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error('Error fetching notifications:', err);
-    res.status(500).json({ error: 'Failed to fetch notifications' });
-  }
-});
-
 
 module.exports = router;

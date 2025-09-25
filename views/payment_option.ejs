@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Payment Option</title>
+  <link rel="stylesheet" href="/stylesheets/payment.css">
+</head>
+<body>
+  <h2>Payment Options for Plot #<%= plot.plot_number %></h2>
+  <p>Location: <%= plot.location %></p>
+  <p>Type: <%= plot.type %></p>
+  <p>Total Price: ₱<%= plot.price.toLocaleString() %></p>
+
+  <!-- Stripe JS -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <form action="/payment/checkout" method="POST">
+    <input type="hidden" name="plot_id" value="<%= plot.plot_id %>">
+    <input type="hidden" id="plotPrice" value="<%= plot.price %>">
+
+    <% if (typeof booking !== "undefined" && booking) { %>
+      <input type="hidden" name="booking_id" value="<%= booking.booking_id %>">
+    <% } %>
+
+    <% if (typeof user !== "undefined" && user) { %>
+      <input type="hidden" name="user_id" value="<%= user.user_id %>">
+      <input type="hidden" name="user_email" value="<%= user.email %>">
+    <% } %>
+
+    <label for="option">Select Payment Option:</label>
+    <select name="option" id="option" required>
+      <option value="downpayment">Down Payment</option>
+      <option value="fullpayment">Full Payment</option>
+    </select>
+
+    <label for="amount">Amount:</label>
+    <input type="number" name="amount" id="amount" readonly>
+
+    <button type="submit">Proceed to Pay</button>
+  </form>
+
+  <script>
+    const optionSelect = document.getElementById("option");
+    const amountInput = document.getElementById("amount");
+    const plotPrice = parseFloat(document.getElementById("plotPrice").value);
+
+    function updateAmount() {
+      if (optionSelect.value === "downpayment") {
+        amountInput.value = plotPrice * 0.20; // 20% down payment
+      } else {
+        amountInput.value = plotPrice; // full payment
+      }
+    }
+
+    optionSelect.addEventListener("change", updateAmount);
+    updateAmount();
+  </script>
+</body>
+</html>
