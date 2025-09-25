@@ -102,7 +102,7 @@ router.post('/', requireLogin, async (req, res) => {
       }
     }
 
-    // Plot Booking: no limit, just store the date
+    // Plot Booking: store all data in session, do not insert yet
     if (bookingData.serviceType === 'plot-booking') {
       req.session.bookingData = bookingData;
       return res.redirect('/bookplots');

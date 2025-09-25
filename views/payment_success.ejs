@@ -7,18 +7,7 @@
 </head>
 <body>
   <h1>Payment Successful!</h1>
-  <p>Booking ID: <%= booking_id %></p>
-  <p>Amount Paid: ₱<%= amount %></p>
-  <p>Payment Type: 
-    <% if (option === 'monthly') { %>
-      Monthly Installment
-    <% } else if (option === 'full') { %>
-      Full Payment
-    <% } else { %>
-      Unknown
-    <% } %>
-  </p>
-  <p>Stripe Session ID: <%= session_id %></p>
+
 
   <a href="/userdashboard">Back to Dashboard</a>
 </body>

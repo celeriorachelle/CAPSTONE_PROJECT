@@ -62,29 +62,11 @@ router.get('/option/:plotId', requireLogin, async (req, res) => {
     if (rows.length === 0) return res.status(404).send('Plot not found');
 
     const plot = rows[0];
-
-    // 🔑 Check if booking already exists
-    const [bookingRows] = await db.query(
-      "SELECT * FROM booking_tbl WHERE plot_id = ? AND user_id = ? LIMIT 1",
-      [plotId, userId]
-    );
-
-    let booking;
-    if (bookingRows.length > 0) {
-      booking = bookingRows[0];
-    } else {
-      // Optionally create a temporary booking if needed
-      const [result] = await db.query(
-        `INSERT INTO booking_tbl (user_id, plot_id, status, generated_at) 
-         VALUES (?, ?, 'pending', NOW())`,
-        [userId, plotId]
-      );
-      booking = { booking_id: result.insertId, plot_id: plotId, user_id: userId };
-    }
+    // Store selected plot info in session
+    req.session.selectedPlot = plot;
 
     res.render('payment_option', {  
       plot,
-      booking,         // ✅ now defined
       user: req.session.user,
       stripeKey: process.env.STRIPE_PUBLISHABLE_KEY
     });
@@ -98,7 +80,10 @@ router.get('/option/:plotId', requireLogin, async (req, res) => {
 // --------------------------
 // 3️⃣ Create Stripe Checkout Session
 router.post('/create-checkout-session', requireLogin, async (req, res) => {
-  const { plot_id, amount } = req.body;
+  const { plot_id, amount, option } = req.body;
+
+  // Store payment info in session
+  req.session.paymentData = { amount, option };
 
   try {
     const [rows] = await db.query("SELECT * FROM plot_map_tbl WHERE plot_id = ?", [plot_id]);
@@ -110,20 +95,24 @@ router.post('/create-checkout-session', requireLogin, async (req, res) => {
     if (amount < minAmount) return res.status(400).json({ error: `Minimum payment is PHP ${minAmount}` });
     if (amount > plot.price) return res.status(400).json({ error: `Amount cannot exceed total price of PHP ${plot.price}` });
 
+    // Use correct label for Stripe UI
+    const paymentLabel = option === 'downpayment' ? 'Down Payment' : 'Full Payment';
+
+    // Pass payment option to success_url
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
         price_data: {
           currency: 'php',
           product_data: {
-            name: `Plot #${plot.plot_number} (Partial Payment)`
+            name: `Plot #${plot.plot_number} (${paymentLabel})`
           },
           unit_amount: Math.round(amount * 100)
         },
         quantity: 1
       }],
       mode: 'payment',
-      success_url: `${process.env.BASE_URL}/bookplots/success?session_id={CHECKOUT_SESSION_ID}&plot_id=${plot_id}&amount=${amount}`,
+      success_url: `${process.env.BASE_URL}/bookplots/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.BASE_URL}/bookplots/cancel`
     });
 
@@ -142,54 +131,88 @@ router.post('/create-checkout-session', requireLogin, async (req, res) => {
 router.get('/success', async (req, res) => {
   try {
     const session_id = req.query.session_id;
-
     // 1️⃣ Retrieve Stripe session
     const session = await stripe.checkout.sessions.retrieve(session_id);
-
     // 2️⃣ Use metadata from session to get booking and plot info
-    const bookingId = session.metadata.booking_id;
-    const plotId = session.metadata.plot_id;
-    const amount = session.amount_total / 100;
+    const userId = session.client_reference_id || (req.session.user && req.session.user.user_id);
+
+    // Retrieve bookingData, selectedPlot, and paymentData from session
+    const bookingData = req.session.bookingData;
+    const plot = req.session.selectedPlot;
+    const paymentData = req.session.paymentData;
+
+    // Insert booking row only if all session objects exist
+    let bookingId = null;
+    if (bookingData && plot && paymentData) {
+      const [result] = await db.query(
+        `INSERT INTO booking_tbl
+         (user_id, firstname, lastname, email, phone, booking_date, service_type, notes, plot_id, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [
+          userId,
+          bookingData.firstname,
+          bookingData.lastname,
+          bookingData.email,
+          bookingData.phone,
+          bookingData.bookingDate,
+          bookingData.serviceType,
+          bookingData.notes,
+          plot.plot_id
+        ]
+      );
+      bookingId = result.insertId;
+      // Clear booking and plot session data
+      req.session.bookingData = null;
+      req.session.selectedPlot = null;
+    }
 
     // 3️⃣ Insert payment record linked to booking
-    await db.query(
-      `INSERT INTO payment_tbl
-        (booking_id, user_id, amount, method, transaction_id, status, paid_at, created_at)
-       VALUES (?, ?, ?, ?, ?, 'paid', NOW(), NOW())`,
-      [
-        bookingId,
-        session.client_reference_id,
-        amount,
-        session.payment_method_types[0] || 'card',
-        session.payment_intent
-      ]
-    );
+    if (bookingId && paymentData) {
+      const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
+      await db.query(
+        `INSERT INTO payment_tbl
+          (booking_id, user_id, amount, method, transaction_id, status, paid_at, created_at, payment_type)
+         VALUES (?, ?, ?, ?, ?, 'paid', NOW(), NOW(), ?)`,
+        [
+          bookingId,
+          userId,
+          paymentData.amount,
+          paymentMethod,
+          session.payment_intent,
+          paymentMethod
+        ]
+      );
+      // Clear payment session data
+      req.session.paymentData = null;
+    }
 
     // 4️⃣ Update booking status and plot availability
-    await db.query(
-      `UPDATE booking_tbl b
-       JOIN plot_map_tbl p ON b.plot_id = p.plot_id
-       LEFT JOIN (
-         SELECT booking_id, SUM(amount) AS totalPaid
-         FROM payment_tbl
-         GROUP BY booking_id
-       ) pay ON b.booking_id = pay.booking_id
-       SET b.status = CASE
-           WHEN pay.totalPaid >= p.price THEN 'approved'
-           WHEN pay.totalPaid >= p.price*0.2 THEN 'approved'
-           ELSE 'pending'
-       END,
-       p.availability = CASE
-           WHEN pay.totalPaid >= p.price THEN 'occupied'
-           WHEN pay.totalPaid >= p.price*0.2 THEN 'reserved'
-           ELSE 'available'
-       END
-       WHERE b.booking_id = ?`,
-      [bookingId]
-    );
+    if (bookingId) {
+      await db.query(
+        `UPDATE booking_tbl b
+         JOIN plot_map_tbl p ON b.plot_id = p.plot_id
+         LEFT JOIN (
+           SELECT booking_id, SUM(amount) AS totalPaid
+           FROM payment_tbl
+           GROUP BY booking_id
+         ) pay ON b.booking_id = pay.booking_id
+         SET b.status = CASE
+             WHEN pay.totalPaid >= p.price THEN 'approved'
+             WHEN pay.totalPaid >= p.price*0.2 THEN 'approved'
+             ELSE 'pending'
+         END,
+         p.availability = CASE
+             WHEN pay.totalPaid >= p.price THEN 'occupied'
+             WHEN pay.totalPaid >= p.price*0.2 THEN 'reserved'
+             ELSE 'available'
+         END
+         WHERE b.booking_id = ?`,
+        [bookingId]
+      );
+    }
 
     // 5️⃣ Render success page
-    res.render('payment_success', { bookingId, amount });
+    res.render('payment_success', { bookingId, amount: paymentData ? paymentData.amount : null });
 
   } catch (error) {
     console.error('Payment success error:', error);
