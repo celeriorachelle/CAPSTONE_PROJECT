@@ -15,7 +15,7 @@
         <div class="nav-container">
             <div class="left-nav-section">
                 <div class="logo">
-                    <img src="/images/logo2.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
+                    <img src="/images/system.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
                 </div>
                 <nav class="nav-links">
                 <a href="#support">ABOUT US</a>
@@ -43,28 +43,7 @@
             <% } %>
             </div>
         </div>
-        <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
-            const dropdownMenu = document.querySelector(".dropdown-menu");
-            const profileBtn = document.querySelector(".profile-btn");
-            const dropdownToggle = document.querySelector(".dropdown-toggle");
-
-            [profileBtn, dropdownToggle].forEach(btn => {
-                btn.addEventListener("click", () => {
-                    profileBtn.classList.toggle("active");
-                    dropdownToggle.classList.toggle("active");
-                });
-            });
-
-            document.addEventListener("click", (e) => {
-                if (!e.target.closest(".profile-dropdown-wrapper")) {
-                    profileBtn.classList.remove("active");
-                    dropdownToggle.classList.remove("active");
-                }
-            });
-        });
-        </script>
+    
         </div>
     </div>
     </header>
@@ -113,6 +92,27 @@
 </div>
 
 <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
+            const dropdownMenu = document.querySelector(".dropdown-menu");
+            const profileBtn = document.querySelector(".profile-btn");
+            const dropdownToggle = document.querySelector(".dropdown-toggle");
+
+            [profileBtn, dropdownToggle].forEach(btn => {
+                btn.addEventListener("click", () => {
+                    profileBtn.classList.toggle("active");
+                    dropdownToggle.classList.toggle("active");
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest(".profile-dropdown-wrapper")) {
+                    profileBtn.classList.remove("active");
+                    dropdownToggle.classList.remove("active");
+                }
+            });
+        });
+
   const currentYear = new Date().getFullYear();
   const yearBornSelect = document.getElementById("yearBorn");
   const yearDiedSelect = document.getElementById("yearDied");
@@ -331,6 +331,8 @@
                 searchRecords();
             }
         });
+
+        
     </script>   
     <footer class="footer-info">
     <div class="footer-content">
