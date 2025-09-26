@@ -2,8 +2,15 @@ const { Router } = require('express');
 const router = Router();
 const db = require('../db');
 
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.redirect('/login');
+  }
+  next();
+}
+
 // GET inventory
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
     const [plots] = await db.query(`
       SELECT 
@@ -26,7 +33,7 @@ router.get('/', async (req, res) => {
 });
 
 // Add or update plot/item
-router.post('/add', async (req, res) => {
+router.post('/add', requireAdmin, async (req, res) => {
   const { item_id, item_name, category, default_price, total_plots, available_plots } = req.body;
 
   try {
@@ -79,7 +86,7 @@ router.post('/add', async (req, res) => {
 });
 
 // Delete item
-router.post('/delete/:id', async (req, res) => {
+router.post('/delete/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     await db.query('DELETE FROM inventory_tbl WHERE item_id = ?', [id]);

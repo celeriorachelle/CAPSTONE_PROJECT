@@ -27,6 +27,16 @@ router.post('/', async (req, res) => {
   const email = (req.body.username || '').trim();
   const password = (req.body.password || '');
 
+  // Hardcoded admin credentials
+  if (email === 'admin@everlasting.com' && password === 'everlastingCapstone1022@') {
+    req.session.user = {
+      user_id: 0,
+      email: email,
+      role: 'admin'
+    };
+    return res.redirect('/admin');
+  }
+
   try {
     const [rows] = await db.query(
       'SELECT user_id, firstName, lastName, email, password_hash, role FROM user_tbl WHERE email = ? LIMIT 1',

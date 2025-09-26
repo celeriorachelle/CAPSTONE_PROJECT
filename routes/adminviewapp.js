@@ -3,8 +3,16 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db'); // your DB connection
 
+// Middleware to require admin login
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.redirect('/login');
+  }
+  next();
+}
+
 // GET /adminviewapp
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
     const [bookings] = await db.query(`
     SELECT 
@@ -34,7 +42,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /adminviewapp/approve/:id
-router.post('/approve/:id', async (req, res) => {
+router.post('/approve/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
 
   try {
@@ -86,7 +94,7 @@ router.post('/approve/:id', async (req, res) => {
 
 
 // POST /adminviewapp/reject/:id
-router.post('/reject/:id', async (req, res) => {
+router.post('/reject/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
 
   try {

@@ -1,4 +1,4 @@
-    *      {
+*      {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -6,10 +6,10 @@
 
 
     body { 
-    background:url("/images/g.png") center/contain no-repeat;
     background-size: cover;
     background-attachment: fixed;
     height: 100vh;
+    min-height: 100vh;
     color: white; 
     overflow-x: hidden;
     font-family: 'Poppins', sans-serif;
@@ -22,21 +22,28 @@
     }
     
     .main-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: start;
-    min-height: auto;
-    flex: 1;
-    }
-
-    .right-column{
+    width: 100vw;
+    max-width: 100vw;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    }
+    gap: 0;
+    align-items: stretch;
+    min-height: auto;
+    flex: 1;
+}
+
+    .right-column {
+    width: 100vw;
+    max-width: 100vw;
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: 100%;
+}
 
     #map {
     height: 400px;
@@ -237,33 +244,25 @@
     }
 
     .text-content {
+        width: 100%;
+        background:url("/images/bg.jpg");
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     }
 
 .right-column {
+    width: 100vw;
+    max-width: 100vw;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 2rem;
     align-items: flex-start;
     justify-content: flex-start;
     height: 100%;
 }
 
-    .search-fields {
-    padding: 0;
-    margin-bottom: 0;
-    max-width: 700px;
-    width: 100%;
-    }
 
-    .map-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-    }
 
     .cemetery-title {
     font-size: 2.3rem;
@@ -317,17 +316,22 @@
     .search-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "first middle last"
+        "born died action";
     gap: 1rem;
-    margin-bottom: 1.5rem;
     align-items: center;
-    }
+    margin-right: 5%;
+    width: 100%;
+}
 
-    .search-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 1rem;
-    align-items: center;
-    }
+#firstName { grid-area: first; }
+#middleName { grid-area: middle; }
+#lastName { grid-area: last; }
+#yearBorn { grid-area: born; }
+#yearDied { grid-area: died; }
+.search-action { grid-area: action; }
 
     .search-input, .search-select {
     background: #0000007f;
@@ -540,16 +544,16 @@
     }
 
       .footer-info {
+        position: fixed;
+        bottom: 0;
         left: 0;
         right: 0;
-        bottom: 0;
         width: 100%;
         background: #101b0d;
         box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
         color: #fffff5;
-        position: relative;
-        padding: 1rem 0
-
+        padding: 1rem 0;
+        z-index: 100;
     }
     .footer-content {
         display: flex;
@@ -590,4 +594,3 @@
             min-width: unset;
         }
     }
-    

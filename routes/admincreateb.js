@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.redirect('/login');
+  }
+  next();
+}
+
+router.get('/', requireAdmin, (req, res) => {
   res.render('admincreateb'); 
 });
 

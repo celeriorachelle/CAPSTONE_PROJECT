@@ -12,7 +12,7 @@
 </head> 
 <body>
   <header class="header">
-        <div class="nav-container">
+        <div class="nav-container" style="padding: 1%">
             <div class="left-nav-section">
                 <div class="logo">
                     <img src="/images/system.png" alt="Memorial Services Logo" class="logo-img" style="height:40px;">
@@ -46,50 +46,46 @@
     
         </div>
     </div>
-    </header>
-  <main class="main-container">
-        <div class="content-section">
-            <div class="text-content">
-                <h1 class="cemetery-title"><span class="title-main">Everlasting Peace Memorial</span> <span class="title-sub"> <br>Park Cemetery</span></h1>
-                <p class="subtitle">Gardens of Peace</p>
-                
-                <div class="section-content">
-                    <h2 class="section-header">A Place to Remember</h2>
-                    <p class="section-description">
-                       Discover our beautifully landscaped memorial gardens where memories live forever. Explore different sections, each thoughtfully designed to provide comfort and
-                         serenity for families and visitors.
+    <div class="text-content" style="width: 100%; padding: 7%;">
+        <h1 class="cemetery-title"><span class="title-main">Everlasting Peace Memorial</span> <span class="title-sub"> <br>Park Cemetery</span></h1>
+        <p class="subtitle">Gardens of Peace</p>
+        <div class="section-content">
+            <h2 class="section-header">A Place to Remember</h2>
+            <p class="section-description">
+                Discover our beautifully landscaped memorial gardens where memories live forever.<br>
+                Explore different sections, each thoughtfully designed to provide comfort and serenity for families and visitors.
+            </p>
+        </div>
+    </div>
+    <main class="main-container" style="display: flex; flex-direction: column; width: 100%; padding: 7%;">
+        <div class="right-column" style="padding-bottom: 10%;">
+            <div class="search-fields" style="display: flex;">
+                <div class="search-grid" style="width: 50%;">
+                    <input type="text" class="search-input" placeholder="First Name" id="firstName">
+                    <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
+                    <input type="text" class="search-input" placeholder="Last Name" id="lastName">
+                    <select class="search-input" id="yearBorn">
+                        <option value="">Year Born</option>
+                    </select>
+                    <select class="search-input" id="yearDied">
+                        <option value="">Year Died</option>
+                    </select>
+                    <div class="search-action">
+                        <button type="button" class="search-btn" onclick="applySearch()">
+                            SEARCH
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="map-container" >
+                    <div id="map"></div>
                 </div>
             </div>
         </div>
-
-        <div class="right-column">
-  <div class="search-fields">
-    <div class="search-grid">
-      <input type="text" class="search-input" placeholder="First Name" id="firstName">
-      <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
-      <input type="text" class="search-input" placeholder="Last Name" id="lastName">
-
-      <select class="search-input" id="yearBorn">
-        <option value="">Year Born</option>
-      </select>
-      <select class="search-input" id="yearDied">
-        <option value="">Year Died</option>
-      </select>
-    </div>
-
-    <div class="search-action">
-    <button type="button" class="search-btn" onclick="applySearch()">
-        SEARCH
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-    </button>
-    </div>
-      <div class="map-container">
-                <div id="map"></div>
-  </div>
-</div>
 
 <script>
         document.addEventListener("DOMContentLoaded", () => {
