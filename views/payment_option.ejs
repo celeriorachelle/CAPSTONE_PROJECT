@@ -15,7 +15,7 @@
   <!-- Stripe JS -->
   <script src="https://js.stripe.com/v3/"></script>
 
-  <form action="/payment/checkout" method="POST">
+  <form action="/payment/checkout" method="POST" id="paymentForm">
     <input type="hidden" name="plot_id" value="<%= plot.plot_id %>">
     <input type="hidden" id="plotPrice" value="<%= plot.price %>">
 
@@ -27,6 +27,9 @@
       <input type="hidden" name="user_id" value="<%= user.user_id %>">
       <input type="hidden" name="user_email" value="<%= user.email %>">
     <% } %>
+    <input type="hidden" name="payment_type" id="paymentTypeField">
+    <input type="hidden" name="monthly_amount" id="monthlyAmountField">
+    <input type="hidden" name="due_date" id="dueDateField">
 
     <label for="option">Select Payment Option:</label>
     <select name="option" id="option" required>
@@ -34,8 +37,25 @@
       <option value="fullpayment">Full Payment</option>
     </select>
 
-    <label for="amount">Amount:</label>
+    <div id="installmentFields" style="display: none;">
+      <label for="months">Select Installment Duration (months):</label>
+      <select id="months" name="months">
+        <% for(let m=3; m<=24; m++) { %>
+          <option value="<%= m %>"><%= m %> months</option>
+        <% } %>
+      </select>
+    </div>
+
+    <label for="amount">Amount to Pay Now:</label>
     <input type="number" name="amount" id="amount" readonly>
+
+    <div id="installmentSummary" style="margin-top: 1em; display: none;">
+      <p><strong>Total Price:</strong> ₱<span id="totalPrice"></span></p>
+      <p><strong>Down Payment:</strong> ₱<span id="downPayment"></span></p>
+      <p><strong>Remaining Balance:</strong> ₱<span id="remainingBalance"></span></p>
+      <p><strong>Monthly Installment:</strong> ₱<span id="monthlyInstallment"></span> / month</p>
+      <p><strong>Duration:</strong> <span id="duration"></span> months</p>
+    </div>
 
     <button type="submit">Proceed to Pay</button>
   </form>
@@ -44,16 +64,75 @@
     const optionSelect = document.getElementById("option");
     const amountInput = document.getElementById("amount");
     const plotPrice = parseFloat(document.getElementById("plotPrice").value);
+    const installmentFields = document.getElementById("installmentFields");
+    const monthsSelect = document.getElementById("months");
+    const installmentSummary = document.getElementById("installmentSummary");
+
+    // Hidden fields
+    const paymentTypeField = document.getElementById("paymentTypeField");
+    const monthlyAmountField = document.getElementById("monthlyAmountField");
+    const dueDateField = document.getElementById("dueDateField");
+
+    // Summary fields
+    const totalPriceSpan = document.getElementById("totalPrice");
+    const downPaymentSpan = document.getElementById("downPayment");
+    const remainingBalanceSpan = document.getElementById("remainingBalance");
+    const monthlyInstallmentSpan = document.getElementById("monthlyInstallment");
+    const durationSpan = document.getElementById("duration");
+
+    function computeDueDate() {
+      const d = new Date();
+      // Set due date to 30 days from now
+      d.setDate(d.getDate() + 30);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
 
     function updateAmount() {
       if (optionSelect.value === "downpayment") {
-        amountInput.value = plotPrice * 0.20; // 20% down payment
+        installmentFields.style.display = "block";
+        installmentSummary.style.display = "block";
+
+        const downPayment = plotPrice * 0.20;
+        amountInput.value = downPayment;
+
+        const months = parseInt(monthsSelect.value, 10);
+        const remaining = plotPrice - downPayment;
+        const monthly = Math.ceil(remaining / months);
+
+        // Set hidden fields
+        paymentTypeField.value = "downpayment";
+        monthlyAmountField.value = monthly;
+        dueDateField.value = computeDueDate();
+
+        // Update summary
+        totalPriceSpan.textContent = plotPrice.toLocaleString();
+        downPaymentSpan.textContent = downPayment.toLocaleString();
+        remainingBalanceSpan.textContent = remaining.toLocaleString();
+        monthlyInstallmentSpan.textContent = monthly.toLocaleString();
+        durationSpan.textContent = months;
       } else {
-        amountInput.value = plotPrice; // full payment
+        installmentFields.style.display = "none";
+        installmentSummary.style.display = "none";
+
+        amountInput.value = plotPrice;
+
+        // Set hidden fields
+        paymentTypeField.value = "fullpayment";
+        monthlyAmountField.value = "";
+        dueDateField.value = "";
       }
     }
 
     optionSelect.addEventListener("change", updateAmount);
+    monthsSelect.addEventListener("change", updateAmount);
+
+    document.getElementById("paymentForm")?.addEventListener("submit", function (e) {
+      updateAmount();
+    });
+
     updateAmount();
   </script>
 </body>

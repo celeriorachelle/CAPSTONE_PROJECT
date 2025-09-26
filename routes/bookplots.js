@@ -68,7 +68,8 @@ router.get('/option/:plotId', requireLogin, async (req, res) => {
     res.render('payment_option', {  
       plot,
       user: req.session.user,
-      stripeKey: process.env.STRIPE_PUBLISHABLE_KEY
+      bookingData: req.session.bookingData,
+      stripeKey: process.env.STRIPE_PUBLISHABLE_KEY || 'sk_test_51SA5nICTTPxbpgoS6z1sxKYnoTdVWTWvpMmH8jfVfgPVzKxTnJMpM7WoaY7VfNqxGRkLme3wsggpws27CJVN797Z009z2yRfSy'
     });
   } catch (err) {
     console.error(err);
@@ -80,10 +81,27 @@ router.get('/option/:plotId', requireLogin, async (req, res) => {
 // --------------------------
 // 3️⃣ Create Stripe Checkout Session
 router.post('/create-checkout-session', requireLogin, async (req, res) => {
-  const { plot_id, amount, option } = req.body;
+      const {
+        booking_id,
+        user_id,
+        plot_id,
+        amount,
+        option,
+        payment_type,
+        months,
+        monthly_amount
+      } = req.body;
 
-  // Store payment info in session
-  req.session.paymentData = { amount, option };
+      req.session.paymentData = {
+        booking_id,
+        user_id,
+        plot_id,
+        amount,
+        option,
+        payment_type,
+        months,
+        monthly_amount
+      };
 
   try {
     const [rows] = await db.query("SELECT * FROM plot_map_tbl WHERE plot_id = ?", [plot_id]);
@@ -140,6 +158,16 @@ router.get('/success', async (req, res) => {
     const bookingData = req.session.bookingData;
     const plot = req.session.selectedPlot;
     const paymentData = req.session.paymentData;
+    // Normalize possible array fields from form submission
+    const norm = (v) => (Array.isArray(v) ? v[0] : v);
+    const normalizedPaymentData = paymentData ? {
+      ...paymentData,
+      amount: paymentData.amount != null ? parseFloat(norm(paymentData.amount)) : null,
+      payment_type: paymentData.payment_type != null ? norm(paymentData.payment_type) : null,
+      months: paymentData.months != null ? parseInt(norm(paymentData.months), 10) : null,
+      monthly_amount: paymentData.monthly_amount != null ? parseFloat(norm(paymentData.monthly_amount)) : null,
+      due_date: paymentData.due_date ? norm(paymentData.due_date) : null,
+    } : null;
 
     // Insert booking row only if all session objects exist
     let bookingId = null;
@@ -169,17 +197,20 @@ router.get('/success', async (req, res) => {
     // 3️⃣ Insert payment record linked to booking
     if (bookingId && paymentData) {
       const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
-      await db.query(
+     await db.query(
         `INSERT INTO payment_tbl
-          (booking_id, user_id, amount, method, transaction_id, status, paid_at, created_at, payment_type)
-         VALUES (?, ?, ?, ?, ?, 'paid', NOW(), NOW(), ?)`,
+          (booking_id, user_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount)
+        VALUES (?, ?, ?, ?, ?, 'paid', NOW(), ?, ?, ?, ?)`,
         [
-          bookingId,
-          userId,
-          paymentData.amount,
-          paymentMethod,
-          session.payment_intent,
-          paymentMethod
+          bookingId,                     // booking_id (freshly created above)
+          userId,                        // user_id (from session/stripe)
+          normalizedPaymentData.amount,  // amount
+          'card',                        // method
+          session.payment_intent,        // transaction_id
+          normalizedPaymentData.due_date || null,  // due_date
+          normalizedPaymentData.payment_type,      // payment_type
+          normalizedPaymentData.months || null,    // months
+          normalizedPaymentData.monthly_amount || null // monthly_amount
         ]
       );
       // Clear payment session data
@@ -212,7 +243,7 @@ router.get('/success', async (req, res) => {
     }
 
     // 5️⃣ Render success page
-    res.render('payment_success', { bookingId, amount: paymentData ? paymentData.amount : null });
+    res.render('payment_success', { bookingId, amount: normalizedPaymentData ? normalizedPaymentData.amount : null });
 
   } catch (error) {
     console.error('Payment success error:', error);
