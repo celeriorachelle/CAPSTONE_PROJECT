@@ -28,6 +28,7 @@ var admin_inventoryRouter = require('./routes/admin_inventory');
 var admin_logsRouter = require('./routes/admin_logs');
 var userdashboardRouter = require('./routes/userdashboard');
 var paymentRouter = require('./routes/payment');
+var installment_remindersRouter = require('./routes/installment_reminders');
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -126,7 +127,8 @@ app.use('/profile', profileRouter);
 app.use('/admin_inventory', admin_inventoryRouter);
 app.use('/admin_logs', admin_logsRouter);
 app.use('/userdashboard', userdashboardRouter);
-app.use('/payment', require('./routes/payment'));
+app.use('/payment', paymentRouter);
+app.use('/installment_reminders', installment_remindersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
