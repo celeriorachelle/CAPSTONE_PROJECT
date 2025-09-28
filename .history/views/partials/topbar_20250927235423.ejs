@@ -1,0 +1,191 @@
+<!-- dashboard-topbar.ejs -->
+<div class="topbar">
+  <div class="topbar-left">
+  </div>
+
+  <div class="topbar-right">
+    <!-- Profile Dropdown (copied from index.ejs) -->
+    <div class="profile-dropdown-wrapper">
+            <div class="profile-btn">
+                <i class="bi bi-person-circle"></i>
+      </div>
+      <div class="dropdown-toggle">
+        <i class="fas fa-caret-down"></i>
+      </div>
+      <div class="dropdown-menu">
+        <a href="/profile" class="dropdown-link">Profile</a>
+        <a href="/notifications" class="dropdown-link">Notifications</a>
+        <a href="/logout" class="dropdown-link">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const profileWrapper = document.querySelector(".profile-dropdown-wrapper");
+    profileWrapper.addEventListener("click", () => {
+      profileWrapper.classList.toggle("active");
+    });
+  });
+</script>
+
+<style>
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  background: transparent;   /* Removed gradient */
+  box-shadow: none;          /* Removed shadow for formal look */
+}
+
+.dashboard-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d4a24; /* brand green */
+  margin: 0;
+}
+
+    .profile-btn {
+    width: 45px;
+    height: 45px;
+    background: #0000001a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+    font-size: 1.4rem; 
+    color: #101b0d;      
+    position: relative; 
+}
+
+.profile-btn:hover,
+.profile-btn.active {
+    background: #0000001a;
+    color: #fffff5; 
+}
+
+/* Dropdown toggle (arrow or icon) */
+.dropdown-toggle {
+    font-size: 1.1rem;
+    color: #101b0d;
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+
+/* Rotate smoothly but subtly */
+.dropdown-toggle.active {
+    color: #101b0d;
+    transform: rotate(180deg);
+    transition: transform 0.25s ease, color 0.25s ease;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    margin-top: 0.7rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16, 27, 13, 0.12);
+    padding: 0;
+    min-width: 180px;
+    border: 1px solid rgba(16, 27, 13, 0.1);
+    z-index: 1001;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+}
+
+/* Show menu (formal fade + slide) */
+.profile-btn.active + .dropdown-toggle + .dropdown-menu,
+.dropdown-toggle.active + .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Dropdown menu (initial state) */
+.dropdown-menu {
+    margin-top: 0.7rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16, 27, 13, 0.12);
+    padding: 0;
+    min-width: 180px;
+    border: 1px solid rgba(16, 27, 13, 0.1);
+    z-index: 1001;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+}
+
+/* Show menu (fade + slide in) */
+.profile-btn.active + .dropdown-toggle + .dropdown-menu,
+.dropdown-toggle.active + .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Dropdown links default (hidden initially) */
+.dropdown-menu .dropdown-link {
+    display: block;
+    padding: 0.65rem 1rem;
+    color: #101b0d;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    text-align: left;
+    font-family: Poppins, sans-serif;
+    letter-spacing: 0.2px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+}
+
+/* Hover effects */
+.dropdown-menu .dropdown-link:hover {
+    color: #101b0d;
+    background: rgba(16, 27, 13, 0.06);
+}
+
+/* Active link */
+.dropdown-menu .dropdown-link.active {
+    background: #9dab6c;
+    color: #fff;
+    opacity: 1;
+}
+
+/* Rounded corners */
+.dropdown-menu .dropdown-link:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.dropdown-menu .dropdown-link:last-child {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Animate links one by one */
+.profile-btn.active + .dropdown-toggle + .dropdown-menu .dropdown-link,
+.dropdown-toggle.active + .dropdown-menu .dropdown-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+</style>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

@@ -5,57 +5,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everlast Cemetery | Register</title>
+    <title>Everlasting Peace Memorial Park | Register</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="icon" href="🪦">
     <link rel="stylesheet" href="/stylesheets/register.css">
   </head>
   <body>
     <section>
+        <div class="left-image"></div>
         <div class="login-container">
+            <a href="/" class="home-button" title="Go to Home">
+                <i class="bi bi-house-fill"></i>
+            </a>
             <div class="header">
                 <h2>Everlasting Peace Memorial Park Cemetery</h2>
-                  <p class="subtitle">Gardens of Peace</p>
+                <p class="subtitle">Gardens of Peace</p>
             </div>
             <div class="input-form">
                 <% if (typeof error === 'string' && error) { %>
-                  <div class="error-message" style="color:red; text-align:center; margin-bottom:10px;"><%= error %></div>
+                  <div class="error-message"><%= error %></div>
                 <% } %>
                 <form action="/register" method="POST">
-                    <div class="input-columns" style="display: flex;">
+                    <div class="input-columns">
                         <div class="input-group">
                             <label for="firstname">First Name</label>
-                            <input type="text" id="firstname" name="firstname" required value="<%= formData.firstname || '' %>">
+                            <input type="text" id="firstname" name="firstname" required 
+                                   value="<%= formData.firstname || '' %>" 
+                                   placeholder="Enter your first name">
                         </div>
                         <div class="input-group">
                             <label for="lastname">Last Name</label>
-                            <input type="text" id="lastname" name="lastname" required value="<%= formData.lastname || '' %>">
+                            <input type="text" id="lastname" name="lastname" required 
+                                   value="<%= formData.lastname || '' %>" 
+                                   placeholder="Enter your last name">
                         </div>
                     </div>
                     <div class="input-columns">
                         <div class="input-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" required value="<%= formData.email || '' %>">
+                            <input type="email" id="email" name="email" required 
+                                   value="<%= formData.email || '' %>" 
+                                   placeholder="Enter your email address">
                         </div>
                         <div class="input-group">
                             <label for="phone">Phone Number</label>
-                            <input type="text" id="phone" name="phone" required maxlength="11" pattern="09[0-9]{9}" title="Must start with 09 and be 11 digits" value="<%= formData.phone || '' %>">
+                            <input type="tel" id="phone" name="phone" required 
+                                   maxlength="11" pattern="09[0-9]{9}" 
+                                   title="Must start with 09 and be 11 digits" 
+                                   value="<%= formData.phone || '' %>" 
+                                   placeholder="09XXXXXXXXX">
                         </div>
                     </div>
                     <div class="input-columns">
                         <div class="input-group">
                             <label for="password">Password</label>
-                            <input type="password" id="password" name="password" required>
+                            <input type="password" id="password" name="password" required 
+                                   placeholder="Create a secure password">
                         </div>
                         <div class="input-group">
                             <label for="confirm_password">Confirm Password</label>
-                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <input type="password" id="confirm_password" name="confirm_password" required 
+                                   placeholder="Confirm your password">
                         </div>
                     </div>
                     <div class="input-row">
-                        <p><a href="/login">Already have an account?</a></p>
+                        <div class="links-row">
+                            <a href="/login" class="already-link">Already have an account?</a>
+                        </div>
                         <button type="submit">Register</button>
                     </div>
                 </form>

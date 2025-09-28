@@ -1,0 +1,271 @@
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+      <a href="/viewbooking" class="active"><i class="fa-solid fa-calendar-check"></i> View Bookings</a>
+      <a href="/book"><i class="fa-solid fa-book"></i> Make a Reservation (Plot/Services)</a>
+      <a href="/payments"><i class="fa-solid fa-credit-card"></i> Payment History</a>
+      <a href="/notifications"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <a href="/support"><i class="fa-solid fa-headset"></i> Support</a>
+    </nav>
+  </div>
+</div>
+
+<div class="toggle-btn" id="toggleBtn">
+  <i class="fa-solid fa-chevron-left"></i>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: #101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.3s ease;
+  transform: translateX(0);
+  z-index: 1000;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(203, 203, 203, 0.25);
+  font-family: 'CMU Serif', serif;
+}
+
+.sidebar-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #f5f5f5;
+}
+
+.sidebar nav {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  padding: 12px 18px;
+  text-decoration: none;
+  color: #f1f1f1;
+  border-radius: 6px;
+  margin: 8px 20px;
+  font-weight: 400;
+  transition: background 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar nav a:hover {
+  background: rgba(145, 159, 101, 0.4);
+}
+
+.sidebar nav a.active {
+  background: #28a745;
+  font-weight: 600;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  position: fixed;
+  top: 16px;
+  left: 260px;
+  background: #155724;
+  border: none;
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  transition: background 0.2s ease, left 0.3s ease;
+  z-index: 1100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.toggle-btn:hover {
+  background: #1c6a2b;<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/viewbooking">View Bookings</a>
+      <a href="/book">Make a Reservation (Plot/Services)</a>
+      <a href="/payments">Payment History</a>
+      <a href="/notifications">Notifications</a>
+      <a href="/support">Support</a>
+    </nav>
+  </div>
+</div>
+
+<div class="toggle-btn" id="toggleBtn">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+<style>
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: #101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.3s ease;
+  transform: translateX(0);
+  z-index: 1000;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(203, 203, 203, 0.25);
+  font-family: 'CMU Serif', serif;
+}
+
+.sidebar-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #f5f5f5;
+}
+
+.sidebar nav {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* spacing between links */
+}
+
+.sidebar nav a {
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #f1f1f1;
+  border-radius: 6px;
+  margin: 0 20px;
+  font-weight: 400;
+  transition: background 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+}
+
+.sidebar nav a:hover {
+  background: rgba(145, 159, 101, 0.4);
+}
+
+.sidebar nav a.active {
+  background: #28a745;
+  font-weight: 600;
+}
+
+/* TOGGLE BUTTON (Hamburger style) */
+.toggle-btn {
+  position: fixed;
+  top: 16px;
+  left: 260px;
+  background: #155724;
+  border: none;
+  border-radius: 6px;
+  width: 38px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  gap: 5px;
+  padding: 5px;
+  z-index: 1100;
+  transition: left 0.3s ease, background 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #1c6a2b;
+}
+
+.toggle-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 10px;
+}
+</style>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+});
+</script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=CMU+Serif:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 10px;
+}
+</style>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+  const icon = toggleBtn.querySelector("i");
+  if (sidebar.classList.contains("collapsed")) {
+    icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+  } else {
+    icon.classList.replace("fa-chevron-right", "fa-chevron-left");
+  }
+});
+</script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=CMU+Serif:wght@400;700&family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">

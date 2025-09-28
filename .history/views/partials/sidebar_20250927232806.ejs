@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: #155724;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s ease;
+      padding: 1rem 0;
+    }
+
+    .sidebar.shrink {
+      width: 60px;
+    }
+
+    /* Hamburger button inside sidebar */
+    .hamburger {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      margin: 0 auto 1rem auto;
+      display: block;
+    }
+
+    /* Sidebar links */
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 12px 20px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: block;
+      font-size: 16px;
+      margin: 4px 0;
+    }
+
+    .sidebar a:hover {
+      background-color: #1e6b33;
+    }
+
+    .sidebar a.active {
+      background-color: #28a745;
+      font-weight: bold;
+    }
+
+    /* When shrunk */
+    .sidebar.shrink a {
+      text-align: center;
+      padding: 12px 0;
+      font-size: 14px;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <a href="#" class="active">Home</a>
+    <a href="#">Profile</a>
+    <a href="#">Bookings</a>
+    <a href="#">Payments</a>
+    <a href="#">Settings</a>
+  </div>
+
+  <div class="main">
+    <h1>Welcome to the User Dashboard</h1>
+    <p>This is a formal and professional dashboard for cemetery management.</p>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const hamburger = document.getElementById("hamburger");
+
+    hamburger.addEventListener("click", () => {
+      sidebar.classList.toggle("shrink");
+    });
+  </script>
+</body>
+</html>

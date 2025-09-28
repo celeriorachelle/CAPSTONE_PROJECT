@@ -3,22 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notification Log | Everlasting Peace Memorial Park</title>
+  <title>Notifications | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/stylesheets/notification.css">
 </head>
 <body>
+  <!-- Sidebar -->
+  <%- include('partials/sidebar') %>
 
-<section id="notificationList" class="notifications-list">
-  <!-- JS will fill this -->
-</section>
+  <div class="main" id="main">
+    <!-- Topbar -->
+    <%- include('partials/topbar', { title: "Notifications" }) %>
 
-<button id="markReadBtn">Mark all as read</button>
+    <div class="container main-content">
+      <section class="section-card">
+        <h2 class="section-title" style="margin-bottom:12px;">Notifications</h2>
+        <div id="notificationList" class="notifications-list"><!-- JS will fill this --></div>
+        <div style="margin-top:12px; text-align:right;">
+          <button id="markReadBtn" class="btn-mark">Mark all as read</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
+  </div>
 
 <script>
 async function loadNotifications() {
   try {
-    const res = await fetch('/json'); // ✅ updated route
+    const res = await fetch('/notifications/json');
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     const notifications = await res.json();
@@ -32,7 +48,7 @@ async function loadNotifications() {
 
     notifications.forEach(notif => {
       const message = notif.message || 'No message';
-      const formattedDate = new Date(notif.created_at || notif.datestamp).toLocaleString();
+      const formattedDate = (notif.created_at || notif.datestamp) ? new Date(notif.created_at || notif.datestamp).toLocaleString() : '';
 
       const item = document.createElement('div');
       item.className = `notification-item ${notif.read ? 'read' : 'unread'}`;
@@ -47,14 +63,13 @@ async function loadNotifications() {
     });
   } catch (err) {
     console.error("Error loading notifications:", err);
-    document.getElementById('notificationList').innerHTML =
-      '<p>Failed to load notifications.</p>';
+    document.getElementById('notificationList').innerHTML = '<p>Failed to load notifications.</p>';
   }
 }
 
 async function markAllRead() {
   try {
-    const res = await fetch('/mark-read', { method: 'POST' });
+    const res = await fetch('/notifications/mark-read', { method: 'POST' });
     if (!res.ok) throw new Error('Failed to mark notifications read');
     await loadNotifications();
   } catch (err) {
@@ -64,10 +79,10 @@ async function markAllRead() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
-  document.getElementById('markReadBtn').addEventListener('click', markAllRead);
-  setInterval(loadNotifications, 30000); // auto-refresh
+  const btn = document.getElementById('markReadBtn');
+  if (btn) btn.addEventListener('click', markAllRead);
+  setInterval(loadNotifications, 30000);
 });
 </script>
-
 </body>
 </html>

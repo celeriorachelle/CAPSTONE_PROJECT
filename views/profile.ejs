@@ -4,101 +4,60 @@
   <meta charset="UTF-8" />
   <title>Profile - Everlasting Peace Memorial Park</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=CMU+Serif&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/stylesheets/profile.css">
 </head>
 <body>
-
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
-    </div>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/book">Booking</a>
-      <a href="/viewbooking">View Bookings</a>
-      <a href="/burialrecord">Booking Records</a>
-      <a href="/support">Support</a>
-      <a href="/map">View Map</a>
-    </nav>
-    <div class="sidebar-footer">
-      &copy; 2025 Everlasting Peace
-    </div>
-  </div>
+  <%- include('partials/sidebar') %>
 
   <!-- Main Content -->
-  <div class="main">
+  <div class="main" id="main">
     <!-- Topbar -->
-    <div class="topbar">
-      <h1>Profile</h1>
-      <div class="icon-buttons">
-        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
-        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
-      </div>
-    </div>
+    <%- include('partials/topbar', { title: "Profile" }) %>
 
-    <!-- Notification Popup -->
-    <div id="notification-popup" class="notification-popup hidden">
-      <h3>Notifications</h3>
-      <ul>
-        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
-        <li><i class="fas fa-envelope"></i> New message from staff.</li>
-        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
-      </ul>
-    </div>
+    <div class="main-content">
+      <!-- Profile Header -->
+      <section class="profile-display">
+        <div class="profile-left">
+          <img src="/images/g.png" alt="Profile Avatar" />
+          <div class="profile-actions">
+            <a class="link-button" href="/settings">Profile Settings</a>
+          </div>
+        </div>
+        <div class="profile-right">
+          <h2>Your Profile</h2>
+          <div class="profile-info">
+            <p>Edit your details below.</p>
+          </div>
+        </div>
+      </section>
 
-    <!-- Edit Profile Form -->
-    <div class="form-container">
-      <div class="form-box">
-        <form action="/update-profile" method="POST">
-          <h2>Edit Profile</h2>
-          <label for="fullname">Full Name</label>
-          <input type="text" id="fullname" name="fullname" placeholder="Your full name" required>
+      <!-- Edit Profile Form -->
+      <div class="form-container">
+        <div class="form-box">
+          <form action="/update-profile" method="POST">
+            <h2>Edit Profile</h2>
+            <label for="fullname">Full Name</label>
+            <input type="text" id="fullname" name="fullname" placeholder="Your full name" required>
 
-          <label for="phone">Phone Number</label>
-          <input type="text" id="phone" name="phone" placeholder="Your phone number" required>
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" name="phone" placeholder="Your phone number" required>
 
-          <label for="address">Address</label>
-          <input type="text" id="address" name="address" placeholder="Your address" required>
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="Your address" required>
 
-          <button type="submit">Update Profile</button>
-        </form>
-
-        <!-- Button to redirect to change password -->
-        <div style="text-align: right; margin-top: 10px;">
-          <a href="/setting" class="link-button">Back Profile Setting</a>
+            <button type="submit">Update Profile</button>
+          </form>
         </div>
       </div>
     </div>
 
-    <footer>
-        <%- include('partials/footer') %>
+    <!-- Footer -->
+    <footer class="footer">
+      <%- include('partials/footer') %>
     </footer>
   </div>
-
-  <!-- Script for Notification & Profile Button -->
-  <script>
-    const notifIcon = document.getElementById("notif-icon");
-    const notifPopup = document.getElementById("notification-popup");
-
-    notifIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      notifPopup.classList.toggle("hidden");
-    });
-
-    document.addEventListener("click", function(e) {
-      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
-        notifPopup.classList.add("hidden");
-      }
-    });
-
-    document.getElementById("profile-icon").addEventListener("click", () => {
-      window.location.href = "/setting";
-    });
-  </script>
-
 </body>
 </html>

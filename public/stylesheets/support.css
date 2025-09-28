@@ -11,10 +11,9 @@ html, body {
 
 body {
   display: flex;
-  background: url('/images/10.png') no-repeat center center fixed;
-  background-size: cover;
+  background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
   min-height: 100vh;
-  color: #ffffff;
+  color: #101b0d;
 }
 
 footer {

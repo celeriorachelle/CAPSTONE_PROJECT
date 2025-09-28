@@ -1,0 +1,153 @@
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+      <button class="hamburger-btn" id="hamburgerBtn">&#9776;</button>
+    </div>
+    <nav>
+      <a href="/home" class="active">Home</a>
+      <a href="/viewbooking">View Bookings</a>
+      <a href="/book">Make a Reservation (Plot/Services)</a>
+      <a href="/payments">Payment History</a>
+      <a href="/notifications">Notifications</a>
+      <a href="/support">Support</a>
+    </nav>
+  </div>
+</div>
+
+<!-- Styles -->
+<style>
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: #101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.25);
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* HEADER */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(203, 203, 203, 0.25);
+  font-family: 'CMU Serif', serif;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.sidebar.collapsed .sidebar-header h2 {
+  display: none; /* hide text when collapsed */
+}
+
+/* NAV LINKS */
+.sidebar nav {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  padding: 12px 18px;
+  text-decoration: none;
+  color: white;
+  border-radius: 6px;
+  margin: 6px 12px;
+  font-weight: 400;
+  font-family: 'CMU Serif', serif;
+  font-size: 14px;
+  transition: background 0.3s ease, color 0.3s ease;
+  position: relative;
+}
+
+/* Hover */
+.sidebar nav a:hover {
+  background: rgba(145, 159, 101, 0.5);
+}
+
+/* Active link highlight */
+.sidebar nav a.active {
+  background: #155724;
+  font-weight: 600;
+}
+
+/* Optional left bar for active link */
+.sidebar nav a.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: #9dab6c; /* lighter green */
+  border-radius: 2px;
+}
+
+/* COLLAPSED STATE */
+.sidebar.collapsed nav a {
+  text-align: center;
+  font-size: 0; /* hide text */
+}
+
+.sidebar.collapsed nav a::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Show tooltip on hover */
+.sidebar.collapsed nav a:hover::before {
+  opacity: 1;
+}
+
+/* HAMBURGER BUTTON */
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.hamburger-btn:hover {
+  color: #9dab6c;
+}
+</style>
+
+<!-- Script -->
+<script>
+const sidebar = document.getElementById("sidebar");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+
+hamburgerBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+});
+</script>

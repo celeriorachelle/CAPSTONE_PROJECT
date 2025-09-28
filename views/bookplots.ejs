@@ -2,63 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Booking Form</title>
+  <title>Book Plots</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/stylesheets/bookplots.css">
 </head>
 <body>
+  <!-- Sidebar -->
   <%- include('partials/sidebar') %>
-  <%- include('partials/topbar', { title: "Book" }) %>  
 
   <div class="main" id="main">
-    <div class="plot-list-section" style="margin-left: 5%; margin-top: auto;">
-      <h4>All Plots</h4>
-      <div class="plot-table-container">
-        <table class="plot-table">
-          <thead>
-            <tr>
-              <th>Plot No.</th>
-              <th>Location</th>
-              <th>Type</th>
-              <th>Price</th>
-              <th>Availability</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="plotTableBody">
-            <% plots.forEach(plot => { %>
+    <!-- Topbar -->
+    <%- include('partials/topbar', { title: "Book Plots" }) %>
+
+    <div class="main-content">
+      <section class="section-card">
+        <h3 class="section-title">All Plots</h3>
+        <div class="plot-table-container">
+          <table class="booking-table" id="plotTable">
+            <thead>
               <tr>
-                <td><%= plot.plot_number %></td>
-                <td><%= plot.location %></td>
-                <td><%= plot.type %></td>
-                <td>₱<%= plot.price.toLocaleString() %></td>
-                <td><%= plot.availability %></td>
-                <td>
-                  <% if(plot.availability === 'available') { %>
-                    <!-- BOOK button redirects to payment option page -->
-                    <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
-                      <button type="submit">BOOK</button>
-                    </form>
-                  <% } else if(plot.availability === 'pending') { %>
-                    <span style="color:orange;">Pending Approval</span>
-                  <% } else if(plot.availability === 'reserved') { %>
-                    <span style="color:blue;">Reserved</span>
-                  <% } else if(plot.availability === 'occupied') { %>
-                    <span style="color:red;">Occupied</span>
-                  <% } else { %>
-                    <span>Not Available</span>
-                  <% } %>
-                </td>
+                <th>Plot No.</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Availability</th>
+                <th>Actions</th>
               </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody id="plotTableBody">
+              <% plots.forEach(plot => { %>
+                <tr>
+                  <td data-label="Plot No."><%= plot.plot_number %></td>
+                  <td data-label="Location"><%= plot.location %></td>
+                  <td data-label="Type"><%= plot.type %></td>
+                  <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
+                  <td data-label="Availability"><%= plot.availability %></td>
+                  <td data-label="Actions">
+                    <% if(plot.availability === 'available') { %>
+                      <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
+                        <button type="submit" class="btn btn-book">BOOK</button>
+                      </form>
+                    <% } else if(plot.availability === 'pending') { %>
+                      <span class="badge badge-pending">Pending Approval</span>
+                    <% } else if(plot.availability === 'reserved') { %>
+                      <span class="badge badge-done">Reserved</span>
+                    <% } else if(plot.availability === 'occupied') { %>
+                      <span class="badge badge-cancelled">Occupied</span>
+                    <% } else { %>
+                      <span>Not Available</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="pagination" id="plotPagination"></div>
+        </div>
+      </section>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
   </div>
 
-  <footer>
-    <%- include('partials/footer') %>
-  </footer>
+  <script>
+    // Client-side pagination to 10 per page
+    document.addEventListener('DOMContentLoaded', function() {
+      const tbody = document.getElementById('plotTableBody');
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const perPage = 10; // limit to 10
+      const total = Math.ceil(rows.length / perPage) || 1;
+      const pagEl = document.getElementById('plotPagination');
+      let current = 1;
+
+      function renderPage(page) {
+        current = page;
+        const start = (page - 1) * perPage;
+        const end = page * perPage;
+        rows.forEach((row, idx) => {
+          row.style.display = (idx >= start && idx < end) ? '' : 'none';
+        });
+        renderControls();
+      }
+
+      function makeLink(text, disabled, handler, active) {
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = text;
+        if (disabled) a.classList.add('disabled');
+        if (active) a.classList.add('active');
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!disabled && handler) handler();
+        });
+        return a;
+      }
+
+      function renderControls() {
+        if (!pagEl) return;
+        pagEl.innerHTML = '';
+        if (total <= 1) return;
+
+        pagEl.appendChild(makeLink('Previous', current === 1, () => renderPage(current - 1), false));
+        for (let i = 1; i <= total; i++) {
+          pagEl.appendChild(makeLink(String(i), false, () => renderPage(i), i === current));
+        }
+        pagEl.appendChild(makeLink('Next', current === total, () => renderPage(current + 1), false));
+      }
+
+      renderPage(1);
+    });
+  </script>
 </body>
 </html>

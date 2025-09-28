@@ -7,7 +7,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #fafaf9 0%, #fef7ed 100%);
+  background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
   color: #1c1917;
   line-height: 1.6;
 }
@@ -19,33 +19,21 @@ body {
   padding: 1rem;
 }
 
-/* Topbar */
-.topbar {
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid #e7e5e4;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  padding: 1rem 1.5rem;
-  margin-bottom: 2rem;
+/* Layout to match other pages */
+.main {
+  margin-left: 250px;
+  transition: margin-left 0.4s ease;
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.topbar h2 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #1c1917;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
 }
 
-.topbar i {
-  color: #059669;
-}
+/* Topbar uses shared partial styles; remove page-specific overrides to maintain uniformity */
 
 /* Notifications List */
 .notifications-list {

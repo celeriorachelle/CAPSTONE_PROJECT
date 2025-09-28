@@ -1,0 +1,137 @@
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+      <a href="/home" class="active">Home</a>
+      <a href="/viewbooking">View Bookings</a>
+      <a href="/book">Make a Reservation (Plot/Services)</a>
+      <a href="/payments">Payment History</a>
+      <a href="/notifications">Notifications</a>
+      <a href="/support">Support</a>
+    </nav>
+  </div>
+</div>
+
+<div class="toggle-btn" id="toggleBtn">
+  &#9776; <!-- Hamburger icon -->
+</div>
+
+<style>
+/* SIDEBAR + TOGGLE STYLES */
+.sidebar {
+  width: 250px;
+  background:#101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateX(0);
+  z-index: 1000;
+  box-shadow: 6px 0 16px rgba(0,0,0,0.35);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(203, 203, 203, 0.222);
+  font-family: 'CMU Serif', serif;
+  animation: fadeIn 0.5s ease;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'CMU Serif', serif;
+  line-height: 1.4;
+}
+
+.sidebar nav {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* added gap for spacing between links */
+}
+
+.sidebar nav a {
+  padding: 14px 20px;
+  text-decoration: none;
+  color: white;
+  border-radius: 10px;
+  margin: 0 25px;
+  font-weight: 800;
+  transition: all 0.3s ease;
+  position: relative;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+}
+
+/* Hover */
+.sidebar nav a:hover {
+  background: #919f6582;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Active link highlight */
+.sidebar nav a.active {
+  background: #155724;
+  font-weight: 600;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 250px;
+  background: #101b0d;
+  border: 1px solid #fff;
+  border-radius: 6px;
+  width: 40px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+  transition: left 0.3s ease, background 0.3s ease;
+  z-index: 1100;
+}
+
+.toggle-btn:hover {
+  background: #7d8957df;
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 10px;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+});
+</script>

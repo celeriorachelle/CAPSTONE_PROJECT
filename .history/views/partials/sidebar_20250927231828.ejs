@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard | Everlasting Peace Memorial Park</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Open Sans", sans-serif;
+      background: #f9f9f9;
+      color: #2d4a24;
+    }
+
+    /* Top Bar */
+    .topbar {
+      background: #155724;
+      color: #fff;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 230px;
+      background: #2d4a24;
+      padding-top: 60px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+    }
+
+    .sidebar.active {
+      transform: translateX(0);
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: #f1f1f1;
+      font-size: 15px;
+    }
+
+    .sidebar a:hover {
+      background: #155724;
+    }
+
+    .sidebar a.active {
+      background: #28a745;
+      font-weight: bold;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      background: #155724;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .toggle-btn:hover {
+      background: #0f3c1c;
+    }
+
+    /* Content */
+    .content {
+      margin-left: 0;
+      padding: 20px;
+      transition: margin-left 0.3s ease-in-out;
+    }
+
+    .sidebar.active ~ .content {
+      margin-left: 230px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="topbar">
+    <span>User Dashboard</span>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/bookings">My Bookings</a>
+    <a href="/payments">Payments</a>
+    <a href="/notifications">Notifications</a>
+    <a href="/profile">Profile</a>
+    <a href="/logout">Logout</a>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <h1>Welcome to your Dashboard</h1>
+    <p>This is your formal and simplified user dashboard.</p>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+  </script>
+</body>
+</html>

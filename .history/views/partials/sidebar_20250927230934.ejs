@@ -1,0 +1,142 @@
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+       <a href="/"><i class="fa-solid fa-house"></i> HOME</a>
+      <a href="/book"><i class="fa-solid fa-book"></i> BOOK</a>
+      <a href="/viewbooking"><i class="fa-solid fa-calendar-check"></i> VIEW BOOKINGS</a>
+      <a href="/burialrecord"><i class="fa-solid fa-clipboard-list"></i> BOOKING RECORDS</a>
+      <a href="/support"><i class="fa-solid fa-headset"></i> SUPPORT</a>
+      <a href="/"><i class="fa-solid fa-map"></i> VIEW MAP</a>
+    </nav>
+  </div>
+</div>
+
+<div class="toggle-btn" id="toggleBtn">◀</div>
+
+<style>
+/* SIDEBAR + TOGGLE STYLES */
+.sidebar {
+  width: 250px;
+  background:#101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateX(0);
+  z-index: 1000;
+  box-shadow: 6px 0 16px rgba(0,0,0,0.35);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(203, 203, 203, 0.222);
+  font-family: 'CMU Serif', serif;
+  animation: fadeIn 0.5s ease;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'CMU Serif', serif;
+  line-height: 1.4;
+}
+
+.sidebar nav {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  padding: 14px 20px;
+  text-decoration: none;
+  color: white;
+  border-radius: 10px;
+  margin: 15px 25px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  position: relative;
+  font-family: 'poppins', sans-serif;
+  font-size: 13px;
+}
+
+.sidebar nav a:hover {
+  background: #919f6582;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.sidebar nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 20px;
+  height: 2px;
+  width: 0;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+
+.sidebar nav a:hover::after {
+  width: 60%;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  position: fixed;
+  top: 50%;
+  left: 250px;
+  transform: translateY(-50%);
+  background: #101b0d;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  transition: left 0.3s ease, background 0.3s ease;
+  z-index: 1100;
+}
+
+.toggle-btn:hover {
+  background: #7d8957df;
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 0;
+}
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes fadeInUp {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+</style>
+
+
+<!-- Make sure Font Awesome is included in <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

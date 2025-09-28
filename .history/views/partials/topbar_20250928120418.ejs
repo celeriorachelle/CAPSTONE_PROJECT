@@ -1,0 +1,267 @@
+<div class="topbar">
+  <div class="topbar-right">
+    <!-- Notifications -->
+    <div class="notification-btn" id="notifBtn">
+      <i class="fas fa-bell"></i>
+      <span class="notif-badge">3</span> <!-- example count -->
+      <div class="notif-dropdown" id="notifDropdown">
+        <p class="notif-header">Notifications</p>
+        <a href="/notifications" class="notif-link">View all notifications</a>
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="profile-wrapper">
+      <div class="profile-btn" id="profileBtn">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="dropdown-toggle" id="profileToggle">
+        <i class="fas fa-caret-down"></i>
+      </div>
+      <div class="dropdown-menu" id="profileDropdown">
+        <a href="/profile" class="dropdown-link">Profile</a>
+        <a href="/settings" class="dropdown-link">Settings</a>
+        <a href="/logout" class="dropdown-link">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const profileWrapper = document.querySelector(".profile-wrapper");
+  const notifBtn = document.getElementById("notifBtn");
+  const notifDropdown = document.getElementById("notifDropdown");
+
+  // Profile toggle
+  const dropdownToggle = profileWrapper.querySelector(".dropdown-toggle");
+  profileWrapper.addEventListener("click", () => {
+    profileWrapper.classList.toggle("active");
+    if (dropdownToggle) dropdownToggle.classList.toggle("active");
+  });
+
+  // Notifications toggle
+  notifBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    notifDropdown.style.display = notifDropdown.style.display === "block" ? "none" : "block";
+  });
+
+  // Close dropdowns on outside click
+  document.addEventListener("click", (e) => {
+    if (!profileWrapper.contains(e.target)) {
+      profileWrapper.classList.remove("active");
+      if (dropdownToggle) dropdownToggle.classList.remove("active");
+    }
+    if (!notifBtn.contains(e.target)) {
+      notifDropdown.style.display = "none";
+    }
+  });
+
+  // Highlight active link in profile dropdown
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('#profileDropdown .dropdown-link').forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+<style>
+/* TOPBAR */
+.topbar {
+  background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);;
+  border-bottom: 1px solid rgba(16,27,13,0.1);
+  box-shadow: ;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: 58px;
+}
+
+.dashboard-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d4a24;
+  margin: 0;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* NOTIFICATIONS */
+.notification-btn {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  margin-top: 4px;
+  background: #0000001a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+  font-size: 1.3rem;
+  color: #101b0d;
+}
+
+.notification-btn:hover,
+.notification-btn.active {
+  background: #0000001a;
+  color: #fffff5;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #9dab6c;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  border-radius: 10px;
+}
+
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 120%;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16,27,13,0.12);
+  min-width: 200px;
+  padding: 0.5rem 0;
+  border: 1px solid rgba(16,27,13,0.1);
+  z-index: 1000;
+}
+
+.notif-dropdown .notif-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(16,27,13,0.1);
+}
+
+.notif-dropdown .notif-link {
+  display: block;
+  padding: 0.65rem 1rem;
+  color: #101b0d;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.notif-dropdown .notif-link:hover {
+  background: rgba(16,27,13,0.06);
+}
+
+/* PROFILE (your provided style) */
+.profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-btn {
+  width: 45px;
+  height: 45px;
+  margin-top: 4px;
+  background: #0000001a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+  font-size: 1.4rem; 
+  color: #101b0d;      
+  position: relative; 
+}
+
+.profile-btn:hover,
+.profile-btn.active {
+  background: #0000001a;
+  color: #fffff5; 
+}
+
+.dropdown-toggle {
+  font-size: 1.1rem;
+  color: #101b0d;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.dropdown-toggle.active {
+  transform: rotate(180deg);
+  transition: transform 0.25s ease;
+}
+
+/* Dropdown menu (profile) */
+.dropdown-menu {
+  margin-top: 0.7rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16, 27, 13, 0.12);
+  min-width: 180px;
+  border: 1px solid rgba(16, 27, 13, 0.1);
+  z-index: 1001;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
+}
+
+.dropdown-menu .dropdown-link {
+  display: block;
+  padding: 0.65rem 1rem;
+  color: #101b0d;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  font-family: Poppins, sans-serif;
+  letter-spacing: 0.2px;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+}
+
+.dropdown-menu .dropdown-link:hover {
+  background: rgba(16, 27, 13, 0.06);
+}
+
+.dropdown-menu .dropdown-link.active {
+  background: #9dab6c;
+  color: #fff;
+  opacity: 1;
+}
+
+.profile-wrapper.active .dropdown-menu {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.profile-wrapper.active .dropdown-menu .dropdown-link {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+</style>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

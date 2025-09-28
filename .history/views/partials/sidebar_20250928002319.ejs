@@ -1,0 +1,167 @@
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="sidebar-header">
+      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
+    </div>
+    <nav>
+      <a href="/">HOME</a>
+      <a href="/viewbooking">VIEW BOOKINGS</a>
+      <a href="/book">BOOK</a>
+      <a href="/payments">PAYMENT HISTORY</a>
+      <a href="/notifications">NOTIFICATIONS</a>
+      <a href="/support">SUPPORT</a>
+    </nav>
+  </div>
+</div>
+
+<div class="toggle-btn" id="toggleBtn">
+  &#9776; <!-- Hamburger icon -->
+</div>
+
+<style>
+/* SIDEBAR + TOGGLE STYLES */
+.sidebar {
+  width: 250px;
+  background:#101b0d;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: transform 0.4s ease;
+  transform: translateX(0);
+  z-index: 1000;
+  box-shadow: 4px 0 12px rgba(0,0,0,0.25);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 22px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: 'Merriweather', serif;
+  animation: fadeIn 0.4s ease;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+}
+
+.sidebar nav {
+  margin-top: 550px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px; 
+}
+
+.sidebar nav a {
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #f5f5f5;
+  border-radius: 8px;
+  margin: 0 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+/* Hover */
+.sidebar nav a:hover {
+  background: rgba(255,255,255,0.08);
+}
+.sidebar nav a.active {
+  background: #9dab6c;
+  color: #101b0d;
+}
+
+.sidebar nav a:focus-visible {
+  outline: 2px solid #9dab6c;
+  outline-offset: 2px;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  position: fixed;
+  top: 16px;
+  left: 250px;
+  background: #101b0d;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+  width: 40px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+  transition: left 0.3s ease, background 0.3s ease, border-color 0.2s ease;
+  z-index: 1100;
+}
+
+.toggle-btn:hover {
+  background: #0c140d;
+  border-color: rgba(255,255,255,0.6);
+}
+
+.sidebar.collapsed + .toggle-btn {
+  left: 10px;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+});
+
+// Auto-set active link based on current path
+(function() {
+  const links = Array.from(document.querySelectorAll('.sidebar nav a'));
+  const normalize = (p) => {
+    try {
+      return new URL(p, window.location.origin).pathname.replace(/\/+$/, '') || '/';
+    } catch (e) {
+      return '/';
+    }
+  };
+  const current = normalize(window.location.pathname);
+  let best = null;
+  links.forEach(link => {
+    const lp = normalize(link.getAttribute('href'));
+    if (current === lp || (lp !== '/' && current.startsWith(lp + (lp.endsWith('/') ? '' : '/')))) {
+      if (!best || lp.length > best.path.length) best = { el: link, path: lp };
+    } else if (lp === '/' && current === '/') {
+      if (!best) best = { el: link, path: lp };
+    }
+  });
+  if (best && best.el) {
+    links.forEach(l => l.classList.remove('active'));
+    best.el.classList.add('active');
+  }
+})();
+</script>

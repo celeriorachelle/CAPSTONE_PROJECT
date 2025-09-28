@@ -86,25 +86,30 @@
       });
     });
 
-    // Notification popup toggle
+for    // Notification popup toggle (guarded; topbar manages this by default)
     const notifIcon = document.getElementById("notif-icon");
     const notifPopup = document.getElementById("notification-popup");
+    if (notifIcon && notifPopup) {
+      notifIcon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        notifPopup.classList.toggle("hidden");
+      });
 
-    notifIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      notifPopup.classList.toggle("hidden");
-    });
+      document.addEventListener("click", function(e) {
+        if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+          notifPopup.classList.add("hidden");
+        }
+      });
+    }
 
-    document.addEventListener("click", function(e) {
-      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
-        notifPopup.classList.add("hidden");
-      }
-    });
-
-    document.getElementById("profile-icon").addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.location.href = "/setting";
-    });
+    // Profile icon redirect (guarded)
+    const profileIcon = document.getElementById("profile-icon");
+    if (profileIcon) {
+      profileIcon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = "/settings";
+      });
+    }
   </script>
 </body>
 </html>

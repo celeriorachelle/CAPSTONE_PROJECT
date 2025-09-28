@@ -4,76 +4,43 @@
   <meta charset="UTF-8" />
   <title>My Profile - Everlasting Peace Memorial Park</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=CMU+Serif&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/stylesheets/profile.css">
-
 </head>
 <body>
-
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>Everlasting Peace<br>Memorial Park Cemetery</h2>
-    </div>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/book">Booking</a>
-      <a href="/viewbooking">View Bookings</a>
-      <a href="/burialrecord">Booking Records</a>
-      <a href="/support">Support</a>
-      <a href="/map">View Map</a>
-    </nav>
-    <div class="sidebar-footer">
-      &copy; 2025 Everlasting Peace
-    </div>
-  </div>
+  <%- include('partials/sidebar') %>
 
   <!-- Main Content -->
-  <div class="main">
+  <div class="main" id="main">
     <!-- Topbar -->
-    <div class="topbar">
-      <h1>My Profile</h1>
-      <div class="icon-buttons">
-        <div class="icon-btn" id="notif-icon"><i class="fas fa-bell"></i></div>
-        <div class="icon-btn" id="profile-icon"><i class="fas fa-user"></i></div>
-      </div>
-    </div>
+    <%- include('partials/topbar', { title: "My Profile" }) %>
 
-    <!-- Notification Popup -->
-    <div id="notification-popup" class="notification-popup hidden">
-      <h3>Notifications</h3>
-      <ul>
-        <li><i class="fas fa-check-circle"></i> Your booking on Aug 21 is confirmed.</li>
-        <li><i class="fas fa-envelope"></i> New message from staff.</li>
-        <li><i class="fas fa-calendar-alt"></i> Reminder: Visit scheduled tomorrow.</li>
-      </ul>
-    </div>
-
-    <!-- Profile Info Display -->
-    <div class="form-container">
-      <div class="form-box">
-        <div class="profile-display">
-          <!-- Left: Image -->
-          <div class="profile-left">
-            <img src="/images/default-profile.png" alt="Profile Image">
-            <label for="upload-image" class="link-button" style="cursor: pointer;">Upload Image</label>
-            <input type="file" id="upload-image" name="profileImage" accept="image/*" style="display: none;">
-          </div>
-
-          <!-- Right: Info -->
-          <div class="profile-right">
-            <div class="profile-actions">
-              <a href="/profile" class="icon-btn" title="Edit Profile"><i class="fas fa-edit"></i></a>
-              <a href="/updatepassword" class="icon-btn" title="Change Password"><i class="fas fa-key"></i></a>
+    <div class="main-content">
+      <div class="form-container">
+        <div class="form-box">
+          <div class="profile-display">
+            <!-- Left: Image -->
+            <div class="profile-left">
+              <img src="/images/default-profile.png" alt="Profile Image">
+              <label for="upload-image" class="link-button" style="cursor: pointer;">Upload Image</label>
+              <input type="file" id="upload-image" name="profileImage" accept="image/*" style="display: none;">
             </div>
-            <h2>Account Information</h2>
-            <div class="profile-info">
-              <p><strong>Full Name:</strong> Juan Dela Cruz</p>
-              <p><strong>Email:</strong> juandelacruz@email.com</p>
-              <p><strong>Phone Number:</strong> 09123456789</p>
-              <p><strong>Address:</strong> Malabon City, Metro Manila</p>
+
+            <!-- Right: Info -->
+            <div class="profile-right">
+              <div class="profile-actions">
+                <a href="/profile" class="icon-btn" title="Edit Profile"><i class="fas fa-edit"></i></a>
+                <a href="/updatepassword" class="icon-btn" title="Change Password"><i class="fas fa-key"></i></a>
+              </div>
+              <h2>Account Information</h2>
+              <div class="profile-info">
+                <p><strong>Full Name:</strong> Juan Dela Cruz</p>
+                <p><strong>Email:</strong> juandelacruz@email.com</p>
+                <p><strong>Phone Number:</strong> 09123456789</p>
+                <p><strong>Address:</strong> Malabon City, Metro Manila</p>
+              </div>
             </div>
           </div>
         </div>
@@ -82,46 +49,8 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <div class="footer-content">
-        <div>
-          <p><strong>Office Hours</strong><br>
-            Mon–Fri: 8:00 AM – 6:00 PM<br>
-            Sat–Sun: 9:00 AM – 4:00 PM</p>
-        </div>
-        <div>
-          <p><strong>Address:</strong><br>
-            Everlasting Peace Memorial Park,<br>
-            Malabon City, Philippines</p>
-        </div>
-        <div>
-          <p><strong>Support:</strong><br>
-            <a href="mailto:support@epcemetery.com">support@everlastingpeace.com</a><br>
-            <a href="tel:+639670072385">+63 9670072385</a></p>
-        </div>
-      </div>
+      <%- include('partials/footer') %>
     </footer>
   </div>
-
-  <!-- Script -->
-  <script>
-    const notifIcon = document.getElementById("notif-icon");
-    const notifPopup = document.getElementById("notification-popup");
-
-    notifIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      notifPopup.classList.toggle("hidden");
-    });
-
-    document.addEventListener("click", function(e) {
-      if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
-        notifPopup.classList.add("hidden");
-      }
-    });
-
-    document.getElementById("profile-icon").addEventListener("click", () => {
-      window.location.href = "/setting";
-    });
-  </script>
-
 </body>
 </html>
