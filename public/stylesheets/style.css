@@ -290,7 +290,7 @@
     padding: 2.5rem 2rem;
     width: 100%;
     box-sizing: border-box;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .search-title {
@@ -375,7 +375,7 @@
     }
 
     .services-title {
-        font-size: 2.5rem;
+        font-size: 2.4rem;
         font-weight: 300;
         color: #101b0d;
         text-align: center;
@@ -453,14 +453,14 @@
 
     .service-btn {
         display: inline-block;
-        padding: 0.65rem 1rem;
+        padding: 0.5rem 0.9rem;
         background: #101b0d;
+        font-size: 0.85rem;
         color: #ffffff;
         text-decoration: none;
-        border-radius: 10px;
+        border-radius: 12px;
         border: 1px solid rgba(16, 27, 13, 0.15);
         font-weight: 600;
-        font-size: 0.9rem;
         letter-spacing: 0.8px;
         transition: all 0.2s ease;
         font-family: 'Open Sans', sans-serif;
@@ -470,7 +470,7 @@
     }
 
     .service-btn:hover {
-        background: #2c3e2f;
+        background: #2f2c20;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(16, 27, 13, 0.22);
     }
@@ -637,7 +637,7 @@
 
     .search-input:focus, .search-select:focus {
     outline: none;
-    border-color: #101b0d;  
+    border-color: #c7c7c79d;  
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(16, 27, 13, 0.1);
     }
@@ -656,7 +656,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.7rem; 
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 1rem;
     font-size: 0.9rem;
     background: #101b0d;
     color: white;
