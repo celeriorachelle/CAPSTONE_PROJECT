@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Account Settings - Everlasting Peace Memorial Park</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/stylesheets/accountsettings.css">
+</head>
+<body class="account-settings-page">
+  <%- include('partials/sidebar') %>
+  <div class="main" id="main">
+    <%- include('partials/topbar', { title: "Account Settings" }) %>
+
+    <div class="main-content">
+
+      <!-- Profile Header -->
+      <section class="profile-header">
+        <div class="profile-photo">
+          <img src="<%= formData.avatar || '/images/g.png' %>" alt="Profile Avatar" id="profileImage"/>
+          <button class="edit-avatar"><i class="fa fa-camera"></i></button>
+          <form id="avatarForm" action="/profile/update-avatar" method="POST" enctype="multipart/form-data" style="display:none;">
+            <input type="file" name="avatar" id="avatarInput" accept="image/*">
+          </form>
+        </div>
+
+        <div class="profile-details">
+          <h2><%= formData.firstname %> <%= formData.lastname %></h2>
+          <p><i class="fa fa-envelope"></i> <%= formData.email %></p>
+          <p><i class="fa fa-phone"></i> <%= formData.phone %></p>
+          <p><i class="fa fa-map-marker-alt"></i> <%= formData.address %></p>
+
+          <div class="profile-actions">
+            <a class="btn edit" href="#editForm">Edit Profile</a>
+            <form action="/profile/delete-account" method="POST" class="inline-form">
+              <button type="submit" class="btn delete" onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.')">Delete Account</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Edit Profile Form -->
+      <div class="form-container" id="editForm" style="display: none;">
+        <% if (error) { %><p class="error"><%= error %></p><% } %>
+        <% if (success) { %><p class="success"><%= success %></p><% } %>
+
+        <form action="/profile" method="POST" class="profile-form">
+          <h3>Edit Profile</h3>
+          <label for="firstname">First Name</label>
+          <input type="text" id="firstname" name="firstname" value="<%= formData.firstname %>" required>
+          <label for="lastname">Last Name</label>
+          <input type="text" id="lastname" name="lastname" value="<%= formData.lastname %>" required>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= formData.email %>" required>
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" value="<%= formData.phone %>" required>
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" value="<%= formData.address %>" required>
+          <label for="password">New Password (optional)</label>
+          <input type="password" id="password" name="password">
+          <label for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password">
+          <button type="submit" class="btn update">Save Changes</button>
+        </form>
+      </div>
+
+      <!-- Additional Settings -->
+      <div class="form-container settings-section">
+        <h3>Additional Settings</h3>
+        <div class="settings-grid">
+
+      <div class="toggle-switch-container">
+  <label for="darkModeToggle" class="toggle-label">Dark Mode</label>
+  <div class="toggle-switch">
+    <input type="checkbox" id="darkModeToggle">
+    <span class="toggle-knob">
+      <i class="bi bi-moon-fill"></i>
+    </span>
+  </div>
+</div>
+
+<div class="toggle-switch-container">
+  <label for="emailNotifications" class="toggle-label">Email Notifications</label>
+  <div class="toggle-switch">
+    <input type="checkbox" id="emailNotifications">
+    <span class="toggle-knob">
+      <i class="bi bi-bell-fill"></i>
+    </span>
+  </div>
+</div>
+
+
+          <!-- Language / Date Format -->
+          <div class="setting-item">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="fil">Filipino</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label for="dateFormatSelect">Date Format</label>
+            <select id="dateFormatSelect">
+              <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+              <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+            </select>
+          </div>
+
+          <!-- Accessibility -->
+          <div class="setting-item">
+            <label for="textSizeSelect">Text Size</label>
+            <select id="textSizeSelect">
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          <!-- Auto Logout -->
+          <div class="setting-item">
+            <label for="autoLogoutSelect">Auto Logout (minutes)</label>
+            <select id="autoLogoutSelect">
+              <option value="0">Disabled</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="60">60</option>
+            </select>
+          </div>
+
+          <!-- Data Export -->
+          <div class="setting-item">
+            <label>Export Profile Data</label>
+            <button class="btn export" id="exportDataBtn">Download JSON</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
+  </div>
+
+  <!-- ===== JS Inline ===== -->
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const editBtn = document.querySelector(".btn.edit");
+    const editForm = document.getElementById("editForm");
+    editBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (editForm.style.display === "none") {
+        editForm.style.display = "block";
+        editBtn.textContent = "Cancel Edit";
+      } else {
+        editForm.style.display = "none";
+        editBtn.textContent = "Edit Profile";
+      }
+    });
+
+    const editAvatarBtn = document.querySelector(".edit-avatar");
+    const avatarInput = document.getElementById("avatarInput");
+    const avatarForm = document.getElementById("avatarForm");
+    const profileImage = document.getElementById("profileImage");
+    editAvatarBtn.addEventListener("click", () => avatarInput.click());
+    avatarInput.addEventListener("change", () => {
+      if (avatarInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          profileImage.src = e.target.result;
+        };
+        reader.readAsDataURL(avatarInput.files[0]);
+        avatarForm.submit();
+      }
+    });
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const emailNotificationsToggle = document.getElementById('emailNotifications');
+    const languageSelect = document.getElementById('languageSelect');
+    const dateFormatSelect = document.getElementById('dateFormatSelect');
+    const textSizeSelect = document.getElementById('textSizeSelect');
+    const autoLogoutSelect = document.getElementById('autoLogoutSelect');
+    const exportDataBtn = document.getElementById('exportDataBtn');
+
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+      darkModeToggle.checked = true;
+    }
+    if (localStorage.getItem('emailNotifications') === 'false') {
+      emailNotificationsToggle.checked = false;
+    }
+    if (localStorage.getItem('language')) languageSelect.value = localStorage.getItem('language');
+    if (localStorage.getItem('dateFormat')) dateFormatSelect.value = localStorage.getItem('dateFormat');
+    if (localStorage.getItem('textSize')) document.body.style.fontSize = localStorage.getItem('textSize');
+    if (localStorage.getItem('autoLogout')) autoLogoutSelect.value = localStorage.getItem('autoLogout');
+
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', darkModeToggle.checked);
+    });
+    emailNotificationsToggle.addEventListener('change', () => {
+      localStorage.setItem('emailNotifications', emailNotificationsToggle.checked);
+    });
+    languageSelect.addEventListener('change', () => {
+      localStorage.setItem('language', languageSelect.value);
+    });
+    dateFormatSelect.addEventListener('change', () => {
+      localStorage.setItem('dateFormat', dateFormatSelect.value);
+    });
+    textSizeSelect.addEventListener('change', () => {
+      let size = '16px';
+      if (textSizeSelect.value === 'small') size = '14px';
+      else if (textSizeSelect.value === 'medium') size = '16px';
+      else if (textSizeSelect.value === 'large') size = '18px';
+      document.body.style.fontSize = size;
+      localStorage.setItem('textSize', size);
+    });
+    autoLogoutSelect.addEventListener('change', () => {
+      localStorage.setItem('autoLogout', autoLogoutSelect.value);
+    });
+
+    let logoutTimer;
+    function resetLogoutTimer() {
+      clearTimeout(logoutTimer);
+      const minutes = parseInt(localStorage.getItem('autoLogout')) || 0;
+      if (minutes > 0) {
+        logoutTimer = setTimeout(() => {
+          alert("You have been logged out due to inactivity.");
+          window.location.href = '/logout';
+        }, minutes * 60 * 1000);
+      }
+    }
+    document.addEventListener('mousemove', resetLogoutTimer);
+    document.addEventListener('keydown', resetLogoutTimer);
+    resetLogoutTimer();
+
+    exportDataBtn.addEventListener('click', () => {
+      const profileData = {
+        firstname: document.getElementById('firstname').value,
+        lastname: document.getElementById('lastname').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "profile_data.json");
+      dlAnchor.click();
+    });
+
+  });
+  </script>
+</body>
+</html>

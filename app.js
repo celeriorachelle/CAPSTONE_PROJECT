@@ -10,7 +10,6 @@ var session = require('express-session');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var mapsRouter = require('./routes/maps');
-var settingsRouter = require('./routes/settings');
 var notificationRouter = require('./routes/notification');
 var loginRouter = require('./routes/login');
 var registerRouter = require('./routes/register'); 
@@ -23,13 +22,13 @@ var burialrecordRouter = require('./routes/burialrecord');
 var admincreatebRouter = require('./routes/admincreateb');
 var adminviewappRouter = require('./routes/adminviewapp');
 var forgotpassRouter = require('./routes/forgotpass');
-var profileRouter = require('./routes/profile'); 
 var admin_inventoryRouter = require('./routes/admin_inventory');
 var admin_logsRouter = require('./routes/admin_logs');
 var userdashboardRouter = require('./routes/userdashboard');
 var paymentRouter = require('./routes/payment');
 var payment_historyRouter = require('./routes/payment_history');
 var reportsRouter = require('./routes/reports');
+var accountsettingsRouter = require('./routes/accountsettings');
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -111,7 +110,6 @@ app.use((req, res, next) => {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/maps', mapsRouter);  
-app.use('/settings', settingsRouter);
 app.use('/notification', notificationRouter);
 app.use('/login', loginRouter);
 app.use ('/register', registerRouter);
@@ -124,13 +122,13 @@ app.use('/burialrecord', burialrecordRouter);
 app.use('/admincreateb', admincreatebRouter);
 app.use('/adminviewapp', adminviewappRouter);
 app.use('/forgotpass', forgotpassRouter);
-app.use('/profile', profileRouter);
 app.use('/admin_inventory', admin_inventoryRouter);
 app.use('/admin_logs', admin_logsRouter);
 app.use('/userdashboard', userdashboardRouter);
 app.use('/payment', paymentRouter);
 app.use('/payment_history', payment_historyRouter);
 app.use('/reports', reportsRouter);
+app.use('/accountsettings', accountsettingsRouter);
 
 
 // catch 404 and forward to error handler

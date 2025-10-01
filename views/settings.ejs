@@ -2,55 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Profile - Everlasting Peace Memorial Park</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/stylesheets/settings.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/stylesheets/profile.css">
 </head>
 <body>
-  <!-- Sidebar -->
   <%- include('partials/sidebar') %>
-
-  <!-- Main Content -->
   <div class="main" id="main">
-    <!-- Topbar -->
-    <%- include('partials/topbar', { title: "My Profile" }) %>
+    <%- include('partials/topbar', { title: "Settings" }) %>
 
-    <div class="main-content">
-      <div class="form-container">
-        <div class="form-box">
-          <div class="profile-display">
-            <!-- Left: Image -->
-            <div class="profile-left">
-              <img src="/images/default-profile.png" alt="Profile Image">
-              <label for="upload-image" class="link-button" style="cursor: pointer;">Upload Image</label>
-              <input type="file" id="upload-image" name="profileImage" accept="image/*" style="display: none;">
-            </div>
+    <div class="main-content settings-page">
+      <% if (success) { %>
+        <p class="success"><%= success %></p>
+      <% } %>
 
-            <!-- Right: Info -->
-            <div class="profile-right">
-              <div class="profile-actions">
-                <a href="/profile" class="icon-btn" title="Edit Profile"><i class="fas fa-edit"></i></a>
-                <a href="/updatepassword" class="icon-btn" title="Change Password"><i class="fas fa-key"></i></a>
-              </div>
-              <h2>Account Information</h2>
-              <div class="profile-info">
-                <p><strong>Full Name:</strong> Juan Dela Cruz</p>
-                <p><strong>Email:</strong> juandelacruz@email.com</p>
-                <p><strong>Phone Number:</strong> 09123456789</p>
-                <p><strong>Address:</strong> Malabon City, Metro Manila</p>
-              </div>
-            </div>
-          </div>
+      <section class="settings-header">
+        <div class="avatar-container">
+          <img src="<%= formData.avatar %>" id="avatarPreview" alt="Avatar">
+          <button class="edit-avatar"><i class="fa fa-camera"></i></button>
+          <form id="avatarForm" action="/settings/update-avatar" method="POST" enctype="multipart/form-data" style="display:none;">
+            <input type="file" id="avatarInput" name="avatar" accept="image/*">
+          </form>
         </div>
-      </div>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <%- include('partials/footer') %>
-    </footer>
-  </div>
+        <form class="settings-form" action="/settings" method="POST">
+          <label>
+            <input type="checkbox" name="darkMode" <%= formData.darkMode ? 'checked' : '' %> />
+            Dark Mode
+          </label>
+          <label>
+            <input type="checkbox" name="notifications" <%= formData.notifications ? 'checked' : '' %> />
+            Notifications
+          </label>
+          <button type="submit" class="btn save">Save Settings</button>
+        </form>
+      </section>
+    </div>
+</div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const avatarBtn = document.querySelector(".edit-avatar");
+      const avatarInput = document.getElementById("avatarInput");
+      const avatarForm = document.getElementById("avatarForm");
+      const avatarPreview = document.getElementById("avatarPreview");
+      const darkModeCheckbox = document.querySelector('input[name="darkMode"]');
+
+      // --- Avatar Upload ---
+      avatarBtn.addEventListener("click", () => avatarInput.click());
+      avatarInput.addEventListener("change", () => {
+        if (avatarInput.files.length > 0) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            avatarPreview.src = e.target.result;
+            localStorage.setItem("tempAvatar", e.target.result);
+          };
+          reader.readAsDataURL(avatarInput.files[0]);
+          avatarForm.submit();
+        }
+      });
+
+      // Restore avatar from localStorage
+      const tempAvatar = localStorage.getItem("tempAvatar");
+      if (tempAvatar) avatarPreview.src = tempAvatar;
+
+      // --- Dark Mode ---
+      function applyDarkMode(enabled) {
+        if (enabled) document.body.classList.add("dark-mode");
+        else document.body.classList.remove("dark-mode");
+      }
+
+      const savedDarkMode = localStorage.getItem("darkMode") === "true";
+      darkModeCheckbox.checked = savedDarkMode;
+      applyDarkMode(savedDarkMode);
+
+      darkModeCheckbox.addEventListener("change", () => {
+        const enabled = darkModeCheckbox.checked;
+        applyDarkMode(enabled);
+        localStorage.setItem("darkMode", enabled);
+      });
+    });
+  </script>
+</body>
+</html>
+
 </body>
 </html>

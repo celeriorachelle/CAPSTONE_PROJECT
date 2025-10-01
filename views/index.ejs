@@ -38,6 +38,7 @@
             <% if (user) { %>
                 <span class="dropdown-link">Hi, <%= user.name %>!</span>
                 <a href="/login/logout" class="dropdown-link">Logout</a>
+                <a href="/accountsettings" class="dropdown-link">Account Settings</a>
             <% } else { %>
                 <a href="/login" class="dropdown-link">Sign In</a>
                 <a href="/register" class="dropdown-link">Sign Up</a>
