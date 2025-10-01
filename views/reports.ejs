@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Reports</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #155724;
+    }
+    .charts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+    .chart-container {
+      width: 500px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>📊 Admin Reports</h2>
+
+  <div class="charts">
+    <div class="chart-container">
+      <canvas id="bookingsPerMonth"></canvas>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="paymentsPerMonth"></canvas>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="bookingsByStatus"></canvas>
+    </div>
+  </div>
+
+<script>
+  // Embed backend data safely
+  const bookings = <%- JSON.stringify(bookings) %> || [];
+  const payments = <%- JSON.stringify(payments) %> || [];
+  const statusCounts = <%- JSON.stringify(statusCounts) %> || [];
+
+  // Bookings Per Month
+  new Chart(document.getElementById("bookingsPerMonth"), {
+    type: "bar",
+    data: {
+      labels: bookings.map(b => b.month),   // because now you’re using MONTHNAME in SQL
+      datasets: [{
+        label: "Bookings",
+        data: bookings.map(b => b.total),
+        backgroundColor: "rgba(40,167,69,0.7)"
+      }]
+    }
+  });
+
+  // Payments Per Month
+  new Chart(document.getElementById("paymentsPerMonth"), {
+    type: "line",
+    data: {
+      labels: payments.map(p => p.month),
+      datasets: [{
+        label: "Payments (₱)",
+        data: payments.map(p => p.total),
+        borderColor: "#155724",
+        backgroundColor: "rgba(21,87,36,0.2)",
+        fill: true,
+        tension: 0.3
+      }]
+    }
+  });
+
+  // Bookings By Status
+  new Chart(document.getElementById("bookingsByStatus"), {
+    type: "pie",
+    data: {
+      labels: statusCounts.map(s => s.status),
+      datasets: [{
+        data: statusCounts.map(s => s.total),
+        backgroundColor: ["#28a745", "#ffc107", "#dc3545", "#6c757d"]
+      }]
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment History</title>
+  <link rel="stylesheet" href="/stylesheets/payment.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f8f9fa;
+    }
+    h1 {
+      color: #155724;
+    }
+    .payment-card, .installment-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .payment-card h2, .installment-card h2 {
+      margin-bottom: 1rem;
+      color: #2d4a24;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    table th {
+      background: #e9ecef;
+    }
+  </style>
+</head>
+<body>
+  <h1>💳 Payment History</h1>
+
+  <!-- Current Installment Section -->
+  <div class="installment-card">
+    <h2>📊 Current Installment</h2>
+    <% if (currentInstallment) { %>
+      <p><strong>Plot:</strong> <%= currentInstallment.plot_number %> - <%= currentInstallment.location %></p>
+      <p><strong>Total Price:</strong> ₱<%= currentInstallment.total_price.toLocaleString() %></p>
+      <p><strong>Total Paid:</strong> ₱<%= currentInstallment.total_paid.toLocaleString() %></p>
+      <p><strong>Next Due Date:</strong> 
+        <%= currentInstallment.next_due_date 
+              ? new Date(currentInstallment.next_due_date).toISOString().split('T')[0] 
+              : "N/A" %>
+      </p>
+      <p><strong>Progress:</strong> 
+        <%= Math.round((currentInstallment.total_paid / currentInstallment.total_price) * 100) %>%
+      </p>
+    <% } else { %>
+      <p>No active installment found. 🎉</p>
+    <% } %>
+  </div>
+
+  <!-- Payment History Section -->
+  <div class="payment-card">
+    <h2>📜 All Payments</h2>
+    <% if (payments && payments.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Plot</th>
+            <th>Location</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Paid At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% payments.forEach(p => { %>
+            <tr>
+              <td><%= p.plot_number %></td>
+              <td><%= p.location %></td>
+              <td>₱<%= p.amount.toLocaleString() %></td>
+              <td><%= p.status %></td>
+              <td><%= new Date(p.paid_at).toLocaleString() %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>No payment records found.</p>
+    <% } %>
+  </div>
+</body>
+</html>
