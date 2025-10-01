@@ -109,7 +109,7 @@ router.post('/', requireLogin, async (req, res) => {
     }
 
     // Insert booking for Memorial/Burial
-    await db.query(
+    const [result] = await db.query(
       `INSERT INTO booking_tbl
        (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
@@ -124,6 +124,13 @@ router.post('/', requireLogin, async (req, res) => {
         bookingData.serviceType,
         bookingData.notes
       ]
+    );
+    const bookingId = result.insertId;
+    // Create notification for successful booking
+    await db.query(
+      `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+       VALUES (?, ?, ?, 0, NOW(), NULL)`,
+      [userId, bookingId, 'Your booking has been submitted and is pending approval.']
     );
 
     const [userBookings] = await db.query(

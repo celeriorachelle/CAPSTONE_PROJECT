@@ -189,6 +189,12 @@ router.get('/success', async (req, res) => {
         ]
       );
       bookingId = result.insertId;
+      // Create notification for successful plot booking
+      await db.query(
+        `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+         VALUES (?, ?, ?, 0, NOW(), ?)`,
+        [userId, bookingId, 'Your plot booking has been submitted and is pending approval.', plot.plot_id]
+      );
       // Clear booking and plot session data
       req.session.bookingData = null;
       req.session.selectedPlot = null;
@@ -197,7 +203,7 @@ router.get('/success', async (req, res) => {
     // 3️⃣ Insert payment record linked to booking
     if (bookingId && paymentData) {
       const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
-     await db.query(
+     const [paymentResult] = await db.query(
         `INSERT INTO payment_tbl
           (booking_id, user_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount)
         VALUES (?, ?, ?, ?, ?, 'paid', NOW(), ?, ?, ?, ?)`,
@@ -212,6 +218,13 @@ router.get('/success', async (req, res) => {
           normalizedPaymentData.months || null,    // months
           normalizedPaymentData.monthly_amount || null // monthly_amount
         ]
+      );
+      // Create notification for successful payment
+      const paymentId = paymentResult.insertId;
+      await db.query(
+        `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp, plot_id)
+         VALUES (?, ?, ?, ?, 0, NOW(), ?)`,
+        [userId, bookingId, paymentId, 'Your payment has been received successfully.', plot.plot_id]
       );
       // Clear payment session data
       req.session.paymentData = null;
