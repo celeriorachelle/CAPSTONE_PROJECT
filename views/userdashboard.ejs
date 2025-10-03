@@ -17,66 +17,70 @@
     <%- include('partials/topbar', { title: "Dashboard" }) %>
 
     <!-- Dashboard Content -->
-    <div class="dashboard-container">
-      <!-- Welcome Section -->
-      <section class="welcome-section">
-        <h2>Welcome, <%= user.firstname %>!</h2>
-        <p>Here’s what’s happening with your bookings and recommendations.</p>
-      </section>
-
-      <!-- Pending Bookings -->
-      <section class="pending-section">
-        <h3><i class="fas fa-clock"></i> Pending Bookings</h3>
-        <table class="pending-table">
-          <thead>
-            <tr>
-              <th>Service Type</th>
-              <th>Booking Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (pendingBookings && pendingBookings.length > 0) { %>
-              <% pendingBookings.forEach(b => { %>
-                <tr>
-                  <td><%= b.service_type %></td>
-                 <td><%= new Date(b.booking_date).toDateString() %></td>
-                  <td><span class="status pending">Pending</span></td>
-                </tr>
-              <% }) %>
-            <% } else { %>
+  <div class="dashboard-container">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+      <h2>Welcome, <em><%= user.name %>!</em></h2>
+      <p>Here’s what’s happening with your bookings and recommendations.</p>
+    </section>
+    <section class="main-content">
+          <!-- Dashboard Content Grid -->
+    <div class="dashboard-content-grid">
+      <!-- Pending Bookings Section -->
+       <div class="pending-container">
+          <div class="pending-label"><i class="fas fa-clock"></i>Pending Bookings</div>
+          <section class="pending-section">
+          <table class="pending-table">
+            <thead>
               <tr>
-                <td colspan="3">No pending bookings.</td>
+                <th>Service Type</th>
+                <th>Booking Date</th>
+                <th>Status</th>
               </tr>
-            <% } %>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- Installment Reminders -->
-      <section class="reminder-section">
-        <h3><i class="fas fa-bell"></i> Upcoming Installment Payments</h3>
-        <% if (reminders && reminders.length > 0) { %>
-          <ul class="reminder-list">
-            <% reminders.forEach(r => { %>
-                        <li>
-            <strong>₱<%= r.amount %></strong> due on 
-            <%= new Date(r.due_date).toDateString() %>
-          </li>
-
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p>No upcoming installments within the next 7 days.</p>
-        <% } %>
-      </section>
-
-  </table>
-</section>
-
-      <!-- AI Recommendations -->
-      <section class="ai-section">
-        <h3><i class="fas fa-robot"></i> AI-Recommended Plots</h3>
+            </thead>
+            <tbody>
+              <% if (pendingBookings && pendingBookings.length > 0) { %>
+                <% pendingBookings.forEach(b => { %>
+                  <tr>
+                    <td><%= b.service_type %></td>
+                    <td><%= new Date(b.booking_date).toDateString() %></td>
+                    <td><span class="status pending">Pending</span></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="3">No pending bookings.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </section>
+      </div>
+      
+    <!-- Combined Reminders and AI Section -->
+    <section class="combined-section">
+      <!-- Installment Reminders Section -->
+       <div class="reminder-container" style="display: flex;">
+        <div class="reminder-label"><i class="fas fa-bell"></i> Upcoming <br> Installment Payments</div>
+          <div class="reminder-section">
+          <% if (reminders && reminders.length > 0) { %>
+            <ul class="reminder-list">
+              <% reminders.forEach(r => { %>
+                <li>
+                  <strong>₱<%= r.amount %></strong> due on 
+                  <%= new Date(r.due_date).toDateString() %>
+                </li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p>No upcoming installments within the next 7 days.</p>
+          <% } %>
+        </div>
+       </div>
+      <!-- AI-Recommended Plots Section -->
+       <div class="ai-container" style="display: flex;">
+        <div class="ai-label"><i class="fas fa-robot"></i> AI-Recommended Plots</div>
+        <div class="ai-section">
         <div class="ai-cards">
           <% if (recommendations && recommendations.length > 0) { %>
             <% recommendations.forEach(r => { %>
@@ -91,8 +95,14 @@
             <p>No recommendations available at the moment.</p>
           <% } %>
         </div>
-      </section>
+      </div>
+       </div>
+    </section>
     </div>
+    </section>
+
+
+  </div>
 
     <!-- Footer -->
     <footer class="footer">
