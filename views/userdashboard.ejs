@@ -82,26 +82,31 @@
         <div class="ai-label"><i class="fas fa-robot"></i> AI-Recommended Plots</div>
         <div class="ai-section">
         <div class="ai-cards">
-          <% if (recommendations && recommendations.length > 0) { %>
-            <% recommendations.forEach(r => { %>
-              <div class="ai-card">
-                <h4><%= r.plot_name %></h4>
-                <p>Category: <%= r.category %></p>
-                <p>Price: ₱<%= r.price %></p>
-                <button>View Details</button>
-              </div>
-            <% }) %>
-          <% } else { %>
-            <p>No recommendations available at the moment.</p>
-          <% } %>
-        </div>
+                <% if (recommendations && recommendations.length > 0) { %>
+        <% recommendations.forEach(r => { %>
+          <div class="ai-card <%= r.isBestMatch ? 'best-match' : '' %>">
+            <h4>Plot: <%= r.plot_number %></h4>
+            <p>Location: <%= r.location %></p>
+            <p>Type: <%= r.type %></p>
+            <p>Price: ₱<%= r.price.toLocaleString() %></p>
+            <% if (r.isBestMatch) { %>
+              <span class="badge">Best Match</span>
+            <% } %>
+            <button onclick="window.location.href='/plot/<%= r.plot_id %>'">View Details</button>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>No recommendations available at the moment.</p>
+      <% } %>
+
+        </div>  
       </div>
        </div>
     </section>
     </div>
     </section>
 
-
+<%- include('partials/_survey') %>  
   </div>
 
     <!-- Footer -->

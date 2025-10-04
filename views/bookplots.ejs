@@ -15,51 +15,119 @@
     <%- include('partials/topbar', { title: "Book Plots" }) %>
 
     <div class="main-content">
-      <section class="section-card">
-        <h3 class="section-title">All Plots</h3>
-        <div class="plot-table-container">
-          <table class="booking-table" id="plotTable">
-            <thead>
-              <tr>
-                <th>Plot No.</th>
-                <th>Location</th>
-                <th>Type</th>
-                <th>Price</th>
-                <th>Availability</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="plotTableBody">
-              <% plots.forEach(plot => { %>
-                <tr>
-                  <td data-label="Plot No."><%= plot.plot_number %></td>
-                  <td data-label="Location"><%= plot.location %></td>
-                  <td data-label="Type"><%= plot.type %></td>
-                  <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
-                  <td data-label="Availability"><%= plot.availability %></td>
-                  <td data-label="Actions">
-                    <% if(plot.availability === 'available') { %>
-                      <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
-                        <button type="submit" class="btn btn-book">BOOK</button>
-                      </form>
-                    <% } else if(plot.availability === 'pending') { %>
-                      <span class="badge badge-pending">Pending Approval</span>
-                    <% } else if(plot.availability === 'reserved') { %>
-                      <span class="badge badge-done">Reserved</span>
-                    <% } else if(plot.availability === 'occupied') { %>
-                      <span class="badge badge-cancelled">Occupied</span>
-                    <% } else { %>
-                      <span>Not Available</span>
-                    <% } %>
-                  </td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-          <div class="pagination" id="plotPagination"></div>
-        </div>
-      </section>
-    </div>
+<!-- AI Recommendations -->
+<div class="section-card">
+  <h2 class="section-title">Recommended Plots</h2>
+  <table class="booking-table">
+    <thead>
+      <tr>
+        <th>Plot No.</th>
+        <th>Location</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% recommendations.forEach(plot => { %>
+      <tr class="<%= plot.isBestMatch ? 'best-match-row' : '' %>">
+        <td data-label="Plot No."><%= plot.plot_number %></td>
+        <td data-label="Location"><%= plot.location %></td>
+        <td data-label="Type"><%= plot.type %></td>
+        <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
+        <td data-label="Status">
+          <% if (plot.availability === 'available') { %>
+            <span class="badge badge-done">Available</span>
+          <% } else if (plot.availability === 'reserved') { %>
+            <span class="badge badge-reserved">Reserved</span>
+          <% } else { %>
+            <span class="badge badge-occupied">Occupied</span>
+          <% } %>
+        </td>
+        <td data-label="Action">
+          <% if (plot.availability === 'available') { %>
+            <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
+              <button type="submit" class="btn btn-book">BOOK</button>
+            </form>
+          <% } else { %>
+            <button type="button" class="btn btn-disabled" disabled>Not Available</button>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- All Plots -->
+<div class="section-card">
+  <h2 class="section-title">All Plots</h2>
+  <table class="booking-table all-plots-table">
+    <thead>
+      <tr>
+        <th>Plot No.</th>
+        <th>Location</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% plots.forEach(plot => { %>
+      <tr>
+        <td data-label="Plot No."><%= plot.plot_number %></td>
+        <td data-label="Location"><%= plot.location %></td>
+        <td data-label="Type"><%= plot.type %></td>
+        <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
+        <td data-label="Status">
+          <% if (plot.availability === 'available') { %>
+            <span class="badge badge-done">Available</span>
+          <% } else if (plot.availability === 'reserved') { %>
+            <span class="badge badge-reserved">Reserved</span>
+          <% } else { %>
+            <span class="badge badge-occupied">Occupied</span>
+          <% } %>
+        </td>
+        <td data-label="Action">
+          <% if (plot.availability === 'available') { %>
+            <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
+              <button type="submit" class="btn btn-book">BOOK</button>
+            </form>
+          <% } else { %>
+            <button type="button" class="btn btn-disabled" disabled>Not Available</button>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+
+
+
+<!-- Pagination for All Plots -->
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <% if (i === currentPage) { %>
+        <span class="current-page"><%= i %></span>
+      <% } else { %>
+        <a href="?page=<%= i %>"><%= i %></a>
+      <% } %>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+    <% } %>
+  </div>
+<% } %>
+
 
     <!-- Footer -->
     <footer class="footer">
@@ -116,5 +184,50 @@
       renderPage(1);
     });
   </script>
+  <script>
+async function fetchAIRecommendations() {
+  try {
+    const response = await fetch('/bookplots/ai-recommendations');
+    const data = await response.json();
+    const container = document.querySelector('.recommended-table tbody');
+    if (!container) return;
+
+    container.innerHTML = ''; // clear current rows
+
+    data.recommendations.forEach(plot => {
+      const row = document.createElement('tr');
+      if (plot.isBestMatch) row.classList.add('best-match-row');
+
+      row.innerHTML = `
+        <td>${plot.plot_number}</td>
+        <td>${plot.location}</td>
+        <td>${plot.type}</td>
+        <td>₱${plot.price.toLocaleString()}</td>
+        <td>
+          <div class="badge-container">
+            <span class="badge badge-done">Available</span>
+            ${plot.isBestMatch ? '<span class="badge badge-best">Best Match</span>' : ''}
+          </div>
+        </td>
+        <td>
+          <form action="/bookplots/option/${plot.plot_id}" method="GET">
+            <button type="submit" class="btn btn-book">BOOK</button>
+          </form>
+        </td>
+      `;
+      container.appendChild(row);
+    });
+  } catch (err) {
+    console.error('Error updating AI recommendations:', err);
+  }
+}
+
+// Auto-refresh every 30 seconds (or adjust interval)
+setInterval(fetchAIRecommendations, 30000);
+
+// Optional: fetch once immediately on page load
+fetchAIRecommendations();
+</script>
+
 </body>
 </html>
