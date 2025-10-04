@@ -9,7 +9,7 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// GET inventory
+// ---------------- GET inventory ----------------
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const [plots] = await db.query(`
@@ -19,12 +19,13 @@ router.get('/', requireAdmin, async (req, res) => {
         i.category,
         i.default_price,
         COUNT(p.item_id) AS total_plots,
-        SUM(CASE WHEN p.status = 'available' THEN 1 ELSE 0 END) AS available_plots,
+        SUM(CASE WHEN p.availability = 'available' THEN 1 ELSE 0 END) AS available_plots,
         i.last_update
       FROM inventory_tbl i
       LEFT JOIN plot_map_tbl p ON i.item_id = p.item_id
       GROUP BY i.item_id, i.item_name, i.category, i.default_price, i.last_update
     `);
+
     res.render('admin_inventory', { plots });
   } catch (err) {
     console.error(err);
@@ -32,7 +33,7 @@ router.get('/', requireAdmin, async (req, res) => {
   }
 });
 
-// Add or update plot/item
+// ---------------- Add or Update Item ----------------
 router.post('/add', requireAdmin, async (req, res) => {
   const { item_id, item_name, category, default_price, total_plots, available_plots } = req.body;
 
@@ -50,7 +51,7 @@ router.post('/add', requireAdmin, async (req, res) => {
         [item_name, category, default_price || 0, total_plots || 0, available_plots || 0, item_id]
       );
 
-      // Delete old plots
+      // Delete old plots for this item
       await db.query(`DELETE FROM plot_map_tbl WHERE item_id = ?`, [item_id]);
     } else {
       // Insert new item
@@ -67,25 +68,32 @@ router.post('/add', requireAdmin, async (req, res) => {
     if (total_plots > 0) {
       const plotInserts = [];
       for (let i = 1; i <= total_plots; i++) {
-        const plotNumber = `${item_name.toUpperCase().substring(0,1)}-${String(i).padStart(3,'0')}`;
-        plotInserts.push([plotNumber, category, 'available', default_price || 0, newItemId]);
+        const plotNumber = `${item_name.toUpperCase().substring(0, 1)}-${String(i).padStart(3, '0')}`;
+        plotInserts.push([
+          plotNumber,          // plot_number
+          category,            // location (currently using category, can change if you add a field for real location)
+          category,            // type (adjust later if you separate category vs type)
+          default_price || 0,  // price
+          newItemId,           // item_id (FK)
+          'available'          // availability
+        ]);
       }
-      const placeholders = plotInserts.map(() => '(?, ?, ?, ?, ?)').join(',');
+
+      const placeholders = plotInserts.map(() => '(?, ?, ?, ?, ?, ?)').join(',');
       await db.query(
-        `INSERT INTO plot_map_tbl (plot_number, location, status, price, item_id) VALUES ${placeholders}`,
+        `INSERT INTO plot_map_tbl (plot_number, location, type, price, item_id, availability) VALUES ${placeholders}`,
         plotInserts.flat()
       );
     }
 
     res.redirect('/admin_inventory');
-
   } catch (err) {
     console.error(err);
     res.status(500).send('Failed to add/update item');
   }
 });
 
-// Delete item
+// ---------------- Delete Item ----------------
 router.post('/delete/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
