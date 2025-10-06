@@ -63,8 +63,10 @@ router.post('/', async (req, res) => {
     // Redirect based on role
     if (user.role === 'admin') {
       return res.redirect('/admin');
+    } else if (user.role === 'staff') {
+      return res.redirect('/staff_dashboard');
     } else {
-      return res.redirect('/');
+      return res.redirect('/userdashboard');
     }
   } catch (error) {
     console.error('Login database query error:', error);
