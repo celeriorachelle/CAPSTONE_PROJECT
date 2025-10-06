@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff | Track Installments</title>
+  <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Staff Panel</h2>
+    <ul>
+      <li><a href="/staff_dashboard">🏠 Dashboard</a></li>
+      <li><a href="/staff_viewbookings">📘 View Bookings</a></li>
+      <li><a href="/staff_installments" class="active">💰 Track Installments</a></li>
+      <li><a href="/staff_logs">🗂 Activity Logs</a></li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <header>
+      <h1>Installment Tracking</h1>
+      <input id="searchInput" type="text" placeholder="🔍 Search client name...">
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Days Left</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="installmentTable">
+        <% installments.forEach(p => { %>
+          <tr class="<%= p.days_left <= 3 ? 'due-soon' : '' %>">
+            <td><%= p.id %></td>
+            <td><%= p.clientName %></td>
+            <td>₱<%= p.amount.toLocaleString() %></td>
+            <td><%= new Date(p.due_date).toLocaleDateString() %></td>
+            <td class="status <%= p.status %>"><%= p.status %></td>
+            <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
+            <td>
+              <button class="btn-remind" onclick="sendReminder(<%= p.id %>)">Remind</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Search Filter
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const term = this.value.toLowerCase();
+      document.querySelectorAll("#installmentTable tr").forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? "" : "none";
+      });
+    });
+
+    // Send Reminder
+    function sendReminder(id) {
+      if (!confirm("Send payment reminder for this installment?")) return;
+      fetch(`/staff_installments/remind/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) alert("Reminder sent successfully!");
+          else alert("Failed to send reminder.");
+        });
+    }
+  </script>
+</body>
+</html>
