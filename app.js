@@ -144,6 +144,7 @@ app.use('/staff_installments', staff_installmentsRouter);
 app.use('/staff_logs', staff_logsRouter);
 
 
+app.use('/boxicons', express.static(__dirname + '/node_modules/boxicons'));
 
 
 // catch 404 and forward to error handler
