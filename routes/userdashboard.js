@@ -16,7 +16,7 @@ router.get('/', requireLogin, async (req, res) => {
   let preferences = await cache.get(`user_preferences:${userId}`);
   if (preferences && typeof preferences === 'string') preferences = JSON.parse(preferences);
 
-  const isNewUser = !preferences;
+  const isNewUser = !preferences || Object.keys(preferences).length === 0;
 
   let recommendations = [];
   const cacheKey = `ai_recommendations:${userId}`;
@@ -42,8 +42,7 @@ router.get('/', requireLogin, async (req, res) => {
   });
 });
 
-
-// ✅ Save preferences to cache only
+// ✅ Save preferences to cache only as JSON string
 router.post('/save-preferences', requireLogin, async (req, res) => {
   let { locations, types, minPrice, maxPrice } = req.body;
 
@@ -57,13 +56,16 @@ router.post('/save-preferences', requireLogin, async (req, res) => {
 
   const userId = req.session.user.user_id;
 
-  // Store in Redis cache (TTL optional)
-  await cache.set(`user_preferences:${userId}`, {
+  // Store as JSON string in Redis cache
+  await cache.set(`user_preferences:${userId}`, JSON.stringify({
     locations,
     types,
     minPrice,
     maxPrice
-  }, 86400); // 1 day TTL, remove TTL if you want it persistent
+  }), 86400); // 1 day TTL
+
+  // 💡 Invalidate the recommendations cache so new ones will be generated
+  await cache.del(`ai_recommendations:${userId}`);
 
   res.redirect('/userdashboard'); // reload dashboard
 });

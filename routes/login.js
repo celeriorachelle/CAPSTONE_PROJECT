@@ -27,16 +27,6 @@ router.post('/', async (req, res) => {
   const email = (req.body.username || '').trim();
   const password = (req.body.password || '');
 
-  // Hardcoded admin credentials
-  if (email === 'admin@everlasting.com' && password === 'everlastingCapstone1022@') {
-    req.session.user = {
-      user_id: 0,
-      email: email,
-      role: 'admin'
-    };
-    return res.redirect('/admin');
-  }
-
   try {
     const [rows] = await db.query(
       'SELECT user_id, firstName, lastName, email, password_hash, role FROM user_tbl WHERE email = ? LIMIT 1',
@@ -55,14 +45,13 @@ router.post('/', async (req, res) => {
       return res.render('login', { error: 'Incorrect password. Please try again.', success: null });
     }
 
-    // ✅ Store user info in session
-      req.session.user = {
-      user_id: user.user_id, // use "user_id" instead of "id"
+    // Store user info in session
+    req.session.user = {
+      user_id: user.user_id,
       email: user.email,
       name: user.firstName,
       role: user.role
     };
-
 
     // Handle "Remember me"
     if (req.body.remember_me) {
@@ -71,7 +60,12 @@ router.post('/', async (req, res) => {
       req.session.cookie.expires = false; // session cookie
     }
 
-    res.redirect('/');
+    // Redirect based on role
+    if (user.role === 'admin') {
+      return res.redirect('/admin');
+    } else {
+      return res.redirect('/');
+    }
   } catch (error) {
     console.error('Login database query error:', error);
     return res.render('login', { error: 'An internal error occurred. Please try again.', success: null });

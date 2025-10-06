@@ -15,9 +15,10 @@ function requireLogin(req, res, next) {
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
 
-  // 1️⃣ Fetch preferences
-  let userPreferences = await cache.get(`user_preferences:${userId}`) || {};
-  if (typeof userPreferences === 'string') userPreferences = JSON.parse(userPreferences);
+  // 1️⃣ Fetch preferences, always parse JSON string
+  let userPreferences = await cache.get(`user_preferences:${userId}`);
+  if (userPreferences && typeof userPreferences === 'string') userPreferences = JSON.parse(userPreferences);
+  if (!userPreferences || Object.keys(userPreferences).length === 0) userPreferences = {};
 
   let recommendations = [];
   const cacheKey = `ai_recommendations:${userId}`;
@@ -94,7 +95,6 @@ router.get('/', requireLogin, async (req, res) => {
     });
   }
 });
-
 
 
 // 2️⃣ Show Payment Option Page
