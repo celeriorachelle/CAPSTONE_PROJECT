@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const router = Router();
-const db = require('../db');
+const cache = require('./redis');
+const { getAIRecommendations } = require('./ai');
 
 // middleware to ensure logged in
 function requireLogin(req, res, next) {
@@ -9,44 +10,64 @@ function requireLogin(req, res, next) {
 }
 
 router.get('/', requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.user.user_id;
+  const userId = req.session.user.user_id;
 
-    // fetch pending bookings
-    const [pendingBookings] = await db.query(
-      'SELECT booking_id, service_type, booking_date, status FROM booking_tbl WHERE user_id = ? AND status = "Pending"',
-      [userId]
-    );
+  // Fetch preferences
+  let preferences = await cache.get(`user_preferences:${userId}`);
+  if (preferences && typeof preferences === 'string') preferences = JSON.parse(preferences);
 
-    // fetch upcoming installment reminders (next 7 days)
-    const [reminders] = await db.query(
-      `SELECT amount, due_date 
-       FROM payment_tbl 
-       WHERE user_id = ? 
-         AND status = 'pending'
-         AND due_date <= DATE_ADD(NOW(), INTERVAL 7 DAY)
-       ORDER BY due_date ASC`,
-      [userId]
-    );
+  const isNewUser = !preferences || Object.keys(preferences).length === 0;
 
-    // sample AI recommendations (dummy for now)
-    const recommendations = [
-      { plot_name: 'Lot A1', category: 'Family Lot', price: 12000 },
-      { plot_name: 'Niche B3', category: 'Columbarium', price: 8000 },
-      { plot_name: 'Garden C5', category: 'Memorial Garden', price: 10000 },
-    ];
+  let recommendations = [];
+  const cacheKey = `ai_recommendations:${userId}`;
 
-    res.render('userdashboard', {
-      user: req.session.user,
-      pendingBookings,
-      reminders,
-      recommendations
-    });
-  } catch (err) {
-    console.error('Error loading dashboard:', err);
-    res.status(500).send('Server Error');
+  if (preferences) {
+    // Fetch cached recommendations
+    recommendations = await cache.get(cacheKey);
+    if (recommendations && typeof recommendations === 'string') recommendations = JSON.parse(recommendations);
+
+    if (!recommendations || recommendations.length === 0) {
+      recommendations = await getAIRecommendations(userId, preferences);
+      recommendations = recommendations.slice(0, 3); // do not re-sort
+      await cache.set(cacheKey, JSON.stringify(recommendations), 86400); // cache 1 day
+    }
   }
+
+  res.render('userdashboard', {
+    user: req.session.user,
+    pendingBookings: [],
+    reminders: [],
+    recommendations,
+    showSurvey: isNewUser
+  });
 });
 
+// ✅ Save preferences to cache only as JSON string
+router.post('/save-preferences', requireLogin, async (req, res) => {
+  let { locations, types, minPrice, maxPrice } = req.body;
+
+  // Ensure arrays even if user selects only one option
+  if (!Array.isArray(locations)) locations = locations ? [locations] : [];
+  if (!Array.isArray(types)) types = types ? [types] : [];
+
+  // Convert price inputs to numbers
+  minPrice = Number(minPrice) || 10000;
+  maxPrice = Number(maxPrice) || 100000;
+
+  const userId = req.session.user.user_id;
+
+  // Store as JSON string in Redis cache
+  await cache.set(`user_preferences:${userId}`, JSON.stringify({
+    locations,
+    types,
+    minPrice,
+    maxPrice
+  }), 86400); // 1 day TTL
+
+  // 💡 Invalidate the recommendations cache so new ones will be generated
+  await cache.del(`ai_recommendations:${userId}`);
+
+  res.redirect('/userdashboard'); // reload dashboard
+});
 
 module.exports = router;

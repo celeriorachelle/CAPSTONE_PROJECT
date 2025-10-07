@@ -75,15 +75,8 @@ router.post('/add', requireAdmin, async (req, res) => {
     if (total_plots > 0) {
       const plotInserts = [];
       for (let i = 1; i <= total_plots; i++) {
-        const plotNumber = `${item_name.toUpperCase().substring(0, 1)}-${String(i).padStart(3, '0')}`;
-        plotInserts.push([
-          plotNumber,          // plot_number
-          category,            // location
-          category,            // type
-          default_price || 0,  // price
-          newItemId,           // item_id (FK)
-          'available'          // availability
-        ]);
+        const plotNumber = `${item_name.toUpperCase().substring(0,1)}-${String(i).padStart(3,'0')}`;
+        plotInserts.push([plotNumber, category, 'available', default_price || 0, newItemId]);
       }
 
       const placeholders = plotInserts.map(() => '(?, ?, ?, ?, ?, ?)').join(',');

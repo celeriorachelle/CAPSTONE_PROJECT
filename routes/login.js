@@ -50,20 +50,6 @@ router.post('/', async (req, res) => {
   const email = (req.body.username || '').trim();
   const password = (req.body.password || '');
 
-  // ✅ Hardcoded admin
-  if (email === 'admin@everlasting.com' && password === 'everlastingCapstone1022@') {
-    req.session.user = {
-      user_id: 0, // not in DB
-      email,
-      role: 'admin'
-    };
-
-    // ✅ Add admin login log
-    await addLog(0, 'admin', 'Login', 'Admin logged in via hardcoded credentials');
-
-    return res.redirect('/admin');
-  }
-
   try {
     // ✅ Fetch user from database
     const [rows] = await db.query(
@@ -83,15 +69,16 @@ router.post('/', async (req, res) => {
       return res.render('login', { error: 'Incorrect password. Please try again.', success: null });
     }
 
-    // ✅ Store session info
-    req.session.user = {
-      user_id: user.user_id,
+    // ✅ Store user info in session
+      req.session.user = {
+      user_id: user.user_id, // use "user_id" instead of "id"
       email: user.email,
       name: user.firstName,
       role: user.role
     };
 
-    // ✅ Remember me cookie
+
+    // Handle "Remember me"
     if (req.body.remember_me) {
       req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30;
     } else {
@@ -106,7 +93,14 @@ router.post('/', async (req, res) => {
       `${user.firstName} ${user.lastName} (${user.role}) logged in`
     );
 
-    res.redirect('/');
+    // Redirect based on role
+    if (user.role === 'admin') {
+      return res.redirect('/admin');
+    } else if (user.role === 'staff') {
+      return res.redirect('/staff_dashboard');
+    } else {
+      return res.redirect('/userdashboard');
+    }
   } catch (error) {
     console.error('Login database query error:', error);
     return res.render('login', { error: 'An internal error occurred. Please try again.', success: null });

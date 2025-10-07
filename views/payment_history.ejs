@@ -3,93 +3,272 @@
 <head>
   <meta charset="UTF-8">
   <title>Payment History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/userdashboard.css">
   <link rel="stylesheet" href="/stylesheets/payment.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background: #f8f9fa;
-    }
-    h1 {
-      color: #155724;
-    }
-    .payment-card, .installment-card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .payment-card h2, .installment-card h2 {
-      margin-bottom: 1rem;
-      color: #2d4a24;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table th, table td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: left;
-    }
-    table th {
-      background: #e9ecef;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>💳 Payment History</h1>
+  <!-- Sidebar -->
+  <%- include('partials/sidebar') %>      
 
-  <!-- Current Installment Section -->
-  <div class="installment-card">
-    <h2>📊 Current Installment</h2>
-    <% if (currentInstallment) { %>
-      <p><strong>Plot:</strong> <%= currentInstallment.plot_number %> - <%= currentInstallment.location %></p>
-      <p><strong>Total Price:</strong> ₱<%= currentInstallment.total_price.toLocaleString() %></p>
-      <p><strong>Total Paid:</strong> ₱<%= currentInstallment.total_paid.toLocaleString() %></p>
-      <p><strong>Next Due Date:</strong> 
-        <%= currentInstallment.next_due_date 
-              ? new Date(currentInstallment.next_due_date).toISOString().split('T')[0] 
-              : "N/A" %>
-      </p>
-      <p><strong>Progress:</strong> 
-        <%= Math.round((currentInstallment.total_paid / currentInstallment.total_price) * 100) %>%
-      </p>
-    <% } else { %>
-      <p>No active installment found. 🎉</p>
-    <% } %>
+  <div class="main" id="main">    
+    <!-- Topbar --> 
+    <%- include('partials/topbar', { title: "Payment History" }) %>
+
+    <!-- Payment History Content -->
+    <div class="payment-content">
+
+      <div class="page-title">Payment History</div>
+
+      <!-- Current Installment Section -->
+       <div class="main-section">
+        <div class="installment-container">
+          <div class="installment-label"><i class="fas fa-chart-line"></i> Current Installment</div>
+          <div class="installment-card">
+          <% if (currentInstallment) { %>
+            <div class="installment-info">
+              <p><strong><i class="fas fa-map-marker-alt"></i> Plot:</strong> <%= currentInstallment.plot_number %> - <%= currentInstallment.location %></p>
+              <p><strong><i class="fas fa-tag"></i> Total Price:</strong> ₱<%= currentInstallment.total_price.toLocaleString() %></p>
+              <p><strong><i class="fas fa-money-bill-wave"></i> Total Paid:</strong> ₱<%= currentInstallment.total_paid.toLocaleString() %></p>
+              <p><strong><i class="fas fa-calendar-alt"></i> Next Due Date:</strong> 
+                <%= currentInstallment.next_due_date 
+                      ? new Date(currentInstallment.next_due_date).toISOString().split('T')[0] 
+                      : "N/A" %>
+              </p>
+              <% const progress = Math.round((currentInstallment.total_paid / currentInstallment.total_price) * 100); %>
+              <p><strong><i class="fas fa-percentage"></i> Progress:</strong> <%= progress %>%</p>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: <%= progress %>%">
+                  <%= progress > 10 ? progress + '%' : '' %>
+                </div>
+              </div>
+            </div>
+          <% } else { %>
+            <p class="no-data"><i class="fas fa-check-circle"></i> No active installment found. 🎉</p>
+          <% } %>
+        </div>
+        </div>
+
+      <!-- Payment History Section -->
+      <div class="payment-card">
+        <h2><i class="fas fa-history"></i> All Payments</h2>
+        <!-- Filter and Pagination Controls -->
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <label for="dateFrom">From:</label>
+            <input type="date" id="dateFrom">
+          </div>
+          <div>
+            <label for="dateTo">To:</label>
+            <input type="date" id="dateTo">
+          </div>
+          <div>
+            <label for="recordsPerPage">Records per page:</label>
+            <select id="recordsPerPage">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <button id="filterBtn" class="pagination-btn" style="height: 38px;">Filter</button>
+        </div>
+        <% if (payments && payments.length > 0) { %>
+          <div class="table-wrapper" id="paymentsTableWrapper" style="padding-bottom: 2rem;">
+            <table id="paymentsTable">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-map-marker-alt"></i> Plot</th>
+                  <th><i class="fas fa-location-dot"></i> Location</th>
+                  <th><i class="fas fa-peso-sign"></i> Amount</th>
+                  <th><i class="fas fa-info-circle"></i> Status</th>
+                  <th><i class="fas fa-clock"></i> Paid At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Table rows will be rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-container" id="paginationContainer" style="margin-top: 1rem;"></div>
+          <script>
+            // Payments data from server
+            const allPayments = <%- JSON.stringify(payments) %>;
+            let filteredPayments = [...allPayments];
+            let currentPage = 1;
+            let recordsPerPage = 10;
+
+            function formatDate(dateStr) {
+              const d = new Date(dateStr);
+              return d.toLocaleString();
+            }
+
+            function renderTable() {
+              const tbody = document.querySelector('#paymentsTable tbody');
+              tbody.innerHTML = '';
+              const startIdx = (currentPage - 1) * recordsPerPage;
+              const endIdx = startIdx + recordsPerPage;
+              const pagePayments = filteredPayments.slice(startIdx, endIdx);
+              if (pagePayments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data"><i class="fas fa-inbox"></i> No payment records found.</td></tr>';
+                document.getElementById('paginationContainer').innerHTML = '';
+                return;
+              }
+              pagePayments.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${p.plot_number}</td>
+                  <td>${p.location}</td>
+                  <td>₱${Number(p.amount).toLocaleString()}</td>
+                  <td><span class="status-badge ${p.status.toLowerCase() === 'completed' ? 'status-completed' : 'status-pending'}">${p.status}</span></td>
+                  <td>${formatDate(p.paid_at)}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+              renderPagination();
+            }
+
+            function renderPagination() {
+              const totalPages = Math.ceil(filteredPayments.length / recordsPerPage) || 1;
+              let html = `<div class='pagination-info'>Page ${currentPage} of ${totalPages}</div>`;
+              html += `<div class='pagination-controls'>`;
+              html += `<button class='pagination-btn' ${currentPage === 1 ? 'disabled' : ''} onclick='goToPage(1)'>&laquo; First</button>`;
+              html += `<button class='pagination-btn' ${currentPage === 1 ? 'disabled' : ''} onclick='goToPage(${currentPage - 1})'>&lsaquo; Prev</button>`;
+              html += `<div class='page-numbers'>`;
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage || (i <= 2 || i > totalPages - 2 || Math.abs(i - currentPage) <= 1)) {
+                  html += `<button class='page-number${i === currentPage ? ' active' : ''}' onclick='goToPage(${i})'>${i}</button>`;
+                } else if (i === 3 && currentPage > 4) {
+                  html += '<span>...</span>';
+                } else if (i === totalPages - 2 && currentPage < totalPages - 3) {
+                  html += '<span>...</span>';
+                }
+              }
+              html += `</div>`;
+              html += `<button class='pagination-btn' ${currentPage === totalPages ? 'disabled' : ''} onclick='goToPage(${currentPage + 1})'>Next &rsaquo;</button>`;
+              html += `<button class='pagination-btn' ${currentPage === totalPages ? 'disabled' : ''} onclick='goToPage(${totalPages})'>Last &raquo;</button>`;
+              html += `</div>`;
+              document.getElementById('paginationContainer').innerHTML = html;
+            }
+
+            window.goToPage = function(page) {
+              const totalPages = Math.ceil(filteredPayments.length / recordsPerPage) || 1;
+              currentPage = Math.max(1, Math.min(page, totalPages));
+              renderTable();
+            };
+
+            document.getElementById('recordsPerPage').addEventListener('change', function() {
+              recordsPerPage = parseInt(this.value, 10);
+              currentPage = 1;
+              renderTable();
+            });
+
+            document.getElementById('filterBtn').addEventListener('click', function() {
+              const from = document.getElementById('dateFrom').value;
+              const to = document.getElementById('dateTo').value;
+              filteredPayments = allPayments.filter(p => {
+                const paidAt = new Date(p.paid_at);
+                let valid = true;
+                if (from) valid = valid && paidAt >= new Date(from);
+                if (to) valid = valid && paidAt <= new Date(to + 'T23:59:59');
+                return valid;
+              });
+              currentPage = 1;
+              renderTable();
+            });
+
+            // Initial render
+            renderTable();
+          </script>
+        <% } else { %>
+          <p class="no-data"><i class="fas fa-inbox"></i> No payment records found.</p>
+        <% } %>
+      </div>
+       </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
   </div>
 
-  <!-- Payment History Section -->
-  <div class="payment-card">
-    <h2>📜 All Payments</h2>
-    <% if (payments && payments.length > 0) { %>
-      <table>
-        <thead>
-          <tr>
-            <th>Plot</th>
-            <th>Location</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Paid At</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% payments.forEach(p => { %>
-            <tr>
-              <td><%= p.plot_number %></td>
-              <td><%= p.location %></td>
-              <td>₱<%= p.amount.toLocaleString() %></td>
-              <td><%= p.status %></td>
-              <td><%= new Date(p.paid_at).toLocaleString() %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } else { %>
-      <p>No payment records found.</p>
-    <% } %>
-  </div>
+  <!-- Scripts -->
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("toggleBtn");
+
+    if (btn && sidebar) {
+      btn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+        btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+      });
+    }
+
+    // Notification logic
+    const notifIcon = document.getElementById("notif-icon");
+    const notifPopup = document.getElementById("notification-popup");
+    const notifList = document.getElementById("notificationsList");
+    const notifBadge = document.getElementById("notif-badge");
+    const notifCount = document.getElementById("notif-count");
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/notifications/json');
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const notifications = await res.json();
+        notifList.innerHTML = '';
+        let unreadCount = 0;
+
+        if (!notifications || notifications.length === 0) {
+          notifList.innerHTML = '<p>No notifications yet.</p>';
+        } else {
+          notifications.forEach(notif => {
+            const item = document.createElement('div');
+            item.className = 'notification-item';
+            const dateStr = notif.datestamp ? new Date(notif.datestamp).toLocaleString() : '';
+            item.innerHTML = `
+              <i class="fas fa-envelope"></i>
+              <div>
+                <p class="message">${notif.message}</p>
+                <small>${dateStr}</small>
+              </div>`;
+            notifList.appendChild(item);
+            if (!notif.read) unreadCount++;
+          });
+        }
+
+        if (unreadCount > 0) {
+          notifBadge.textContent = unreadCount;
+          notifBadge.classList.remove('hidden');
+          notifCount.textContent = unreadCount;
+          notifCount.classList.remove('hidden');
+        } else {
+          notifBadge.classList.add('hidden');
+          notifCount.classList.add('hidden');
+        }
+      } catch (err) {
+        console.error("Error loading notifications:", err);
+        notifList.innerHTML = '<p>Failed to load notifications.</p>';
+      }
+    }
+
+    if (notifIcon && notifPopup) {
+      notifIcon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        notifPopup.classList.toggle("hidden");
+      });
+
+      document.addEventListener("click", function(e) {
+        if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
+          notifPopup.classList.add("hidden");
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadNotifications);
+  </script>
 </body>
 </html>

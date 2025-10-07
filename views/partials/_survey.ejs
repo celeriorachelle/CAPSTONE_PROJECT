@@ -1,0 +1,88 @@
+<div id="surveyModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Tell us your preferences</h2>
+    <form id="surveyForm" method="POST" action="/userdashboard/save-preferences">
+
+      <div class="modal-body">
+        <!-- Preferred Locations (checkboxes, multi-select) -->
+        <label>Preferred Locations:</label>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" name="locations[]" value="Memorial Chapel & Administration "> Memorial Chapel & Administration </label>
+          <label><input type="checkbox" name="locations[]" value="Veterans Memorial"> Veterans Memorial</label>
+          <label><input type="checkbox" name="locations[]" value="Serenity Columbarium"> Serenity Columbarium</label>
+          <label><input type="checkbox" name="locations[]" value="Heritage Gardens"> Heritage Gardens</label>
+          <label><input type="checkbox" name="locations[]" value="Family Estates"> Family Estates</label>
+        </div>
+
+        <!-- Plot Types (checkboxes, multi-select) -->
+        <label>Plot Types:</label>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" name="types[]" value="Plot"> Plot</label>
+          <label><input type="checkbox" name="types[]" value="Apartment"> Apartment</label>
+          <label><input type="checkbox" name="types[]" value="Vault"> Vault</label>
+          <label><input type="checkbox" name="types[]" value="Tomb"> Tomb</label>
+          <label><input type="checkbox" name="types[]" value="Ossuary"> Ossuary</label>
+        </div>
+
+        <!-- Price Range -->
+        <label>Price Range: <span id="priceDisplay">$10000 - $100000</span></label>
+        <div class="range-slider">
+          <input type="range" name="minPrice" id="minPrice" min="10000" max="100000" step="5000" value="10000">
+          <input type="range" name="maxPrice" id="maxPrice" min="10000" max="100000" step="5000" value="100000">
+        </div>
+      </div>
+
+      <!-- Fixed submit button -->
+      <div class="modal-footer">
+        <button type="submit">Save Preferences</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const modal = document.getElementById('surveyModal');
+const close = modal.querySelector('.close');
+const minPrice = document.getElementById('minPrice');
+const maxPrice = document.getElementById('maxPrice');
+const priceDisplay = document.getElementById('priceDisplay');
+
+// Close modal on click
+close.onclick = () => modal.style.display = 'none';
+window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+
+// Show modal only for new users
+<% if (showSurvey) { %>
+modal.style.display = 'block';
+<% } %>
+
+// Update price display dynamically
+function updatePriceDisplay() {
+  let minVal = parseInt(minPrice.value);
+  let maxVal = parseInt(maxPrice.value);
+  if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
+  priceDisplay.textContent = `$${minVal} - $${maxVal}`;
+}
+
+minPrice.addEventListener('input', updatePriceDisplay);
+maxPrice.addEventListener('input', updatePriceDisplay);
+</script>
+
+
+<style>
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); overflow-y:auto; }
+.modal-content { background:#fff; margin:5% auto; padding:0; width:90%; max-width:500px; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh; }
+.close { float:right; cursor:pointer; font-size:20px; padding:10px; }
+.modal-body { padding:20px; overflow-y:auto; flex:1; }
+.modal-footer { padding:10px 20px; border-top:1px solid #ddd; position:sticky; bottom:0; background:#fff; }
+label { font-weight:600; display:block; margin-top:15px; }
+.checkbox-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px; }
+.checkbox-grid label { font-weight:normal; background:#f0f0f0; padding:8px; border-radius:5px; cursor:pointer; transition:0.2s; }
+.checkbox-grid input[type="checkbox"] { margin-right:5px; }
+.checkbox-grid label:hover { background:#e0e0e0; }
+.range-slider { display:flex; justify-content:space-between; margin-top:10px; }
+.range-slider input[type="range"] { width:48%; }
+button { width:100%; padding:10px; background:#4CAF50; color:#fff; border:none; border-radius:5px; cursor:pointer; font-size:16px; }
+button:hover { background:#45a049; }
+</style>

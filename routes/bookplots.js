@@ -1,54 +1,102 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const cache = require('./redis'); // Redis wrapper
+const { getAIRecommendations } = require('./ai');
+const { v4: uuidv4 } = require('uuid');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Middleware to require login
+// Middleware: require login
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
 
-// --------------------------
-// 1️⃣ Show Plot Selection
 router.get('/', requireLogin, async (req, res) => {
-  if (!req.session.bookingData) return res.redirect('/book');
+  const userId = req.session.user.user_id;
+
+  // 1️⃣ Fetch preferences, always parse JSON string
+  let userPreferences = await cache.get(`user_preferences:${userId}`);
+  if (userPreferences && typeof userPreferences === 'string') userPreferences = JSON.parse(userPreferences);
+  if (!userPreferences || Object.keys(userPreferences).length === 0) userPreferences = {};
+
+  let recommendations = [];
+  const cacheKey = `ai_recommendations:${userId}`;
 
   try {
-    const [plots] = await db.query(`
-      SELECT plot_id, plot_number, location, type, price,
-             deceased_firstName, deceased_lastName, birth_date, death_date, availability
+    // 2️⃣ Fetch cached recommendations
+    recommendations = await cache.get(cacheKey);
+    if (recommendations && typeof recommendations === 'string') recommendations = JSON.parse(recommendations);
+
+    // 3️⃣ Generate fresh if none
+    if (!recommendations || recommendations.length === 0) {
+      recommendations = await getAIRecommendations(userId, userPreferences);
+      recommendations = recommendations.slice(0, 3); // slice top 3, do not re-sort
+
+      // Store in Redis as JSON string
+      await cache.set(cacheKey, JSON.stringify(recommendations), 30);
+
+      // Optional: store in MySQL
+      try {
+        const expiresAt = new Date(Date.now() + 30 * 1000)
+          .toISOString().slice(0, 19).replace('T', ' ');
+        await db.query(`
+          INSERT INTO ai_recommendation_cache_tbl
+            (cache_id, user_id, data, created_at, expires_at)
+          VALUES (?, ?, ?, NOW(), ?)
+          ON DUPLICATE KEY UPDATE
+            data = VALUES(data),
+            created_at = NOW(),
+            expires_at = VALUES(expires_at)
+        `, [uuidv4(), userId, JSON.stringify(recommendations), expiresAt]);
+      } catch (err) {
+        console.error('Failed to store AI recommendations in DB:', err);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    recommendations = [];
+  }
+
+  // 4️⃣ Pagination for all plots
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  let plots = [];
+  try {
+    const [countRows] = await db.query(`SELECT COUNT(*) AS total FROM plot_map_tbl`);
+    const totalPlots = countRows[0].total;
+    const offset = (page - 1) * limit;
+
+    const [rows] = await db.query(`
+      SELECT plot_id, plot_number, location, type, price, availability
       FROM plot_map_tbl
       ORDER BY location, plot_number
-    `);
+      LIMIT ? OFFSET ?
+    `, [limit, offset]);
 
-    const transformedPlots = plots.map(plot => ({
-      ...plot,
-      availability: (plot.availability || 'available').toLowerCase()
-    }));
+    plots = rows.map(p => ({ ...p, availability: (p.availability || 'available').toLowerCase() }));
+    const totalPages = Math.ceil(totalPlots / limit);
 
-    const plotsByLocation = {};
-    transformedPlots.forEach(plot => {
-      if (!plotsByLocation[plot.location]) plotsByLocation[plot.location] = [];
-      plotsByLocation[plot.location].push(plot);
-    });
-
-    res.render('bookplots', { 
+    res.render('bookplots', {
       title: 'Book Plots',
-      plots: transformedPlots,
-      plotsByLocation,
-      stripeKey: process.env.STRIPE_PUBLISHABLE_KEY ||'sk_test_51SA5nICTTPxbpgoS6z1sxKYnoTdVWTWvpMmH8jfVfgPVzKxTnJMpM7WoaY7VfNqxGRkLme3wsggpws27CJVN797Z009z2yRfSy'
+      recommendations,
+      plots,
+      currentPage: page,
+      totalPages
     });
-
-  } catch (error) {
-    console.error(error);
-    res.render('bookplots', { plots: [], plotsByLocation: {} });
+  } catch (err) {
+    console.error(err);
+    res.render('bookplots', {
+      title: 'Book Plots',
+      recommendations,
+      plots: [],
+      currentPage: 1,
+      totalPages: 1
+    });
   }
 });
 
-// --------------------------
-// 2️⃣ Show Payment Option Page
-// --------------------------
+
 // 2️⃣ Show Payment Option Page
 router.get('/option/:plotId', requireLogin, async (req, res) => {
   const plotId = req.params.plotId;

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Dashboard</title>
+  <link rel="stylesheet" href="/stylesheets/staff_dashboard.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Staff Panel</h2>
+    <ul>
+      <li><a href="/staff_dashboard" class="active">🏠 Dashboard</a></li>
+      <li><a href="/staff_viewbookings">📘 View Bookings</a></li>
+      <li><a href="/staff_installments">💰 Track Installments</a></li>
+      <li><a href="/staff_logs">🗂 Activity Logs</a></li>
+      <li><a href="/login/logout">🚪 Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <header>
+      <h1>Welcome, <%= staff.firstname %> 👋</h1>
+      <p>Your Staff Control Center</p>
+    </header>
+
+    <section class="stats">
+      <div class="card">
+        <h3>Total Bookings</h3>
+        <p><%= stats.totalBookings %></p>
+      </div>
+      <div class="card">
+        <h3>Pending Payments</h3>
+        <p><%= stats.pendingPayments %></p>
+      </div>
+      <div class="card">
+        <h3>Upcoming Due Payments</h3>
+        <p><%= stats.upcomingDue %></p>
+      </div>
+      <div class="card">
+        <h3>Staff Actions Logged</h3>
+        <p><%= stats.totalLogs %></p>
+      </div>
+    </section>
+
+    <section class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <a href="/staff_viewbookings" class="action-btn">📘 Manage Client Bookings</a>
+        <a href="/staff_installments" class="action-btn">💰 Track Installments</a>
+        <a href="/staff_logs" class="action-btn">🗂 View Logs</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

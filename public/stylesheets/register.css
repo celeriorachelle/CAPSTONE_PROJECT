@@ -14,14 +14,14 @@ section {
 
 .left-image {
     width: 50%;
-    background-image: url('/images/regis.png');
+    background-image: url('/images/login.jpg');
     background-size: cover;
     background-position: center;
 }
 
 .login-container {
     height: 100%;
-    background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
+    background: #fffff5;
     box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     width: 50%;
     display: flex;
@@ -40,13 +40,11 @@ section {
     transition: all 0.2s ease;
 }
 
-.home-button:hover {
-    color: #2c3e2f;
-}
 
 .home-button i {
-    font-size: 24px;
+    font-size: 33px;
 }
+
 
 .header {
     width: 67%;
@@ -57,7 +55,7 @@ section {
     text-align: center;
     color: #101b0d;
     font-size: 30px;
-    margin-bottom: 10%;
+    margin-bottom: 2rem;  
     font-family: 'cmu-serif', serif;
 }
 
@@ -84,6 +82,7 @@ section {
 .input-form {
     width: 70%;
     color: #101b0d;
+    
 }
 
 .error-message {
@@ -173,7 +172,7 @@ a {
     text-decoration: underline;
     font-size: 13px;
     line-height: 1;
-    color: #101b0d;
+    color: #0d6efd;
 }
 
 /* Responsive Design */
@@ -201,4 +200,24 @@ a {
         flex-direction: column;
         gap: 20px;
     }
+}
+
+/* Full-width single row for Address */
+.input-full {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px; /* adds consistent space below */
+}
+
+.input-full label {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #101b0d;
+}
+
+.input-full input {
+  width: 97%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }

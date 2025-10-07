@@ -1,3 +1,6 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+
 /* =============================
    Reset & Base Styles
 ============================= */
@@ -6,6 +9,7 @@
   padding: 0;
   box-sizing: border-box;
   scroll-behavior: smooth;
+  font-family: 'poppins';
 }
 
 html, body { 
@@ -30,6 +34,7 @@ footer {
    Layout
 ============================= */
 .main {
+  align-content: center;
   margin-left: 250px;
   transition: margin-left 0.4s ease;
   flex: 1;
@@ -49,20 +54,32 @@ footer {
 ============================= */
 .dashboard-container {
   background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
-  max-width: 1400px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  padding: 30px 20px;
+  /* max-width: 1400px; */
+  /* margin: 0 auto; */
+  /* padding: 30px 20px; */
 } 
 
-.dashboard-container > section {
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 30px;
+  margin-right: 0;
+  padding: 2%;
+  width: 100%;
+} 
+
+/* .dashboard-container > section {
   background: #fff;
   border-radius: 16px;
   padding: 25px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}  */
+
+.main-content {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 
 /* Section card + booking-table styles to align with viewbookings */
@@ -86,43 +103,73 @@ footer {
 .badge-done { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
 .badge-cancelled { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
 
-.dashboard-container > section:hover {
+/* .dashboard-container > section:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-}
+} */
 
 /* Welcome Section spans full width */
 .welcome-section {
   grid-column: 1 / -1;
-  text-align: center;
-  background: linear-gradient(135deg, #f0f8f4, #e6f2ec);
+  border-radius: 0%;
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    url('https://media.istockphoto.com/id/619058836/photo/pine-hill-maple-veteran.webp?s=2048x2048&w=is&k=20&c=X_7Ov3BjUToRwJQqBUDnl47Kqhicz0mfmhZJtXp3Wb8=');
+  background-size: cover;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1.5%;
 }
 
 .welcome-section h2 {
-  font-size: 24px;
-  color: #155724;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: 50px;
+  color: #ffffff;
   margin-bottom: 10px;
 }
 
 .welcome-section p {
-  font-size: 16px;
-  color: #444;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: 20px;
+  color: #ffffff;
 }
 
 /* =============================
    Pending Bookings
 ============================= */
-.pending-section h3 {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #2d5016;
+.pending-container {
+  border-radius: 0px 0px 20px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  height: fit-content;
+}
+
+.pending-section {
+  background-color: white;
+  height: fit-content;
+  padding: 5%;
+  border-radius: 0px 0px 20px 20px;
+}
+
+.pending-label {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    url('https://media.istockphoto.com/id/619058836/photo/pine-hill-maple-veteran.webp?s=2048x2048&w=is&k=20&c=X_7Ov3BjUToRwJQqBUDnl47Kqhicz0mfmhZJtXp3Wb8=');
+    font-size: 30px;
+    padding: 20% 2% 1% 1%;
+    border-radius: 0px 20px 0px 0px;
+    color: #ffffff;
+}
+
+.pending-label i {
+  margin-left: 20px;
+  margin-right: 5px;
+  color: #ffffff;
 }
 
 .pending-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  margin-top: 10px;
 }
 
 .pending-table th,
@@ -144,11 +191,51 @@ footer {
 }
 
 /* =============================
+   Combined Section (Reminders + AI)
+============================= */
+.combined-section {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+}
+
+/* .combined-section .reminder-section,
+.combined-section .ai-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+} */
+
+/* =============================
    Installment Reminders
 ============================= */
+.reminder-container {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  border-radius: 20px 0px 20px 20px;
+  width: 100%;
+}
+
+.reminder-label {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    url('https://media.istockphoto.com/id/619058836/photo/pine-hill-maple-veteran.webp?s=2048x2048&w=is&k=20&c=X_7Ov3BjUToRwJQqBUDnl47Kqhicz0mfmhZJtXp3Wb8=');
+    font-size: 20px;
+    border-radius: 20px 0px 0px 20px;
+    padding: 3% 3% 1% 3%;
+    color: #ffffff;
+}
+
+
 .reminder-section {
-  background: #f9fcf9;
-  border-left: 5px solid #28a745;
+  background: #fff;
+  border-radius: 20px 0px 20px 0px;
+  padding: 5%;
+  font-size: 15px;
+  font-family: 'poppins';
+  width: 100%;
 }
 
 .reminder-section h3 {
@@ -224,24 +311,46 @@ footer {
 /* =============================
    AI Recommendations
 ============================= */
-.ai-section h3 {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #2d5016;
+.ai-container {
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  border-radius: 0px 0px 20px 20px;
+}
+
+.ai-section {
+  background: #fff;
+  border-radius: 0px 0px 20px 0px;
+  padding: 5%;
+  width: 100%;
+}
+
+.ai-label {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    url('https://media.istockphoto.com/id/619058836/photo/pine-hill-maple-veteran.webp?s=2048x2048&w=is&k=20&c=X_7Ov3BjUToRwJQqBUDnl47Kqhicz0mfmhZJtXp3Wb8=');
+    font-size: 19px;
+    padding: 10% 0% 1% 3%;
+    border-radius: 20px 0px 0px 20px;
+    color: #ffffff;
 }
 
 .ai-cards {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 14px;
+  font-size: 90%;
 }
 
 .ai-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .ai-card:hover {
@@ -250,24 +359,24 @@ footer {
 }
 
 .ai-card h4 {
-  font-size: 16px;
-  margin-bottom: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
   color: #155724;
 }
 
 .ai-card p {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 6px;
+  font-size: 12px;
+  color: #080808;
+  margin-bottom: 4px;
 }
 
 .ai-card button {
-  background: #28a745;
+  background: #101b0d;
   color: #fff;
   border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -279,8 +388,8 @@ footer {
 /* =============================
    Responsive
 ============================= */
-@media(max-width: 992px) {
-  .dashboard-container {
+/* @media(max-width: 992px) {
+  .dashboard-content-grid {
     grid-template-columns: 1fr;
   }
-}
+} */
