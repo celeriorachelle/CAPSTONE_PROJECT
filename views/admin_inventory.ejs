@@ -1,126 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plot Inventory</title>
-  <link rel="stylesheet" href="/stylesheets/admin_inventory.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plot Inventory | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/stylesheets/admin.css" />
+  <style>
+    /* Inventory-specific styling */
+    .main-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-top: 1rem;
+    }
+
+    .main-content .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .main-content .header h1 {
+      color: #2d4a24;
+      font-size: 1.8rem;
+    }
+
+    .main-content .header button {
+      background: linear-gradient(135deg, #8aac7c, #6b915e);
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .main-content .header button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #769c68, #587c4d);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fafafa;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: #8aac7c;
+      color: white;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tbody tr:hover {
+      background: #f4f8f2;
+    }
+
+    .actions button {
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 0 3px;
+      transition: 0.3s;
+    }
+
+    .edit-btn {
+      background: #5c7c4d;
+      color: white;
+    }
+
+    .edit-btn:hover {
+      background: #49643d;
+    }
+
+    .delete-btn {
+      background: #c65353;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background: #9b3d3d;
+    }
+
+    /* Popup styling */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      width: 400px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .popup-content h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #2d4a24;
+    }
+
+    .popup-content label {
+      display: block;
+      margin-top: 1rem;
+      color: #2d4a24;
+      font-weight: 600;
+    }
+
+    .popup-content input {
+      width: 100%;
+      padding: 0.7rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 0.3rem;
+    }
+
+    .popup-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .save-btn {
+      background: #5c7c4d;
+      color: white;
+    }
+
+    .cancel-btn {
+      background: #999;
+      color: white;
+    }
+
+    .save-btn, .cancel-btn {
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .save-btn:hover {
+      background: #49643d;
+    }
+
+    .cancel-btn:hover {
+      background: #777;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
 </head>
+
 <body>
+  <!-- Header -->
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div>
-      <h2>Everlasting Peace <br>Memorial Park</h2>
-      <div class="nav-links">
-        <a href="#">Home</a>
-        <a href="#">Create Bookings</a>
-        <a href="#">View Bookings</a>
-        <a href="activity-logs.html">Activity Logs</a>
-        <a href="#" class="active">Inventory</a>
-        <a href="#">Reports</a>
-      </div>
-    </div>
-  </div>
+  <main class="admin-main">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <ul>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
+        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
+      </ul>
+    </aside>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <div class="header">
-      <h1>Plot Inventory</h1>
-      <button onclick="openPopup()">+ Add New Plot</button>
-    </div>
+    <!-- Main Content -->
+    <section class="content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Plot Inventory</h2>
+          <div class="date-time" id="currentDateTime"></div>
+        </div>
+      </header>
 
-    <!-- Inventory Table -->
-    <div class="content-area">
-      <table id="inventoryTable">
-      <thead>
-  <tr>
-    <th>Item Name</th>
-    <th>Category</th>
-    <th>Total Plots</th>
-    <th>Available Plots</th>
-    <th>Price</th>
-    <th>Last Update</th>
-    <th>Actions</th>
-  </tr>
-    </thead>
-    <tbody>
-      <% plots.forEach(plot => { %>
-        <tr>
-          <td><%= plot.item_name %></td>
-          <td><%= plot.category %></td>
-          <td><%= plot.total_plots %></td>
-          <td><%= plot.available_plots %></td>
-          <td>₱<%= plot.default_price.toLocaleString() %></td>
-          <td><%= plot.last_update ? new Date(plot.last_update).toLocaleString() : '-' %></td>
-          <td class="actions">
-            <button type="button" class="edit-btn" onclick='openPopup(true, <%- JSON.stringify(plot) %>)'>Edit</button>
-            <form method="POST" action="/admin_inventory/delete/<%= plot.item_id %>" style="display:inline">
-              <button type="submit" class="delete-btn">Delete</button>
-            </form>
-          </td>
-        </tr>
-      <% }); %>
-    </tbody>
-          </table>
+      <div class="main-content">
+        <div class="header">
+          <h1>Plot Inventory</h1>
+          <button onclick="openPopup()">+ Add New Plot</button>
         </div>
 
-    <footer>
-      <%- include('partials/footer') %>
-    </footer>
-
-  <!-- Popup Form -->
-<div class="popup" id="plotPopup">
-  <div class="popup-content">
-    <h2 id="popupTitle">Add New Plot</h2>
-    <form id="plotForm" method="POST" action="/admin_inventory/add">
-      <input type="hidden" name="item_id" id="itemId">
-
-      <label>Item Name</label>
-      <input type="text" name="item_name" id="itemName" required>
-
-      <label>Category</label>
-      <input type="text" name="category" id="category" required>
-
-      <label>Total Plots</label>
-      <input type="number" name="total_plots" id="totalPlots" min="1" required>
-
-      <label>Available Plots</label>
-      <input type="number" name="available_plots" id="availablePlots" min="0" required>
-
-      <label>Default Price</label>
-      <input type="number" name="default_price" id="defaultPrice" min="0" required>
-
-      <div class="popup-actions">
-        <button type="submit" class="save-btn" id="popupSubmitBtn">Add Plot</button>
-        <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        <div class="content-area">
+          <table id="inventoryTable">
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Total Plots</th>
+                <th>Available Plots</th>
+                <th>Price</th>
+                <th>Last Update</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% plots.forEach(plot => { %>
+                <tr>
+                  <td><%= plot.item_name %></td>
+                  <td><%= plot.category %></td>
+                  <td><%= plot.total_plots %></td>
+                  <td><%= plot.available_plots %></td>
+                  <td>₱<%= plot.default_price.toLocaleString() %></td>
+                  <td><%= plot.last_update ? new Date(plot.last_update).toLocaleString() : '-' %></td>
+                  <td class="actions">
+                    <button type="button" class="edit-btn" onclick='openPopup(true, <%- JSON.stringify(plot) %>)'>Edit</button>
+                    <form method="POST" action="/admin_inventory/delete/<%= plot.item_id %>" style="display:inline">
+                      <button type="submit" class="delete-btn">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </form>
-  </div>
-</div>
+    </section>
+  </main>
 
-<script>
-  // openPopup(edit = false, plot = null)
-  function openPopup(edit = false, plot = null) {
-    document.getElementById("plotPopup").style.display = "flex";
-    document.getElementById("plotForm").reset();
-    if (edit && plot) {
-      document.getElementById("popupTitle").innerText = "Edit Plot";
-      document.getElementById("popupSubmitBtn").innerText = "Update Plot";
-      document.getElementById("itemId").value = plot.item_id;
-      document.getElementById("itemName").value = plot.item_name;
-      document.getElementById("category").value = plot.category;
-      document.getElementById("totalPlots").value = plot.total_plots;
-      document.getElementById("availablePlots").value = plot.available_plots;
-      document.getElementById("defaultPrice").value = plot.default_price;
-    } else {
-      document.getElementById("popupTitle").innerText = "Add New Plot";
-      document.getElementById("popupSubmitBtn").innerText = "Add Plot";
+  <!-- Popup -->
+  <div class="popup" id="plotPopup">
+    <div class="popup-content">
+      <h2 id="popupTitle">Add New Plot</h2>
+      <form id="plotForm" method="POST" action="/admin_inventory/add">
+        <input type="hidden" name="item_id" id="itemId">
+
+        <label>Item Name</label>
+        <input type="text" name="item_name" id="itemName" required>
+
+        <label>Category</label>
+        <input type="text" name="category" id="category" required>
+
+        <label>Total Plots</label>
+        <input type="number" name="total_plots" id="totalPlots" min="1" required>
+
+        <label>Available Plots</label>
+        <input type="number" name="available_plots" id="availablePlots" min="0" required>
+
+        <label>Default Price</label>
+        <input type="number" name="default_price" id="defaultPrice" min="0" required>
+
+        <div class="popup-actions">
+          <button type="submit" class="save-btn" id="popupSubmitBtn">Add Plot</button>
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Date/Time updater
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById("currentDateTime").textContent = now.toLocaleString();
+    }, 1000);
+
+    // Popup functions
+    function openPopup(edit = false, plot = null) {
+      document.getElementById("plotPopup").style.display = "flex";
+      document.getElementById("plotForm").reset();
+
+      if (edit && plot) {
+        document.getElementById("popupTitle").innerText = "Edit Plot";
+        document.getElementById("popupSubmitBtn").innerText = "Update Plot";
+        document.getElementById("itemId").value = plot.item_id;
+        document.getElementById("itemName").value = plot.item_name;
+        document.getElementById("category").value = plot.category;
+        document.getElementById("totalPlots").value = plot.total_plots;
+        document.getElementById("availablePlots").value = plot.available_plots;
+        document.getElementById("defaultPrice").value = plot.default_price;
+      } else {
+        document.getElementById("popupTitle").innerText = "Add New Plot";
+        document.getElementById("popupSubmitBtn").innerText = "Add Plot";
+      }
     }
-  }
-  function closePopup() {
-    document.getElementById("plotPopup").style.display = "none";
-    document.getElementById("plotForm").reset();
-  }
-</script>
+
+    function closePopup() {
+      document.getElementById("plotPopup").style.display = "none";
+      document.getElementById("plotForm").reset();
+    }
+  </script>
+</body>
+</html>
