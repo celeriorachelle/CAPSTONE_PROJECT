@@ -7,13 +7,6 @@ const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
 const path = require("path");
 
-function requireAdmin(req, res, next) {
-  if (!req.session.user || req.session.user.role !== 'admin') {
-    return res.redirect('/login');
-  }
-  next();
-}
-
 // ------------------- Reports Page -------------------
 router.get("/", async (req, res) => {
   try {
