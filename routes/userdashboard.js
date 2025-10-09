@@ -55,24 +55,7 @@ router.get('/', requireLogin, async (req, res) => {
 
     // Generate recommendations only if user has prefs or history and none cached
     if ((!recommendations || recommendations.length === 0) && (hasPreferences || hasHistory)) {
-      const aiRecs = await getAIRecommendations(userId, preferences || {});
-
-      // ✅ Group by location to ensure diversity
-      const grouped = {};
-      for (const rec of aiRecs) {
-        const loc = rec.location.toLowerCase();
-        if (!grouped[loc]) grouped[loc] = [];
-        grouped[loc].push(rec);
-      }
-
-      // ✅ Mix results across multiple locations (2 per location max)
-      const mixed = [];
-      Object.values(grouped).forEach(arr => {
-        mixed.push(...arr.slice(0, 2)); // take up to 2 per location
-      });
-
-      // Limit to 5 total recommendations
-      recommendations = mixed.slice(0, 5);
+      recommendations = await getAIRecommendations(userId, preferences || {});
 
       // Save into cache (wrapper likely handles serialization)
       await cache.set(cacheKey, recommendations, 600); // 10 minutes TTL
@@ -125,14 +108,13 @@ router.post('/save-preferences', requireLogin, async (req, res) => {
 
   try {
     // Save preferences to Redis
-  await cache.set(`user_preferences:${userId}`, JSON.stringify(preferences), 86400);
-console.log('✅ Preferences saved for user:', userId, preferences);
-    // Clear and regenerate recommendations
-    await cache.del(`ai_recommendations:${userId}`);
+    await cache.set(`user_preferences:${userId}`, JSON.stringify(preferences), 86400);
+    console.log('✅ Preferences saved for user:', userId, preferences);
 
-    const newRecs = await getAIRecommendations(userId, preferences);
-    const top5 = newRecs.slice(0, 5);
-    await cache.set(`ai_recommendations:${userId}`, top5, 600);
+    // Reset and regenerate recommendations per new flow
+    await cache.del(`ai_recommendations:${userId}`);
+    const regen = await getAIRecommendations(userId, preferences);
+    await cache.set(`ai_recommendations:${userId}`, regen, 600);
 
     const expiresAt = new Date(Date.now() + 600 * 1000)
       .toISOString().slice(0, 19).replace('T', ' ');
@@ -140,7 +122,7 @@ console.log('✅ Preferences saved for user:', userId, preferences);
       `INSERT INTO ai_recommendation_cache_tbl (cache_id, user_id, data, created_at, expires_at)
        VALUES (?, ?, ?, NOW(), ?)
        ON DUPLICATE KEY UPDATE data=VALUES(data), created_at=NOW(), expires_at=VALUES(expires_at)`,
-      [uuidv4(), userId, JSON.stringify(top5), expiresAt]
+      [uuidv4(), userId, JSON.stringify(regen), expiresAt]
     );
 
     res.redirect('/userdashboard');

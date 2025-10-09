@@ -18,7 +18,7 @@
 <!-- AI Recommendations -->
 <div class="section-card">
   <h2 class="section-title">Recommended Plots</h2>
-  <table class="booking-table">
+  <table class="booking-table recommended-table">
     <thead>
       <tr>
         <th>Plot No.</th>
@@ -32,21 +32,22 @@
     <tbody>
       <% recommendations.forEach(plot => { %>
       <tr class="<%= plot.isBestMatch ? 'best-match-row' : '' %>">
+        <% const avail = (plot.availability || 'available').toLowerCase(); %>
         <td data-label="Plot No."><%= plot.plot_number %></td>
         <td data-label="Location"><%= plot.location %></td>
         <td data-label="Type"><%= plot.type %></td>
         <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
         <td data-label="Status">
-          <% if (plot.availability === 'available') { %>
+          <% if (avail === 'available') { %>
             <span class="badge badge-done">Available</span>
-          <% } else if (plot.availability === 'reserved') { %>
+          <% } else if (avail === 'reserved') { %>
             <span class="badge badge-reserved">Reserved</span>
           <% } else { %>
             <span class="badge badge-occupied">Occupied</span>
           <% } %>
         </td>
         <td data-label="Action">
-          <% if (plot.availability === 'available') { %>
+          <% if (avail === 'available') { %>
             <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
               <button type="submit" class="btn btn-book">BOOK</button>
             </form>
@@ -77,21 +78,22 @@
     <tbody>
       <% plots.forEach(plot => { %>
       <tr>
+        <% const avail = (plot.availability || 'available').toLowerCase(); %>
         <td data-label="Plot No."><%= plot.plot_number %></td>
         <td data-label="Location"><%= plot.location %></td>
         <td data-label="Type"><%= plot.type %></td>
         <td data-label="Price">₱<%= plot.price.toLocaleString() %></td>
         <td data-label="Status">
-          <% if (plot.availability === 'available') { %>
+          <% if (avail === 'available') { %>
             <span class="badge badge-done">Available</span>
-          <% } else if (plot.availability === 'reserved') { %>
+          <% } else if (avail === 'reserved') { %>
             <span class="badge badge-reserved">Reserved</span>
           <% } else { %>
             <span class="badge badge-occupied">Occupied</span>
           <% } %>
         </td>
         <td data-label="Action">
-          <% if (plot.availability === 'available') { %>
+          <% if (avail === 'available') { %>
             <form action="/bookplots/option/<%= plot.plot_id %>" method="GET">
               <button type="submit" class="btn btn-book">BOOK</button>
             </form>
@@ -128,12 +130,8 @@
   </div>
 <% } %>
 
-
-    <!-- Footer -->
-    <footer class="footer">
-      <%- include('partials/footer') %>
-    </footer>
   </div>
+      <!-- Footer -->
 
   <script>
     // Client-side pagination to 10 per page
@@ -228,6 +226,8 @@ setInterval(fetchAIRecommendations, 30000);
 // Optional: fetch once immediately on page load
 fetchAIRecommendations();
 </script>
-
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
 </body>
 </html>

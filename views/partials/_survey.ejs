@@ -57,6 +57,9 @@ window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
 modal.style.display = 'block';
 <% } %>
 
+// Initialize price display on load
+updatePriceDisplay();
+
 // Update price display dynamically
 function updatePriceDisplay() {
   let minVal = parseInt(minPrice.value);
