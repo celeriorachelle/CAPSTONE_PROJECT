@@ -1,9 +1,33 @@
-const { Router } = require('express');
-const router = Router();
+// routes/userdashboard.js
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
 const cache = require('./redis');
 const { getAIRecommendations } = require('./ai');
+const { v4: uuidv4 } = require('uuid');
 
-// middleware to ensure logged in
+// helper: safe parse of cache.get return value (string or object)
+function parseCacheVal(v) {
+  if (v == null) return null;
+  if (typeof v === 'string') {
+    try { return JSON.parse(v); } catch (e) { return v; }
+  }
+  return v;
+}
+
+function hasValidPreferences(prefs) {
+  if (!prefs) return false;
+  const locs = prefs.locations || [];
+  const types = prefs.types || [];
+  const minP = prefs.minPrice;
+  const maxP = prefs.maxPrice;
+  return (Array.isArray(locs) && locs.length > 0) ||
+         (Array.isArray(types) && types.length > 0) ||
+         (typeof minP === 'number' && minP > 0) ||
+         (typeof maxP === 'number' && maxP < Number.MAX_SAFE_INTEGER);
+}
+
+// Middleware
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
@@ -12,62 +36,118 @@ function requireLogin(req, res, next) {
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
 
-  // Fetch preferences
-  let preferences = await cache.get(`user_preferences:${userId}`);
-  if (preferences && typeof preferences === 'string') preferences = JSON.parse(preferences);
+  try {
+    // Load preferences from Redis (robust parse)
+    const rawPrefs = parseCacheVal(await cache.get(`user_preferences:${userId}`));
+    const preferences = rawPrefs && typeof rawPrefs === 'object' ? rawPrefs : {};
 
-  const isNewUser = !preferences || Object.keys(preferences).length === 0;
+    const cacheKey = `ai_recommendations:${userId}`;
+    const rawRecs = parseCacheVal(await cache.get(cacheKey));
+    let recommendations = Array.isArray(rawRecs) ? rawRecs : null;
 
-  let recommendations = [];
-  const cacheKey = `ai_recommendations:${userId}`;
+    // Count past bookings
+    const [pastBookingsCount] = await db.query(
+      `SELECT COUNT(*) AS count FROM booking_tbl WHERE user_id = ?`,
+      [userId]
+    );
+    const hasHistory = pastBookingsCount[0].count > 0;
+    const hasPreferences = hasValidPreferences(preferences);
 
-  if (preferences) {
-    // Fetch cached recommendations
-    recommendations = await cache.get(cacheKey);
-    if (recommendations && typeof recommendations === 'string') recommendations = JSON.parse(recommendations);
+    // Generate recommendations only if user has prefs or history and none cached
+    if ((!recommendations || recommendations.length === 0) && (hasPreferences || hasHistory)) {
+      const aiRecs = await getAIRecommendations(userId, preferences || {});
 
-    if (!recommendations || recommendations.length === 0) {
-      recommendations = await getAIRecommendations(userId, preferences);
-      recommendations = recommendations.slice(0, 3); // do not re-sort
-      await cache.set(cacheKey, JSON.stringify(recommendations), 86400); // cache 1 day
+      // ✅ Group by location to ensure diversity
+      const grouped = {};
+      for (const rec of aiRecs) {
+        const loc = rec.location.toLowerCase();
+        if (!grouped[loc]) grouped[loc] = [];
+        grouped[loc].push(rec);
+      }
+
+      // ✅ Mix results across multiple locations (2 per location max)
+      const mixed = [];
+      Object.values(grouped).forEach(arr => {
+        mixed.push(...arr.slice(0, 2)); // take up to 2 per location
+      });
+
+      // Limit to 5 total recommendations
+      recommendations = mixed.slice(0, 5);
+
+      // Save into cache (wrapper likely handles serialization)
+      await cache.set(cacheKey, recommendations, 600); // 10 minutes TTL
+
+      // Save in DB cache table
+      const expiresAt = new Date(Date.now() + 600 * 1000)
+        .toISOString().slice(0, 19).replace('T', ' ');
+      await db.query(
+        `INSERT INTO ai_recommendation_cache_tbl (cache_id, user_id, data, created_at, expires_at)
+         VALUES (?, ?, ?, NOW(), ?)
+         ON DUPLICATE KEY UPDATE data=VALUES(data), created_at=NOW(), expires_at=VALUES(expires_at)`,
+        [uuidv4(), userId, JSON.stringify(recommendations), expiresAt]
+      );
     }
-  }
 
-  res.render('userdashboard', {
-    user: req.session.user,
-    pendingBookings: [],
-    reminders: [],
-    recommendations,
-    showSurvey: isNewUser
-  });
+    console.log('✅ Final dashboard recommendations mix:', recommendations?.map(r => `${r.location} | ${r.type}`));
+
+    res.render('userdashboard', {
+      user: req.session.user,
+      pendingBookings: [],
+      reminders: [],
+      recommendations: recommendations || [],
+      showSurvey: !hasPreferences && !hasHistory
+    });
+  } catch (err) {
+    console.error('Dashboard recommendation error:', err);
+    res.render('userdashboard', {
+      user: req.session.user,
+      pendingBookings: [],
+      reminders: [],
+      recommendations: [],
+      showSurvey: true
+    });
+  }
 });
 
-// ✅ Save preferences to cache only as JSON string
+
+// Save user preferences (survey)
 router.post('/save-preferences', requireLogin, async (req, res) => {
+  const userId = req.session.user.user_id;
   let { locations, types, minPrice, maxPrice } = req.body;
 
-  // Ensure arrays even if user selects only one option
   if (!Array.isArray(locations)) locations = locations ? [locations] : [];
   if (!Array.isArray(types)) types = types ? [types] : [];
 
-  // Convert price inputs to numbers
-  minPrice = Number(minPrice) || 10000;
-  maxPrice = Number(maxPrice) || 100000;
+  minPrice = Number(minPrice) || 0;
+  maxPrice = Number(maxPrice) || Number.MAX_SAFE_INTEGER;
 
-  const userId = req.session.user.user_id;
+  const preferences = { locations, types, minPrice, maxPrice };
 
-  // Store as JSON string in Redis cache
-  await cache.set(`user_preferences:${userId}`, JSON.stringify({
-    locations,
-    types,
-    minPrice,
-    maxPrice
-  }), 86400); // 1 day TTL
+  try {
+    // Save preferences to Redis
+  await cache.set(`user_preferences:${userId}`, JSON.stringify(preferences), 86400);
+console.log('✅ Preferences saved for user:', userId, preferences);
+    // Clear and regenerate recommendations
+    await cache.del(`ai_recommendations:${userId}`);
 
-  // 💡 Invalidate the recommendations cache so new ones will be generated
-  await cache.del(`ai_recommendations:${userId}`);
+    const newRecs = await getAIRecommendations(userId, preferences);
+    const top5 = newRecs.slice(0, 5);
+    await cache.set(`ai_recommendations:${userId}`, top5, 600);
 
-  res.redirect('/userdashboard'); // reload dashboard
+    const expiresAt = new Date(Date.now() + 600 * 1000)
+      .toISOString().slice(0, 19).replace('T', ' ');
+    await db.query(
+      `INSERT INTO ai_recommendation_cache_tbl (cache_id, user_id, data, created_at, expires_at)
+       VALUES (?, ?, ?, NOW(), ?)
+       ON DUPLICATE KEY UPDATE data=VALUES(data), created_at=NOW(), expires_at=VALUES(expires_at)`,
+      [uuidv4(), userId, JSON.stringify(top5), expiresAt]
+    );
+
+    res.redirect('/userdashboard');
+  } catch (err) {
+    console.error('Error saving preferences:', err);
+    res.status(500).send('Failed to save preferences');
+  }
 });
 
 module.exports = router;

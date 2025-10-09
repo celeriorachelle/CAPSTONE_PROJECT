@@ -1,104 +1,179 @@
 // ai.js
 const db = require('../db');
 
-/**
- * Get AI recommendations for a user
- * @param {number} userId
- * @param {object} preferences
- * @returns {Promise<Array>} top 10 recommended plots (top 3 highlighted)
- */
+/* helpers:
+   - normalize pref arrays (accepts array, comma-string, or JSON-string)
+   - token-based matching to allow partial & multi-word matches
+*/
+function normalizePrefArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.map(v => String(v || '').trim()).filter(Boolean);
+  if (typeof val === 'string') {
+    // try parse JSON array first
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed.map(String).map(s => s.trim()).filter(Boolean);
+    } catch (e) { /* not JSON */ }
+    // fallback: comma split
+    return val.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeTokens(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]+/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function tokensIntersect(a, b) {
+  if (!a || !b) return false;
+  const setB = new Set(b);
+  return a.some(x => setB.has(x));
+}
+
 async function getAIRecommendations(userId, preferences = {}) {
   try {
-    // Fetch all past bookings for this user
+    // 👇 added for debugging
+    console.log('AI RECOMM: user', userId, 'preferences received:', preferences);
+
+    // 1) Fetch user's past bookings
     const [pastBookings] = await db.query(`
-      SELECT p.plot_id, p.location, p.type
+      SELECT p.location, p.type
       FROM booking_tbl b
       JOIN plot_map_tbl p ON b.plot_id = p.plot_id
       WHERE b.user_id = ?
     `, [userId]);
+    const hasHistory = pastBookings.length > 0;
 
-    // Map to count how many times user booked each location|type
+    // booking frequency map
     const bookingCountMap = {};
     pastBookings.forEach(r => {
       const key = `${r.location.trim().toLowerCase()}|${r.type.trim().toLowerCase()}`;
       bookingCountMap[key] = (bookingCountMap[key] || 0) + 1;
     });
 
-    // Fetch all available plots
+    // 2) Fetch available plots
     const [plots] = await db.query(`
       SELECT plot_id, plot_number, location, type, price, availability
       FROM plot_map_tbl
       WHERE LOWER(availability) = 'available'
-      ORDER BY location, plot_number
     `);
 
-    // Normalize preferences from user input
-    const prefLocations = (preferences.locations || []).map(loc => loc.trim().toLowerCase());
-    const prefTypes = (preferences.types || []).map(t => t.trim().toLowerCase());
-    const minPrice = preferences.minPrice || 0;
-    const maxPrice = preferences.maxPrice || Number.MAX_SAFE_INTEGER;
+    // 👇 added for debugging
+    console.log('AI RECOMM: total available plots:', plots.length);
 
-    // Helper to normalize strings for loose matching
-    const cleanString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // 3) Normalize preferences (robust)
+    const prefLocations = normalizePrefArray(preferences.locations).map(s => s.toLowerCase());
+    const prefTypes = normalizePrefArray(preferences.types).map(s => s.toLowerCase());
+    const minPrice = Number(preferences.minPrice) || 0;
+    const maxPrice = Number(preferences.maxPrice) || Number.MAX_SAFE_INTEGER;
 
-    // Filter plots by preferences (partial match)
-    const filteredPlots = plots.filter(plot => {
-      const loc = cleanString(plot.location);
-      const type = cleanString(plot.type);
-      const price = plot.price;
+    // If user has neither prefs nor history, nothing to recommend
+    if (prefLocations.length === 0 && prefTypes.length === 0 && !hasHistory) {
+      console.log('AI RECOMM: No prefs or history → returning []');
+      return [];
+    }
 
-      const locMatch = prefLocations.length === 0 || prefLocations.some(prefLoc => loc.includes(cleanString(prefLoc)));
-      const typeMatch = prefTypes.length === 0 || prefTypes.some(prefType => type.includes(cleanString(prefType)));
-      const priceMatch = price >= minPrice && price <= maxPrice;
+    // scoring weights (tunable)
+    const WEIGHTS = {
+      locationPref: 5,
+      typePref: 4,
+      priceMatch: 2,
+      bookingType: 2,
+      bookingLocation: 2,
+      freqCap: 3
+    };
 
-      return locMatch && typeMatch && priceMatch;
-    });
+const results = plots.map(plot => {
+  const plotLocNorm = String(plot.location || '').trim().toLowerCase();
+  const plotTypeNorm = String(plot.type || '').trim().toLowerCase();
+  const plotLocTokens = normalizeTokens(plot.location);
+  const plotTypeTokens = normalizeTokens(plot.type);
+  const key = `${plotLocNorm}|${plotTypeNorm}`;
 
-    // If no filtered plots, fall back to top 10 available plots
-    const recommendedPlots = filteredPlots.length > 0 ? filteredPlots : plots.slice(0, 10);
+  let score = 0;
+  let locMatches = 0;
+  let typeMatches = 0;
 
-    // Compute scores and attach past booking count
-    const recommendations = recommendedPlots.map(plot => {
-      const loc = cleanString(plot.location);
-      const type = cleanString(plot.type);
-      let score = 0;
+  // ✅ Flexible token-based location matching
+  prefLocations.forEach(pl => {
+    const plTokens = normalizeTokens(pl);
+    if (
+      plotLocNorm.includes(pl.toLowerCase()) ||
+      tokensIntersect(plTokens, plotLocTokens)
+    ) locMatches++;
+  });
 
-      if (prefLocations.some(prefLoc => loc.includes(cleanString(prefLoc)))) score += 3;
-      if (prefTypes.some(prefType => type.includes(cleanString(prefType)))) score += 2;
-      if (plot.price >= minPrice && plot.price <= maxPrice) score += 1;
+  // ✅ Flexible token-based type matching
+  prefTypes.forEach(pt => {
+    const ptTokens = normalizeTokens(pt);
+    if (
+      plotTypeNorm.includes(pt.toLowerCase()) ||
+      tokensIntersect(ptTokens, plotTypeTokens)
+    ) typeMatches++;
+  });
 
-      const pastCount = bookingCountMap[`${plot.location.trim().toLowerCase()}|${plot.type.trim().toLowerCase()}`] || 0;
+  // ✅ Only score if any match exists
+  if (locMatches === 0 && typeMatches === 0) return null;
 
-      return {
-        ...plot,
-        matchScore: score,
-        pastBookingCount: pastCount
-      };
-    });
+  // Weighted scoring
+  if (locMatches > 0) score += locMatches * WEIGHTS.locationPref;
+  if (typeMatches > 0) score += typeMatches * WEIGHTS.typePref;
+  if (plot.price >= minPrice && plot.price <= maxPrice)
+    score += WEIGHTS.priceMatch;
 
-    // Exclude plots with zero preference match score
-    const filteredRecommendations = recommendations.filter(r => r.matchScore > 0);
+  if (hasHistory) {
+    if (pastBookings.some(b => b.type.trim().toLowerCase() === plotTypeNorm))
+      score += WEIGHTS.bookingType;
+    if (pastBookings.some(b => b.location.trim().toLowerCase() === plotLocNorm))
+      score += WEIGHTS.bookingLocation;
+    score += Math.min(bookingCountMap[key] || 0, WEIGHTS.freqCap);
+  }
 
-    // Sort by weighted combined score
-    filteredRecommendations.sort((a, b) => {
-      const scoreA = (a.matchScore || 0) * 10 + Math.min(a.pastBookingCount || 0, 5);
-      const scoreB = (b.matchScore || 0) * 10 + Math.min(b.pastBookingCount || 0, 5);
-      return scoreB - scoreA;
-    });
+  return { ...plot, score };
+});
 
-    // Get top 3 to mark as Best Match
-    const top3Ids = filteredRecommendations.slice(0, 3).map(p => p.plot_id);
+const filtered = results.filter(p => p && p.score > 0);
 
-    // Return top 10 recommendations with Best Match flag
-    return filteredRecommendations.slice(0, 10).map(p => ({
-      ...p,
-      isBestMatch: top3Ids.includes(p.plot_id),
-    }));
+// 👇 added for debugging
+console.log('AI RECOMM results count:', filtered.length);
+
+// ✅ OPTION 2: Balance results per preference group
+const groups = {};
+filtered.forEach(p => {
+  const key = `${p.location}|${p.type}`;
+  if (!groups[key]) groups[key] = [];
+  groups[key].push(p);
+});
+
+// sort each group and take top 2 per group
+let mixed = [];
+Object.values(groups).forEach(arr => {
+  arr.sort((a, b) => b.score - a.score);
+  mixed = mixed.concat(arr.slice(0, 2)); // take top 2 per group
+});
+
+// merge all, sort again, and take top 5 overall
+mixed.sort((a, b) => b.score - a.score);
+const top5 = mixed.slice(0, 5);
+
+// Mark best 3 (for highlighting in UI)
+const top3Ids = top5.slice(0, 3).map(p => p.plot_id);
+console.log('AI RECOMM top5 plot IDs:', top3Ids);
+
+return top5.map(p => ({
+  ...p,
+  isBestMatch: top3Ids.includes(p.plot_id)
+}));
 
   } catch (err) {
     console.error('AI Recommendation Error:', err);
     return [];
   }
 }
+
 
 module.exports = { getAIRecommendations };
