@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Burial Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/book.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    .subtle { color: #666; font-size: 0.95em; margin-top: -8px; margin-bottom: 16px; }
+    .error-message { color: #b00020; background: #fde7ea; padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <%- include('partials/sidebar') %>
+
+  <div class="main" id="main">
+    <%- include('partials/topbar', { title: "Burial Details" }) %>
+
+    <div class="form-container">
+      <h2>BURIAL DETAILS</h2>
+      <p class="subtle">Please provide the deceased individual's information below. All fields are required.</p>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-message"><%= error %></div>
+      <% } %>
+
+      <form action="/book/burial-details" method="POST" class="form-grid">
+        <div class="form-group">
+          <label for="deceased_firstName">Deceased First Name</label>
+          <input type="text" id="deceased_firstName" name="deceased_firstName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="deceased_lastName">Deceased Last Name</label>
+          <input type="text" id="deceased_lastName" name="deceased_lastName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="birth_date">Birth Date</label>
+          <input type="date" id="birth_date" name="birth_date" required>
+        </div>
+
+        <div class="form-group">
+          <label for="death_date">Death Date</label>
+          <input type="date" id="death_date" name="death_date" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" onclick="window.location.href='/book'">Cancel</button>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+    </div>
+
+    <footer>
+      <%- include('partials/footer') %>
+    </footer>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("toggleBtn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+        btn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+      });
+    }
+  </script>
+</body>
+</html>

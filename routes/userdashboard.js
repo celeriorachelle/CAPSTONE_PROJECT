@@ -78,7 +78,8 @@ router.get('/', requireLogin, async (req, res) => {
       pendingBookings: [],
       reminders: [],
       recommendations: recommendations || [],
-      showSurvey: !hasPreferences && !hasHistory
+      showSurvey: !hasPreferences && !hasHistory,
+      alert: req.query.alert
     });
   } catch (err) {
     console.error('Dashboard recommendation error:', err);
@@ -87,7 +88,8 @@ router.get('/', requireLogin, async (req, res) => {
       pendingBookings: [],
       reminders: [],
       recommendations: [],
-      showSurvey: true
+      showSurvey: true,
+      alert: req.query.alert
     });
   }
 });

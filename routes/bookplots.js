@@ -318,6 +318,10 @@ router.get('/success', async (req, res) => {
       );
       // Clear payment session data
       req.session.paymentData = null;
+      // Mark plot owner as current user (on successful payment)
+      if (plot && plot.plot_id) {
+        await db.query('UPDATE plot_map_tbl SET user_id = ? WHERE plot_id = ?', [userId, plot.plot_id]);
+      }
     }
 
     // 4️⃣ Update booking status and plot availability
@@ -351,7 +355,7 @@ router.get('/success', async (req, res) => {
         : amountPaid >= plot.price * 0.2
           ? 'reserved'
           : (plot.availability || 'available');
-      await db.query('UPDATE plot_map_tbl SET availability = ? WHERE plot_id = ?', [availability, plot.plot_id]);
+      await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', [availability, userId, plot.plot_id]);
     }
 
     // 5️⃣ Render success page
