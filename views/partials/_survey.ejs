@@ -8,7 +8,7 @@
         <!-- Preferred Locations (checkboxes, multi-select) -->
         <label>Preferred Locations:</label>
         <div class="checkbox-grid">
-          <label><input type="checkbox" name="locations[]" value="Memorial Chapel & Administration "> Memorial Chapel & Administration </label>
+          <label><input type="checkbox" name="locations[]" value="Memorial Chapel & Administration"> Memorial Chapel & Administration </label>
           <label><input type="checkbox" name="locations[]" value="Veterans Memorial"> Veterans Memorial</label>
           <label><input type="checkbox" name="locations[]" value="Serenity Columbarium"> Serenity Columbarium</label>
           <label><input type="checkbox" name="locations[]" value="Heritage Gardens"> Heritage Gardens</label>
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Price Range -->
-        <label>Price Range: <span id="priceDisplay">$10000 - $100000</span></label>
+        <label>Price Range: <span id="priceDisplay">₱10,000 - ₱100,000</span></label>
         <div class="range-slider">
           <input type="range" name="minPrice" id="minPrice" min="10000" max="100000" step="5000" value="10000">
           <input type="range" name="maxPrice" id="maxPrice" min="10000" max="100000" step="5000" value="100000">
@@ -57,18 +57,63 @@ window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
 modal.style.display = 'block';
 <% } %>
 
+// Initialize price display on load
+updatePriceDisplay();
+
 // Update price display dynamically
 function updatePriceDisplay() {
   let minVal = parseInt(minPrice.value);
   let maxVal = parseInt(maxPrice.value);
   if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
-  priceDisplay.textContent = `$${minVal} - $${maxVal}`;
+
+  // Format with Peso symbol and thousands separator
+  const formatter = new Intl.NumberFormat('en-PH');
+  priceDisplay.textContent = `₱${formatter.format(minVal)} - ₱${formatter.format(maxVal)}`;
 }
 
 minPrice.addEventListener('input', updatePriceDisplay);
 maxPrice.addEventListener('input', updatePriceDisplay);
-</script>
 
+// ✅ Attach AJAX handler for survey form
+document.addEventListener('DOMContentLoaded', () => {
+  const surveyForm = document.querySelector('#surveyForm');
+  if (!surveyForm) return;
+
+  surveyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Collect values
+    const locations = Array.from(document.querySelectorAll('input[name="locations[]"]:checked')).map(cb => cb.value);
+    const types = Array.from(document.querySelectorAll('input[name="types[]"]:checked')).map(cb => cb.value);
+    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Number.MAX_SAFE_INTEGER;
+
+    const preferences = { locations, types, minPrice, maxPrice };
+    console.log('🟢 Sending preferences:', preferences);
+
+    try {
+      const res = await fetch('/userdashboard/save-preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferences)
+      });
+
+      if (res.ok) {
+        alert('✅ Preferences saved successfully!');
+        window.location.href = '/userdashboard'; // Redirect to reload recommendations
+      } else {
+        const msg = await res.text();
+        console.error('❌ Failed:', msg);
+        alert('Failed to save preferences. Please try again.');
+      }
+    } catch (err) {
+      console.error('❌ Error saving preferences:', err);
+      alert('An unexpected error occurred.');
+    }
+  });
+});
+
+</script>
 
 <style>
 .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); overflow-y:auto; }

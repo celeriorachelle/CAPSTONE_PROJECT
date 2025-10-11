@@ -1,104 +1,282 @@
 // ai.js
 const db = require('../db');
 
-/**
- * Get AI recommendations for a user
- * @param {number} userId
- * @param {object} preferences
- * @returns {Promise<Array>} top 10 recommended plots (top 3 highlighted)
- */
+/* helpers:
+   - normalize pref arrays (accepts array, comma-string, or JSON-string)
+   - token-based matching to allow partial & multi-word matches
+*/
+function normalizePrefArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.map(v => String(v || '').trim()).filter(Boolean);
+  if (typeof val === 'string') {
+    // try parse JSON array first
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed.map(String).map(s => s.trim()).filter(Boolean);
+    } catch (e) { /* not JSON */ }
+    // fallback: comma split
+    return val.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeTokens(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]+/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function tokensIntersect(a, b) {
+  if (!a || !b) return false;
+  const setB = new Set(b);
+  return a.some(x => setB.has(x));
+}
+
 async function getAIRecommendations(userId, preferences = {}) {
   try {
-    // Fetch all past bookings for this user
-    const [pastBookings] = await db.query(`
-      SELECT p.plot_id, p.location, p.type
+    // Normalize preferences
+    const prefLocations = normalizePrefArray(preferences.locations).map(s => s.toLowerCase());
+    const prefTypes = normalizePrefArray(preferences.types).map(s => s.toLowerCase());
+    const minPrice = Number(preferences.minPrice) || 0;
+    const maxPrice = Number(preferences.maxPrice) || Number.MAX_SAFE_INTEGER;
+
+    // Fetch user's past bookings (most recent first)
+    const [bookings] = await db.query(`
+      SELECT b.booking_id, p.plot_id, p.plot_number, p.location, p.type, p.price
       FROM booking_tbl b
       JOIN plot_map_tbl p ON b.plot_id = p.plot_id
       WHERE b.user_id = ?
+      ORDER BY b.booking_id DESC
     `, [userId]);
 
-    // Map to count how many times user booked each location|type
-    const bookingCountMap = {};
-    pastBookings.forEach(r => {
-      const key = `${r.location.trim().toLowerCase()}|${r.type.trim().toLowerCase()}`;
-      bookingCountMap[key] = (bookingCountMap[key] || 0) + 1;
+    const hasHistory = bookings.length > 0;
+    const lastBooking = hasHistory ? bookings[0] : null;
+
+    // Frequency map across history
+    const freq = {};
+    bookings.forEach(r => {
+      const key = `${String(r.location||'').trim().toLowerCase()}|${String(r.type||'').trim().toLowerCase()}`;
+      freq[key] = (freq[key] || 0) + 1;
     });
 
-    // Fetch all available plots
+    // Candidate plots: available and dedup by plot_number
     const [plots] = await db.query(`
-      SELECT plot_id, plot_number, location, type, price, availability
-      FROM plot_map_tbl
-      WHERE LOWER(availability) = 'available'
-      ORDER BY location, plot_number
+      SELECT t.plot_id, t.plot_number, t.location, t.type, t.price, t.availability
+      FROM plot_map_tbl t
+      JOIN (
+        SELECT plot_number, MIN(plot_id) AS min_id
+        FROM plot_map_tbl
+        WHERE LOWER(availability) = 'available'
+        GROUP BY plot_number
+      ) x ON x.min_id = t.plot_id
+      WHERE LOWER(t.availability) = 'available'
     `);
 
-    // Normalize preferences from user input
-    const prefLocations = (preferences.locations || []).map(loc => loc.trim().toLowerCase());
-    const prefTypes = (preferences.types || []).map(t => t.trim().toLowerCase());
-    const minPrice = preferences.minPrice || 0;
-    const maxPrice = preferences.maxPrice || Number.MAX_SAFE_INTEGER;
+    // If new user with no prefs and no history → return empty; caller shows survey
+    if (!hasHistory && prefLocations.length === 0 && prefTypes.length === 0) {
+      return [];
+    }
 
-    // Helper to normalize strings for loose matching
-    const cleanString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // scoring weights
+    const WEIGHTS = {
+      locationPref: 5,
+      typePref: 4,
+      priceMatch: 2,
+      relatedLocation: 3,
+      relatedType: 3,
+      bookingType: 2,
+      bookingLocation: 2,
+      freqCap: 3
+    };
 
-    // Filter plots by preferences (partial match)
-    const filteredPlots = plots.filter(plot => {
-      const loc = cleanString(plot.location);
-      const type = cleanString(plot.type);
-      const price = plot.price;
+    const lastLocNorm = lastBooking ? String(lastBooking.location||'').trim().toLowerCase() : null;
+    const lastTypeNorm = lastBooking ? String(lastBooking.type||'').trim().toLowerCase() : null;
 
-      const locMatch = prefLocations.length === 0 || prefLocations.some(prefLoc => loc.includes(cleanString(prefLoc)));
-      const typeMatch = prefTypes.length === 0 || prefTypes.some(prefType => type.includes(cleanString(prefType)));
-      const priceMatch = price >= minPrice && price <= maxPrice;
+    const scored = plots.map(plot => {
+      const plotLocNorm = String(plot.location||'').trim().toLowerCase();
+      const plotTypeNorm = String(plot.type||'').trim().toLowerCase();
+      const plotLocTokens = normalizeTokens(plot.location);
+      const plotTypeTokens = normalizeTokens(plot.type);
 
-      return locMatch && typeMatch && priceMatch;
-    });
-
-    // If no filtered plots, fall back to top 10 available plots
-    const recommendedPlots = filteredPlots.length > 0 ? filteredPlots : plots.slice(0, 10);
-
-    // Compute scores and attach past booking count
-    const recommendations = recommendedPlots.map(plot => {
-      const loc = cleanString(plot.location);
-      const type = cleanString(plot.type);
       let score = 0;
+      let locMatches = 0;
+      let typeMatches = 0;
 
-      if (prefLocations.some(prefLoc => loc.includes(cleanString(prefLoc)))) score += 3;
-      if (prefTypes.some(prefType => type.includes(cleanString(prefType)))) score += 2;
-      if (plot.price >= minPrice && plot.price <= maxPrice) score += 1;
+      // preference matching
+      prefLocations.forEach(pl => {
+        const plTokens = normalizeTokens(pl);
+        if (plotLocNorm.includes(pl.toLowerCase()) || tokensIntersect(plTokens, plotLocTokens)) locMatches++;
+      });
+      prefTypes.forEach(pt => {
+        const ptTokens = normalizeTokens(pt);
+        if (plotTypeNorm.includes(pt.toLowerCase()) || tokensIntersect(ptTokens, plotTypeTokens)) typeMatches++;
+      });
 
-      const pastCount = bookingCountMap[`${plot.location.trim().toLowerCase()}|${plot.type.trim().toLowerCase()}`] || 0;
+      const hasPrefMatch = (locMatches > 0) || (typeMatches > 0);
+      const hasRelatedMatch = hasHistory && ((lastLocNorm && plotLocNorm === lastLocNorm) || (lastTypeNorm && plotTypeNorm === lastTypeNorm));
 
-      return {
-        ...plot,
-        matchScore: score,
-        pastBookingCount: pastCount
-      };
-    });
+      // flow-based filtering
+      if (!hasHistory) {
+        if (!hasPrefMatch) return null;
+      } else {
+        if (!hasPrefMatch && !hasRelatedMatch) return null;
+      }
 
-    // Exclude plots with zero preference match score
-    const filteredRecommendations = recommendations.filter(r => r.matchScore > 0);
+      if (locMatches > 0) score += locMatches * WEIGHTS.locationPref;
+      if (typeMatches > 0) score += typeMatches * WEIGHTS.typePref;
+      if (plot.price >= minPrice && plot.price <= maxPrice) score += WEIGHTS.priceMatch;
 
-    // Sort by weighted combined score
-    filteredRecommendations.sort((a, b) => {
-      const scoreA = (a.matchScore || 0) * 10 + Math.min(a.pastBookingCount || 0, 5);
-      const scoreB = (b.matchScore || 0) * 10 + Math.min(b.pastBookingCount || 0, 5);
-      return scoreB - scoreA;
-    });
+      if (hasHistory) {
+        if (lastLocNorm && plotLocNorm === lastLocNorm) score += WEIGHTS.relatedLocation;
+        if (lastTypeNorm && plotTypeNorm === lastTypeNorm) score += WEIGHTS.relatedType;
 
-    // Get top 3 to mark as Best Match
-    const top3Ids = filteredRecommendations.slice(0, 3).map(p => p.plot_id);
+        if (bookings.some(b => String(b.type||'').trim().toLowerCase() === plotTypeNorm))
+          score += WEIGHTS.bookingType;
+        if (bookings.some(b => String(b.location||'').trim().toLowerCase() === plotLocNorm))
+          score += WEIGHTS.bookingLocation;
 
-    // Return top 10 recommendations with Best Match flag
-    return filteredRecommendations.slice(0, 10).map(p => ({
-      ...p,
-      isBestMatch: top3Ids.includes(p.plot_id),
-    }));
+        const key = `${plotLocNorm}|${plotTypeNorm}`;
+        score += Math.min(freq[key] || 0, WEIGHTS.freqCap);
+      }
+
+      return { ...plot, score };
+    }).filter(Boolean);
+
+    // Preference-balanced selection to avoid duplicates when multiple prefs
+    // Build per-preference-pair buckets using original user preference order
+    function matchesLocPref(plot, locPref) {
+      const plotLocNorm = String(plot.location||'').toLowerCase();
+      const locTokens = normalizeTokens(locPref);
+      const plotLocTokens = normalizeTokens(plot.location);
+      return plotLocNorm.includes(locPref.toLowerCase()) || tokensIntersect(locTokens, plotLocTokens);
+    }
+    function matchesTypePref(plot, typePref) {
+      const plotTypeNorm = String(plot.type||'').toLowerCase();
+      const typeTokens = normalizeTokens(typePref);
+      const plotTypeTokens = normalizeTokens(plot.type);
+      return plotTypeNorm.includes(typePref.toLowerCase()) || tokensIntersect(typeTokens, plotTypeTokens);
+    }
+
+    // Prepare buckets
+    const pairBuckets = []; // [{key, items:[]}] where key is loc|type
+    const locOnlyBuckets = []; // [{loc, items:[]}] when no types selected
+    const typeOnlyBuckets = []; // [{type, items:[]}] when no locations selected
+
+    // Sort scored pool once by score desc
+    const sortedPool = [...scored].sort((a,b) => b.score - a.score);
+
+    if (prefLocations.length > 0 && prefTypes.length > 0) {
+      // Create pair buckets in user-specified order (round-robin over cartesian)
+      for (const locPref of prefLocations) {
+        for (const typePref of prefTypes) {
+          const key = `${locPref}|${typePref}`;
+          const items = sortedPool.filter(p => matchesLocPref(p, locPref) && matchesTypePref(p, typePref));
+          if (items.length > 0) pairBuckets.push({ key, items });
+        }
+      }
+    }
+
+    if (prefLocations.length > 0 && prefTypes.length === 0) {
+      for (const locPref of prefLocations) {
+        const items = sortedPool.filter(p => matchesLocPref(p, locPref));
+        if (items.length > 0) locOnlyBuckets.push({ loc: locPref, items });
+      }
+    }
+
+    if (prefTypes.length > 0 && prefLocations.length === 0) {
+      for (const typePref of prefTypes) {
+        const items = sortedPool.filter(p => matchesTypePref(p, typePref));
+        if (items.length > 0) typeOnlyBuckets.push({ type: typePref, items });
+      }
+    }
+
+    const selected = [];
+    const seenPlotNumbers = new Set();
+    const seenPairs = new Set(); // track location|type to promote diversity
+    function pairKey(p) { return `${p.location}|${p.type}`; }
+
+    // Helper to pick next item from a bucket honoring uniqueness
+    function pickFromBucket(bucket) {
+      while (bucket.items.length > 0) {
+        const cand = bucket.items.shift();
+        const pk = pairKey(cand);
+        if (!seenPlotNumbers.has(cand.plot_number) && !seenPairs.has(pk)) {
+          selected.push(cand);
+          seenPlotNumbers.add(cand.plot_number);
+          seenPairs.add(pk);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Round-robin across pair buckets first (strongest match to both loc and type)
+    let idx = 0;
+    while (selected.length < 5 && pairBuckets.length > 0) {
+      const bIndex = idx % pairBuckets.length;
+      const b = pairBuckets[bIndex];
+      pickFromBucket(b);
+      // enforce max 1 selection per pair bucket to avoid duplicates
+      pairBuckets.splice(bIndex, 1);
+      if (pairBuckets.length === 0) break;
+      idx++;
+    }
+
+    // Then fill with loc-only buckets if needed (1 per loc)
+    idx = 0;
+    while (selected.length < 5 && locOnlyBuckets.length > 0) {
+      const bIndex = idx % locOnlyBuckets.length;
+      const b = locOnlyBuckets[bIndex];
+      // allow pick if pair not used yet
+      pickFromBucket(b);
+      // remove bucket to enforce 1-per-loc in this phase
+      locOnlyBuckets.splice(bIndex, 1);
+      if (locOnlyBuckets.length === 0) break;
+      idx++;
+    }
+
+    // Then type-only buckets (1 per type)
+    idx = 0;
+    while (selected.length < 5 && typeOnlyBuckets.length > 0) {
+      const bIndex = idx % typeOnlyBuckets.length;
+      const b = typeOnlyBuckets[bIndex];
+      pickFromBucket(b);
+      typeOnlyBuckets.splice(bIndex, 1);
+      if (typeOnlyBuckets.length === 0) break;
+      idx++;
+    }
+
+    // Two-phase fallback from the overall pool (already sorted):
+    // Phase 1: prefer unseen pairs
+    for (const p of sortedPool) {
+      if (selected.length >= 5) break;
+      const pk = pairKey(p);
+      if (!seenPlotNumbers.has(p.plot_number) && !seenPairs.has(pk)) {
+        selected.push(p);
+        seenPlotNumbers.add(p.plot_number);
+        seenPairs.add(pk);
+      }
+    }
+    // Phase 2: if still short, allow duplicates of pairs but keep unique plot_numbers
+    for (const p of sortedPool) {
+      if (selected.length >= 5) break;
+      if (!seenPlotNumbers.has(p.plot_number)) {
+        selected.push(p);
+        seenPlotNumbers.add(p.plot_number);
+      }
+    }
+
+    const top = selected.slice(0, 5);
+    const top3Ids = top.slice(0, 3).map(p => p.plot_id);
+    return top.map(p => ({ ...p, isBestMatch: top3Ids.includes(p.plot_id) }));
 
   } catch (err) {
     console.error('AI Recommendation Error:', err);
     return [];
   }
 }
+
 
 module.exports = { getAIRecommendations };

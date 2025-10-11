@@ -18,6 +18,12 @@
 
     <!-- Dashboard Content -->
   <div class="dashboard-container">
+    <% if (typeof alert !== 'undefined' && alert) { %>
+      <div style="background:#fff3cd;color:#856404;border:1px solid #ffeeba;padding:12px 16px;border-radius:6px;margin-bottom:16px;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span style="margin-left:8px;"><%= alert %></span>
+      </div>
+    <% } %>
     <!-- Welcome Section -->
     <section class="welcome-section">
       <h2>Welcome, <em><%= user.name %>!</em></h2>
@@ -208,5 +214,48 @@ async function payNow(bookingId, amount) {
 
     document.addEventListener("DOMContentLoaded", loadNotifications);
   </script>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const prefForm = document.querySelector('#preferencesForm');
+  if (!prefForm) return;
+
+  prefForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Stop default form submit
+
+    // ✅ Collect selected checkboxes
+    const locations = Array.from(document.querySelectorAll('input[name="locations[]"]:checked'))
+      .map(cb => cb.value);
+    const types = Array.from(document.querySelectorAll('input[name="types[]"]:checked'))
+      .map(cb => cb.value);
+
+    // ✅ Collect price range
+    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Number.MAX_SAFE_INTEGER;
+
+    const preferences = { locations, types, minPrice, maxPrice };
+    console.log("🟢 Sending preferences:", preferences);
+
+    try {
+      const res = await fetch('/userdashboard/save-preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferences)
+      });
+
+      if (res.ok) {
+        alert("✅ Preferences saved!");
+        window.location.href = '/userdashboard'; // redirect after success
+      } else {
+        const text = await res.text();
+        throw new Error(text);
+      }
+    } catch (err) {
+      console.error("❌ Error saving preferences:", err);
+      alert("Failed to save preferences. Check console for details.");
+    }
+  });
+});
+</script>
+
 </body>
 </html>

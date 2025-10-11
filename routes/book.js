@@ -82,7 +82,24 @@ router.post('/', requireLogin, async (req, res) => {
       return res.redirect('/bookplots');
     }
 
-    // Insert booking for Memorial/Burial
+    // Burial: verify ownership and redirect to deceased details form
+    if (bookingData.serviceType === 'burial') {
+      const [ownedPlots] = await db.query(
+        `SELECT plot_id FROM plot_map_tbl WHERE user_id = ? LIMIT 1`,
+        [userId]
+      );
+
+      if (!ownedPlots || ownedPlots.length === 0) {
+        return res.redirect('/userdashboard?alert=' + encodeURIComponent("It seems that you currently don't have any plot yet, book a plot first."));
+      }
+
+      req.session.burialBookingData = bookingData;
+      req.session.burialPlotId = ownedPlots[0].plot_id;
+
+      return res.redirect('/book/burial-details');
+    }
+
+    // Insert booking for Memorial
     const [result] = await db.query(
       `INSERT INTO booking_tbl (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
@@ -118,6 +135,106 @@ router.post('/', requireLogin, async (req, res) => {
   } catch (err) {
     console.error('Error saving booking:', err);
     res.render('book', { title: 'Booking Form', error: 'Failed to create booking. Please try again.', bookingData, bookings: [] });
+  }
+});
+
+// Burial details routes
+router.get('/burial-details', requireLogin, async (req, res) => {
+  const bookingData = req.session.burialBookingData;
+  if (!bookingData) return res.redirect('/book');
+  res.render('burial_details', {
+    title: 'Burial Details',
+    bookingData
+  });
+});
+
+router.post('/burial-details', requireLogin, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const { deceased_firstName, deceased_lastName, birth_date, death_date } = req.body;
+
+  const bookingData = req.session.burialBookingData;
+  let plotId = req.session.burialPlotId;
+
+  if (!bookingData) {
+    return res.redirect('/book');
+  }
+
+  if (!deceased_firstName || !deceased_lastName || !birth_date || !death_date) {
+    return res.render('burial_details', {
+      title: 'Burial Details',
+      bookingData,
+      error: 'All deceased information fields are required.'
+    });
+  }
+
+  try {
+    if (!plotId) {
+      const [owned] = await db.query(`SELECT plot_id FROM plot_map_tbl WHERE user_id = ? LIMIT 1`, [userId]);
+      if (!owned || owned.length === 0) {
+        return res.redirect('/userdashboard?alert=' + encodeURIComponent("It seems that you currently don't have any plot yet, book a plot first."));
+      }
+      plotId = owned[0].plot_id;
+    }
+
+    // Update plot with deceased info
+    await db.query(
+      `UPDATE plot_map_tbl
+       SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?
+       WHERE plot_id = ? AND user_id = ?`,
+      [deceased_firstName, deceased_lastName, birth_date, death_date, plotId, userId]
+    );
+
+    // Insert burial booking
+    const [result] = await db.query(
+      `INSERT INTO booking_tbl
+       (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, plot_id, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'burial', ?, ?, 'pending')`,
+      [
+        userId,
+        bookingData.firstname,
+        bookingData.lastname,
+        bookingData.email,
+        bookingData.phone,
+        bookingData.bookingDate,
+        bookingData.visitTime,
+        bookingData.notes,
+        plotId
+      ]
+    );
+    const bookingId = result.insertId;
+
+    await db.query(
+      `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+       VALUES (?, ?, ?, 0, NOW(), ?)`,
+      [userId, bookingId, 'Your burial booking has been submitted and is pending approval.', plotId]
+    );
+
+    // Clear session vars for burial flow
+    req.session.burialBookingData = null;
+    req.session.burialPlotId = null;
+
+    const [userBookings] = await db.query(
+      `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
+       FROM booking_tbl b
+       LEFT JOIN plot_map_tbl p ON b.plot_id = p.plot_id
+       WHERE b.user_id = ?
+       ORDER BY b.booking_date DESC`,
+      [userId]
+    );
+
+    return res.render('book', {
+      title: 'Booking Form',
+      bookingData: null,
+      success: 'Your burial booking and deceased details have been submitted.',
+      bookings: userBookings
+    });
+  } catch (err) {
+    console.error('Error saving burial details:', err);
+    return res.render('burial_details', {
+      title: 'Burial Details',
+      bookingData,
+      error: 'Failed to save burial details. Please try again.'
+    });
   }
 });
 

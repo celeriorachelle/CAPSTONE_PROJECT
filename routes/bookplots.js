@@ -12,89 +12,108 @@ function requireLogin(req, res, next) {
   next();
 }
 
-router.get('/', requireLogin, async (req, res) => {
-  const userId = req.session.user.user_id;
+  router.get('/', requireLogin, async (req, res) => {
+    const userId = req.session.user.user_id;
 
-  // 1️⃣ Fetch preferences, always parse JSON string
-  let userPreferences = await cache.get(`user_preferences:${userId}`);
-  if (userPreferences && typeof userPreferences === 'string') userPreferences = JSON.parse(userPreferences);
-  if (!userPreferences || Object.keys(userPreferences).length === 0) userPreferences = {};
+    try {
+      // robust parse for preferences and cache values
+      const rawPrefs = await cache.get(`user_preferences:${userId}`);
+      let userPreferences;
+      if (rawPrefs == null) userPreferences = {};
+      else if (typeof rawPrefs === 'string') {
+        try { userPreferences = JSON.parse(rawPrefs); } catch (e) { userPreferences = {}; }
+      } else userPreferences = rawPrefs;
 
-  let recommendations = [];
-  const cacheKey = `ai_recommendations:${userId}`;
+      const cacheKey = `ai_recommendations:${userId}`;
+      const rawRecs = await cache.get(cacheKey);
+      const recommendations = (() => {
+        if (!rawRecs) return null;
+        if (Array.isArray(rawRecs)) return rawRecs;
+        if (typeof rawRecs === 'string') {
+          try { const parsed = JSON.parse(rawRecs); return Array.isArray(parsed) ? parsed : null; } catch (e) { return null; }
+        }
+        return null;
+      })();
 
-  try {
-    // 2️⃣ Fetch cached recommendations
-    recommendations = await cache.get(cacheKey);
-    if (recommendations && typeof recommendations === 'string') recommendations = JSON.parse(recommendations);
+      // Check booking history
+      const [pastBookingsCount] = await db.query(
+        `SELECT COUNT(*) AS count FROM booking_tbl WHERE user_id = ?`,
+        [userId]
+      );
+      const hasHistory = pastBookingsCount[0].count > 0;
 
-    // 3️⃣ Generate fresh if none
-    if (!recommendations || recommendations.length === 0) {
-      recommendations = await getAIRecommendations(userId, userPreferences);
-      recommendations = recommendations.slice(0, 3); // slice top 3, do not re-sort
+      // Check if preferences actually contain selections
+      const hasPreferences = userPreferences && (
+        (Array.isArray(userPreferences.locations) && userPreferences.locations.length > 0) ||
+        (Array.isArray(userPreferences.types) && userPreferences.types.length > 0) ||
+        (typeof userPreferences.minPrice === 'number' && userPreferences.minPrice > 0) ||
+        (typeof userPreferences.maxPrice === 'number' && userPreferences.maxPrice < Number.MAX_SAFE_INTEGER)
+      );
 
-      // Store in Redis as JSON string
-      await cache.set(cacheKey, JSON.stringify(recommendations), 30);
+      let finalRecommendations = recommendations;
+      if ((!finalRecommendations || finalRecommendations.length === 0) && (hasPreferences || hasHistory)) {
+        const aiRecs = await getAIRecommendations(userId, userPreferences || {});
+        finalRecommendations = aiRecs;
 
-      // Optional: store in MySQL
-      try {
-        const expiresAt = new Date(Date.now() + 30 * 1000)
+        await cache.set(cacheKey, finalRecommendations, 600);
+        const expiresAt = new Date(Date.now() + 600 * 1000)
           .toISOString().slice(0, 19).replace('T', ' ');
         await db.query(`
-          INSERT INTO ai_recommendation_cache_tbl
-            (cache_id, user_id, data, created_at, expires_at)
+          INSERT INTO ai_recommendation_cache_tbl (cache_id, user_id, data, created_at, expires_at)
           VALUES (?, ?, ?, NOW(), ?)
-          ON DUPLICATE KEY UPDATE
-            data = VALUES(data),
-            created_at = NOW(),
-            expires_at = VALUES(expires_at)
-        `, [uuidv4(), userId, JSON.stringify(recommendations), expiresAt]);
-      } catch (err) {
-        console.error('Failed to store AI recommendations in DB:', err);
+          ON DUPLICATE KEY UPDATE data=VALUES(data), created_at=NOW(), expires_at=VALUES(expires_at)
+        `, [uuidv4(), userId, JSON.stringify(finalRecommendations), expiresAt]);
+      } else if (!finalRecommendations) {
+        finalRecommendations = [];
       }
+    console.log('📊 BOOKPLOTS - Loaded userPreferences:', userPreferences);
+
+      // Fetch available plots (pagination)
+      const page = parseInt(req.query.page) || 1;
+      const limit = 10;
+      const [countRows] = await db.query(
+        `SELECT COUNT(DISTINCT plot_number) AS total FROM plot_map_tbl`
+      );
+      const totalPlots = countRows[0].total;
+      const offset = (page - 1) * limit;
+
+      const [rows] = await db.query(
+        `SELECT t.plot_id, t.plot_number, t.location, t.type, t.price, t.availability
+        FROM plot_map_tbl t
+        JOIN (
+          SELECT plot_number, MIN(plot_id) AS min_id
+          FROM plot_map_tbl
+          GROUP BY plot_number
+        ) x ON x.min_id = t.plot_id
+        ORDER BY t.location, t.plot_number
+        LIMIT ? OFFSET ?`,
+        [limit, offset]
+      );
+
+      const plots = rows.map(p => ({
+        ...p,
+        availability: (p.availability || 'available').toLowerCase()
+      }));
+
+      res.render('bookplots', {
+        title: 'Book Plots',
+        recommendations: finalRecommendations || [],
+        plots,
+        currentPage: page,
+        totalPages: Math.ceil(totalPlots / limit)
+      });
+
+    } catch (err) {
+      console.error('Error in bookplots route:', err);
+      res.render('bookplots', {
+        title: 'Book Plots',
+        recommendations: [],
+        plots: [],
+        currentPage: 1,
+        totalPages: 1
+      });
     }
-  } catch (err) {
-    console.error(err);
-    recommendations = [];
-  }
-
-  // 4️⃣ Pagination for all plots
-  const page = parseInt(req.query.page) || 1;
-  const limit = 10;
-  let plots = [];
-  try {
-    const [countRows] = await db.query(`SELECT COUNT(*) AS total FROM plot_map_tbl`);
-    const totalPlots = countRows[0].total;
-    const offset = (page - 1) * limit;
-
-    const [rows] = await db.query(`
-      SELECT plot_id, plot_number, location, type, price, availability
-      FROM plot_map_tbl
-      ORDER BY location, plot_number
-      LIMIT ? OFFSET ?
-    `, [limit, offset]);
-
-    plots = rows.map(p => ({ ...p, availability: (p.availability || 'available').toLowerCase() }));
-    const totalPages = Math.ceil(totalPlots / limit);
-
-    res.render('bookplots', {
-      title: 'Book Plots',
-      recommendations,
-      plots,
-      currentPage: page,
-      totalPages
-    });
-  } catch (err) {
-    console.error(err);
-    res.render('bookplots', {
-      title: 'Book Plots',
-      recommendations,
-      plots: [],
-      currentPage: 1,
-      totalPages: 1
-    });
-  }
-});
+  });
 
 
 // 2️⃣ Show Payment Option Page
@@ -179,7 +198,17 @@ router.post('/create-checkout-session', requireLogin, async (req, res) => {
       }],
       mode: 'payment',
       success_url: `${process.env.BASE_URL}/bookplots/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.BASE_URL}/bookplots/cancel`
+      cancel_url: `${process.env.BASE_URL}/bookplots/cancel`,
+      client_reference_id: String(req.session.user.user_id),
+      metadata: {
+        user_id: String(req.session.user.user_id),
+        plot_id: String(plot_id),
+        option: String(option || ''),
+        payment_type: String(payment_type || ''),
+        months: String(months || ''),
+        monthly_amount: String(monthly_amount || ''),
+        amount: String(amount)
+      }
     });
 
     res.json({ id: session.id });
@@ -204,7 +233,7 @@ router.get('/success', async (req, res) => {
 
     // Retrieve bookingData, selectedPlot, and paymentData from session
     const bookingData = req.session.bookingData;
-    const plot = req.session.selectedPlot;
+    let plot = req.session.selectedPlot;
     const paymentData = req.session.paymentData;
     // Normalize possible array fields from form submission
     const norm = (v) => (Array.isArray(v) ? v[0] : v);
@@ -216,6 +245,15 @@ router.get('/success', async (req, res) => {
       monthly_amount: paymentData.monthly_amount != null ? parseFloat(norm(paymentData.monthly_amount)) : null,
       due_date: paymentData.due_date ? norm(paymentData.due_date) : null,
     } : null;
+
+    // Fallback: if selectedPlot missing, try Stripe metadata
+    const md = session.metadata || {};
+    if (!plot && md.plot_id) {
+      const [pRows] = await db.query("SELECT * FROM plot_map_tbl WHERE plot_id = ?", [md.plot_id]);
+      if (Array.isArray(pRows) && pRows.length > 0) {
+        plot = pRows[0];
+      }
+    }
 
     // Insert booking row only if all session objects exist
     let bookingId = null;
@@ -247,6 +285,10 @@ router.get('/success', async (req, res) => {
       req.session.bookingData = null;
       req.session.selectedPlot = null;
     }
+    await cache.del(`ai_recommendations:${userId}`);
+
+  // Optional: also clear DB cache version
+  await db.query(`DELETE FROM ai_recommendation_cache_tbl WHERE user_id = ?`, [userId]);
 
     // 3️⃣ Insert payment record linked to booking
     if (bookingId && paymentData) {
@@ -276,6 +318,10 @@ router.get('/success', async (req, res) => {
       );
       // Clear payment session data
       req.session.paymentData = null;
+      // Mark plot owner as current user (on successful payment)
+      if (plot && plot.plot_id) {
+        await db.query('UPDATE plot_map_tbl SET user_id = ? WHERE plot_id = ?', [userId, plot.plot_id]);
+      }
     }
 
     // 4️⃣ Update booking status and plot availability
@@ -301,6 +347,15 @@ router.get('/success', async (req, res) => {
          WHERE b.booking_id = ?`,
         [bookingId]
       );
+    } else if (plot && normalizedPaymentData && typeof normalizedPaymentData.amount === 'number') {
+      // If booking was not created for any reason, still reflect availability based on payment amount
+      const amountPaid = normalizedPaymentData.amount;
+      const availability = amountPaid >= plot.price
+        ? 'occupied'
+        : amountPaid >= plot.price * 0.2
+          ? 'reserved'
+          : (plot.availability || 'available');
+      await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', [availability, userId, plot.plot_id]);
     }
 
     // 5️⃣ Render success page
@@ -348,5 +403,42 @@ router.get('/installments/:bookingId', requireLogin, async (req, res) => {
   }
 });
 
+
+// JSON endpoint to fetch AI recommendations (used by front-end auto-refresh)
+router.get('/ai-recommendations', requireLogin, async (req, res) => {
+  const userId = req.session.user.user_id;
+  try {
+    const cacheKey = `ai_recommendations:${userId}`;
+    const raw = await cache.get(cacheKey);
+    let recs = null;
+    if (raw) {
+      if (Array.isArray(raw)) recs = raw;
+      else if (typeof raw === 'string') {
+        try { recs = JSON.parse(raw); } catch (e) { recs = null; }
+      }
+    }
+
+    if (!recs || recs.length === 0) {
+      // Load preferences
+      const rawPrefs = await cache.get(`user_preferences:${userId}`);
+      let prefs = {};
+      if (rawPrefs) {
+        if (typeof rawPrefs === 'string') {
+          try { prefs = JSON.parse(rawPrefs); } catch (e) { prefs = {}; }
+        } else if (typeof rawPrefs === 'object') {
+          prefs = rawPrefs;
+        }
+      }
+      recs = await getAIRecommendations(userId, prefs || {});
+      await cache.set(cacheKey, recs, 600);
+    }
+
+    // Ensure array
+    res.json({ recommendations: Array.isArray(recs) ? recs : [] });
+  } catch (err) {
+    console.error('AI rec JSON endpoint error:', err);
+    res.json({ recommendations: [] });
+  }
+});
 
 module.exports = router;
