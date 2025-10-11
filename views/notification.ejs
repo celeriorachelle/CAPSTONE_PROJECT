@@ -4,85 +4,225 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notifications | Everlasting Peace Memorial Park</title>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/stylesheets/notification.css">
-</head>
-<body>
-  <!-- Sidebar -->
-  <%- include('partials/sidebar') %>
 
-  <div class="main" id="main">
-    <!-- Topbar -->
-    <%- include('partials/topbar', { title: "Notifications" }) %>
-
-    <div class="container main-content">
-      <section class="section-card">
-        <h2 class="section-title" style="margin-bottom:12px;">Notifications</h2>
-        <div id="notificationList" class="notifications-list"><!-- JS will fill this --></div>
-        <div style="margin-top:12px; text-align:right;">
-          <button id="markReadBtn" class="btn-mark">Mark all as read</button>
-        </div>
-      </section>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <%- include('partials/footer') %>
-    </footer>
-  </div>
-
-<script>
-async function loadNotifications() {
-  try {
-    const res = await fetch('/notifications/json');
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-    const notifications = await res.json();
-    const list = document.getElementById('notificationList');
-    list.innerHTML = '';
-
-    if (!notifications || notifications.length === 0) {
-      list.innerHTML = '<p>No notifications yet.</p>';
-      return;
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f5f0;
+      margin: 0;
+      padding: 0;
     }
 
-    notifications.forEach(notif => {
-      const message = notif.message || 'No message';
-      const formattedDate = (notif.created_at || notif.datestamp) ? new Date(notif.created_at || notif.datestamp).toLocaleString() : '';
+    .notif-container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 20px 30px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
 
-      const item = document.createElement('div');
-      item.className = `notification-item ${notif.read ? 'read' : 'unread'}`;
-      item.innerHTML = `
-        <i class="fas fa-envelope"></i>
-        <div>
-          <p class="message">${message}</p>
-          <small>${formattedDate}</small>
-        </div>
-      `;
-      list.appendChild(item);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      text-align: center;
+      color: #2b6e2f;
+      margin-bottom: 25px;
+    }
+
+    .no-notifs {
+      text-align: center;
+      color: gray;
+      font-size: 1.1em;
+    }
+
+    .notif-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .notif-card {
+      padding: 15px 20px;
+      border-radius: 10px;
+      border-left: 6px solid #2b6e2f;
+      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .notif-card.unread {
+      background-color: #e9f9e9;
+      border-left-color: #4CAF50;
+    }
+
+    .notif-card.read {
+      background-color: #f9f9f9;
+      opacity: 0.9;
+    }
+
+    .notif-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .notif-message {
+      color: #555;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .notif-time {
+      font-size: 0.9em;
+      color: gray;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      background-color: #2b6e2f;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .back-btn:hover {
+      background-color: #3d8c42;
+      transform: scale(1.05);
+    }
+
+    .back-btn i {
+      margin-right: 8px;
+    }
+
+    /* 🔔 Popup Notification */
+    .notif-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #2b6e2f;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: popupFade 0.5s forwards;
+    }
+
+    @keyframes popupFade {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="notif-container">
+    <a href="/userdashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    <h1><i class="fas fa-bell"></i> Notifications</h1>
+
+    <% if (notifications.length === 0) { %>
+      <p class="no-notifs">No notifications found.</p>
+    <% } else { %>
+      <div class="notif-list">
+        <% notifications.forEach(n => { %>
+          <div class="notif-card <%= n.is_read ? 'read' : 'unread' %>">
+            <div class="notif-header">
+              <p><strong><%= n.firstName || 'Everlasting Peace Memorial Park Cemetery' %> <%= n.lastName || '' %></strong></p>
+              <span class="notif-time"><%= new Date(n.datestamp).toLocaleString() %></span>
+            </div>
+            <p class="notif-message"><%= n.message %></p>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Automatically mark notifications as read when page loads
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await fetch("/notifications/mark-read", { method: "POST" });
+        console.log("✅ Notifications marked as read");
+      } catch (err) {
+        console.error("Error marking notifications as read:", err);
+      }
     });
-  } catch (err) {
-    console.error("Error loading notifications:", err);
-    document.getElementById('notificationList').innerHTML = '<p>Failed to load notifications.</p>';
-  }
-}
 
-async function markAllRead() {
-  try {
-    const res = await fetch('/notifications/mark-read', { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to mark notifications read');
-    await loadNotifications();
-  } catch (err) {
-    console.error("Mark read error:", err);
-  }
-}
+    // Popup notification for new messages
+    let lastCount = <%= notifications.filter(n => !n.is_read).length %>;
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadNotifications();
-  const btn = document.getElementById('markReadBtn');
-  if (btn) btn.addEventListener('click', markAllRead);
-  setInterval(loadNotifications, 30000);
-});
-</script>
+    async function checkNewNotifications() {
+      try {
+        const res = await fetch("/notifications/json");
+        const data = await res.json();
+        const unread = data.filter(n => !n.is_read);
+
+        // If new unread appeared, show popup
+        if (unread.length > lastCount) {
+          showPopup(unread[0].message);
+        }
+
+        lastCount = unread.length;
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+      }
+    }
+
+    // 🔔 Function to show popup
+    function showPopup(message) {
+      const popup = document.createElement("div");
+      popup.classList.add("notif-popup");
+      popup.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+      document.body.appendChild(popup);
+
+      setTimeout(() => {
+        popup.style.opacity = "0";
+        popup.style.transform = "translateY(10px)";
+        setTimeout(() => popup.remove(), 500);
+      }, 4000);
+    }
+
+    // 🕒 Check every 10 seconds
+    setInterval(checkNewNotifications, 10000);
+
+    // 🟢 OPTIONAL: update badge count if you have a navbar bell
+    async function updateBadge() {
+      try {
+        const res = await fetch("/notifications/unread/count");
+        const { count } = await res.json();
+        const badge = document.querySelector(".notif-badge");
+        if (badge) {
+          badge.textContent = count > 0 ? count : "";
+          badge.style.display = count > 0 ? "inline-block" : "none";
+        }
+      } catch (err) {
+        console.error("Error updating badge:", err);
+      }
+    }
+
+    setInterval(updateBadge, 10000);
+  </script>
 </body>
 </html>

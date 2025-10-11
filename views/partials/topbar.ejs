@@ -1,260 +1,299 @@
-<div class="topbar">
-  <div class="topbar-right">
-    <!-- Notifications -->
-    <div class="notification-btn" id="notifBtn">
-      <i class="fas fa-bell"></i>
-      <span class="notif-badge">3</span> <!-- example count -->
-      <div class="notif-dropdown" id="notifDropdown">
-        <p class="notif-header">Notifications</p>
-        <a href="/notifications" class="notif-link">View all notifications</a>
-      </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topbar | Everlasting Peace Memorial Park</title>
 
-    <!-- Profile -->
-    <div class="profile-wrapper">
-      <div class="profile-btn" id="profileBtn">
-        <i class="fas fa-user"></i>
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <style>
+    /* 🔝 TOPBAR */
+    .topbar {
+      background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
+      border-bottom: 1px solid rgba(16, 27, 13, 0.1);
+      box-shadow: inset 0 -1px 0 rgba(16, 27, 13, 0.1);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0.8rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      min-height: 58px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    /* 🔔 NOTIFICATION ICON */
+    .notification-btn {
+      position: relative;
+      width: 45px;
+      height: 45px;
+      margin-top: 4px;
+      background: #0000001a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease;
+      font-size: 1.3rem;
+      color: #101b0d;
+    }
+
+    .notification-btn:hover {
+      background: #0000002a;
+    }
+
+    /* 🔢 Badge */
+    .notif-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #9dab6c;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    /* ✨ Glow & Shake Animation for New Notifications */
+    @keyframes bellShake {
+      0% { transform: rotate(0deg); }
+      15% { transform: rotate(15deg); }
+      30% { transform: rotate(-15deg); }
+      45% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .notification-btn.new {
+      animation: bellShake 0.7s ease-in-out;
+      box-shadow: 0 0 12px rgba(154, 171, 108, 0.8);
+      background: rgba(154, 171, 108, 0.2);
+    }
+
+    /* 👤 PROFILE */
+    .profile-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .profile-btn {
+      width: 45px;
+      height: 45px;
+      margin-top: 4px;
+      background: #0000001a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease;
+      font-size: 1.4rem;
+      color: #101b0d;
+    }
+
+    .profile-btn:hover {
+      background: #0000002a;
+    }
+
+    .dropdown-toggle {
+      font-size: 1.1rem;
+      color: #101b0d;
+      cursor: pointer;
+      transition: color 0.25s ease;
+    }
+
+    /* 🔽 Dropdown Menu */
+    .dropdown-menu {
+      margin-top: 0.7rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(16, 27, 13, 0.12);
+      min-width: 180px;
+      border: 1px solid rgba(16, 27, 13, 0.1);
+      z-index: 1001;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      display: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      overflow: hidden;
+    }
+
+    .dropdown-menu .dropdown-link {
+      display: block;
+      padding: 0.65rem 1rem;
+      color: #101b0d;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      font-family: Poppins, sans-serif;
+      letter-spacing: 0.2px;
+      opacity: 0;
+      transform: translateY(5px);
+      transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+    }
+
+    .dropdown-menu .dropdown-link:hover {
+      background: rgba(16, 27, 13, 0.06);
+    }
+
+    .profile-wrapper.active .dropdown-menu {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .profile-wrapper.active .dropdown-menu .dropdown-link {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 🪄 TOAST POPUP */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #9dab6c;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-family: Poppins, sans-serif;
+      font-size: 0.95rem;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(30px);
+      pointer-events: none;
+      transition: all 0.4s ease;
+      z-index: 2000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-right">
+      <!-- 🔔 Notifications -->
+      <div class="notification-btn" id="notifBtn" title="View Notifications">
+        <i class="fas fa-bell"></i>
+        <span class="notif-badge" id="notifBadge">0</span>
       </div>
-      <div class="dropdown-toggle" id="profileToggle">
-        <i class="fas fa-caret-down"></i>
-      </div>
-      <div class="dropdown-menu" id="profileDropdown">
-        <a href="/login/logout" class="dropdown-link">Logout</a>
-        <a href="/accountsettings" class="dropdown-link"> Account Settings</a>
+
+      <!-- 👤 Profile -->
+      <div class="profile-wrapper">
+        <div class="profile-btn" id="profileBtn">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="dropdown-toggle" id="profileToggle">
+          <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="dropdown-menu" id="profileDropdown">
+          <a href="/accountsettings" class="dropdown-link">Account Settings</a>
+          <a href="/login/logout" class="dropdown-link">Logout</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const profileWrapper = document.querySelector(".profile-wrapper");
-  const notifBtn = document.getElementById("notifBtn");
-  const notifDropdown = document.getElementById("notifDropdown");
+  <!-- 🪄 Toast Container -->
+  <div class="toast" id="toast">🔔 New notification received!</div>
 
-  // Profile toggle
-  const dropdownToggle = profileWrapper.querySelector(".dropdown-toggle");
-  profileWrapper.addEventListener("click", () => {
-    profileWrapper.classList.toggle("active");
-    if (dropdownToggle) dropdownToggle.classList.toggle("active");
-  });
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const profileWrapper = document.querySelector(".profile-wrapper");
+      const dropdownToggle = document.getElementById("profileToggle");
+      const notifBtn = document.getElementById("notifBtn");
+      const notifBadge = document.getElementById("notifBadge");
+      const toast = document.getElementById("toast");
 
-  // Notifications toggle
-  notifBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    notifDropdown.style.display = notifDropdown.style.display === "block" ? "none" : "block";
-  });
+      let lastUnreadCount = 0;
 
-  // Close dropdowns on outside click
-  document.addEventListener("click", (e) => {
-    if (!profileWrapper.contains(e.target)) {
-      profileWrapper.classList.remove("active");
-      if (dropdownToggle) dropdownToggle.classList.remove("active");
-    }
-    if (!notifBtn.contains(e.target)) {
-      notifDropdown.style.display = "none";
-    }
-  });
+      // 🔔 Click → Go to notifications page
+      notifBtn.addEventListener("click", () => {
+        window.location.href = "/notification";
+      });
 
-  // Highlight active link in profile dropdown
-  const currentPath = window.location.pathname;
-  document.querySelectorAll('#profileDropdown .dropdown-link').forEach(link => {
-    if (link.getAttribute('href') === currentPath) {
-      link.classList.add('active');
-    }
-  });
-});
-</script>
+      // 👤 Profile dropdown toggle
+      profileWrapper.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profileWrapper.classList.toggle("active");
+        dropdownToggle.classList.toggle("active");
+      });
 
-<style>
-/* TOPBAR */
-.topbar {
-  background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);;
-  border-bottom: 1px solid rgba(16,27,13,0.1);
-  box-shadow: inset 0 -1px 0 rgba(16,27,13,0.1);
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0.8rem 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  min-height: 58px;
-}
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!profileWrapper.contains(e.target)) {
+          profileWrapper.classList.remove("active");
+          dropdownToggle.classList.remove("active");
+        }
+      });
 
-.dashboard-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2d4a24;
-  margin: 0;
-}
+      // ✨ Show Toast Notification
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 4000);
+      }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
+      // 🟢 Fetch unread notification count
+      async function updateNotificationBadge() {
+        try {
+          const res = await fetch("/notifications/unread/count");
+          if (!res.ok) throw new Error("Failed to fetch unread count");
 
-/* NOTIFICATIONS */
-.notification-btn {
-  position: relative;
-  width: 45px;
-  height: 45px;
-  margin-top: 4px;
-  background: #0000001a;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease;
-  font-size: 1.3rem;
-  color: #101b0d;
-}
+          const data = await res.json();
+          const count = data.count;
 
-.notification-btn:hover,
-.notification-btn.active {
-  background: #0000001a;
-  color: #fffff5;
-}
+          if (count > 0) {
+            notifBadge.style.display = "inline-block";
+            notifBadge.textContent = count;
+          } else {
+            notifBadge.style.display = "none";
+          }
 
-.notif-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #9dab6c;
-  color: #fff;
-  font-size: 0.65rem;
-  padding: 2px 5px;
-  border-radius: 10px;
-}
+          // 🔥 If new notifications appeared → animate bell & toast popup
+          if (count > lastUnreadCount) {
+            notifBtn.classList.add("new");
+            setTimeout(() => notifBtn.classList.remove("new"), 1200);
 
-.notif-dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 120%;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(16,27,13,0.12);
-  min-width: 200px;
-  padding: 0.5rem 0;
-  border: 1px solid rgba(16,27,13,0.1);
-  z-index: 1000;
-}
+            showToast("🔔 New notification received!");
+          }
 
-.notif-dropdown .notif-header {
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid rgba(16,27,13,0.1);
-}
+          lastUnreadCount = count;
+        } catch (err) {
+          console.error("Error fetching notification count:", err);
+        }
+      }
 
-.notif-dropdown .notif-link {
-  display: block;
-  padding: 0.65rem 1rem;
-  color: #101b0d;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.notif-dropdown .notif-link:hover {
-  background: rgba(16,27,13,0.06);
-}
-
-/* PROFILE (your provided style) */
-.profile-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.profile-btn {
-  width: 45px;
-  height: 45px;
-  margin-top: 4px;
-  background: #0000001a;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease;
-  font-size: 1.4rem; 
-  color: #101b0d;      
-  position: relative; 
-}
-
-.profile-btn:hover,
-.profile-btn.active {
-  background: #0000001a;
-  color: #fffff5; 
-}
-
-.dropdown-toggle {
-  font-size: 1.1rem;
-  color: #101b0d;
-  cursor: pointer;
-  transition: color 0.25s ease;
-}
-
-.dropdown-toggle.active {
-  transform: rotate(180deg);
-  transition: transform 0.25s ease;
-}
-
-/* Dropdown menu (profile) */
-.dropdown-menu {
-  margin-top: 0.7rem;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(16, 27, 13, 0.12);
-  min-width: 180px;
-  border: 1px solid rgba(16, 27, 13, 0.1);
-  z-index: 1001;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  display: none;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  overflow: hidden;
-}
-
-.dropdown-menu .dropdown-link {
-  display: block;
-  padding: 0.65rem 1rem;
-  color: #101b0d;
-  font-weight: 500;
-  font-size: 0.95rem;
-  text-decoration: none;
-  font-family: Poppins, sans-serif;
-  letter-spacing: 0.2px;
-  opacity: 0;
-  transform: translateY(5px);
-  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
-}
-
-.dropdown-menu .dropdown-link:hover {
-  background: rgba(16, 27, 13, 0.06);
-}
-
-
-.profile-wrapper.active .dropdown-menu {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.profile-wrapper.active .dropdown-menu .dropdown-link {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-
-</style>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      // Initial load & refresh every 10 seconds
+      updateNotificationBadge();
+      setInterval(updateNotificationBadge, 10000);
+    });
+  </script>
+</body>
+</html>

@@ -6,14 +6,33 @@
   <title>View Appointments | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
+  <style>
+    /* Minimal styles for the notify modal (if you want extra styling add to your CSS file) */
+    .modal { display: none; position: fixed; z-index: 999; left:0; top:0; width:100%; height:100%; overflow:auto; background: rgba(0,0,0,0.4); }
+    .modal-content { background:#fff; margin:8% auto; padding:20px; border-radius:8px; width:90%; max-width:520px; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .modal-header h3 { margin:0; }
+    .close { cursor:pointer; font-size:22px; color:#333; }
+    .btn-action { padding:8px 10px; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
+    .btn-approve { background:#28a745; color:#fff; }
+    .btn-reject { background:#dc3545; color:#fff; }
+    .btn-notify { background:#17a2b8; color:#fff; }
+    .action-buttons { display:flex; gap:6px; flex-wrap:wrap; }
+    .status-badge { padding:6px 8px; border-radius:6px; color:#fff; font-weight:600; text-transform:capitalize; }
+    .status-pending { background:#f0ad4e; }
+    .status-approved { background:#28a745; }
+    .status-ongoing { background:#007bff; }
+    .status-cancelled { background:#6c757d; }
+  </style>
+</head>
 <body>
   <header class="admin-header">
     <h1>Admin Dashboard</h1>
-       <nav>
+    <nav>
       <ul>
         <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -24,11 +43,12 @@
     <aside class="sidebar">
       <h3><i class="fas fa-calendar-check"></i> Appointments</h3>
       <ul>
-       <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
         <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
         <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -64,13 +84,9 @@
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Search appointments..." id="searchInput">
           </div>
-          <button class="btn-export" onclick="exportAppointments()">
-            <i class="fas fa-download"></i> Export
-          </button>
         </div>
       </div>
 
-      <!-- Statistics Cards -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">📊</div>
@@ -94,7 +110,6 @@
         </div>
       </div>
 
-      <!-- Appointments Table -->
       <div class="appointments-container">
         <div class="table-header">
           <h3><i class="fas fa-calendar-alt"></i> Appointments List</h3>
@@ -119,7 +134,6 @@
               </tr>
             </thead>
             <tbody id="appointmentsTableBody">
-              <!-- Appointments will be populated here -->
             </tbody>
           </table>
         </div>
@@ -143,10 +157,6 @@
     </section>
   </main>
 
-  <footer>
-        <%- include('partials/footer') %>
-    </footer>
-    
   <!-- Appointment Details Modal -->
   <div id="appointmentModal" class="modal">
     <div class="modal-content">
@@ -154,442 +164,312 @@
         <h3><i class="fas fa-info-circle"></i> Appointment Details</h3>
         <span class="close" onclick="closeModal()">&times;</span>
       </div>
-      <div id="appointmentDetails">
-        <!-- Details will be populated here -->
+      <div id="appointmentDetails"></div>
+    </div>
+  </div>
+
+  <!-- Notify Modal (Admin types custom message + optional email) -->
+  <div id="notifyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-envelope"></i> Send Notification</h3>
+        <span class="close" onclick="closeNotifyModal()">&times;</span>
+      </div>
+      <div>
+        <input 
+          type="email" 
+          id="notifyEmail" 
+          placeholder="Enter recipient email (optional or override client email)" 
+          style="width:100%; padding:10px; border-radius:6px; margin-bottom:10px;"
+        >
+        <textarea 
+          id="notifyMessage" 
+          rows="5" 
+          placeholder="Enter message to user (e.g. 'Please come at 9:00 AM.')" 
+          style="width:100%; padding:10px; border-radius:6px;"
+        ></textarea>
+        <div style="text-align:right; margin-top:12px;">
+          <button class="btn-action btn-approve" onclick="sendNotificationMessage()">Send</button>
+          <button class="btn-action btn-reject" onclick="closeNotifyModal()">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
 
-
-    <script>
-  // Load appointments passed from backend
+<script>
+  // appointments passed from server
   window.appointments = <%- JSON.stringify(appointments) %>;
-    
 
-   class AppointmentManager {
-  constructor() {
-    this.appointments = window.appointments || [];
-    this.filteredAppointments = [...this.appointments];
-    this.currentFilter = 'all';
-    this.currentPage = 1;
-    this.itemsPerPage = 10;
-    this.searchTerm = '';
-
-    this.updateDisplay();
-    this.updateStatistics();
-
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('appointmentsTableContainer').style.display = 'block';
-    document.getElementById('paginationContainer').style.display = 'flex';
-
-    this.bindEvents();
-  }
-
-        initializeData() {
-      // Use server-provided data
-      this.appointments = serverAppointments || [];
+  class AppointmentManager {
+    constructor() {
+      this.appointments = window.appointments || [];
       this.filteredAppointments = [...this.appointments];
+      this.currentFilter = 'all';
+      this.currentPage = 1;
+      this.itemsPerPage = 10;
+      this.searchTerm = '';
       this.updateDisplay();
       this.updateStatistics();
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('appointmentsTableContainer').style.display = 'block';
       document.getElementById('paginationContainer').style.display = 'flex';
+      this.bindEvents();
     }
 
-
-      bindEvents() {
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-          this.searchTerm = e.target.value.toLowerCase();
-          this.applyFilters();
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-          const modal = document.getElementById('appointmentModal');
-          if (e.target === modal) {
-            this.closeModal();
-          }
-        });
-      }
-
-      filterStatus(status) {
-        this.currentFilter = status;
-        this.currentPage = 1;
-        
-        // Update active filter button
-        document.querySelectorAll('.filters button').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        document.getElementById(`filter-${status}`).classList.add('active');
-        
+    bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        this.searchTerm = e.target.value.toLowerCase();
         this.applyFilters();
-        this.showNotification(`Filtered by: ${status === 'all' ? 'All Appointments' : status}`, 'info');
+      });
+
+      window.addEventListener('click', (e) => {
+        const modal = document.getElementById('appointmentModal');
+        if (e.target === modal) this.closeModal();
+      });
+    }
+
+    filterStatus(status) {
+      this.currentFilter = status;
+      this.currentPage = 1;
+      document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+      const btn = document.getElementById(`filter-${status}`);
+      if (btn) btn.classList.add('active');
+      this.applyFilters();
+      this.showNotification(`Filtered by: ${status === 'all' ? 'All Appointments' : status}`, 'info');
+    }
+
+    applyFilters() {
+      let filtered = [...this.appointments];
+      if (this.currentFilter !== 'all') filtered = filtered.filter(apt => apt.status === this.currentFilter);
+      if (this.searchTerm)
+        filtered = filtered.filter(apt =>
+          (apt.clientName || '').toLowerCase().includes(this.searchTerm) ||
+          (''+apt.id).toLowerCase().includes(this.searchTerm) ||
+          (apt.service || '').toLowerCase().includes(this.searchTerm)
+        );
+      this.filteredAppointments = filtered;
+      this.currentPage = 1;
+      this.updateDisplay();
+    }
+
+    updateDisplay() {
+      const tbody = document.getElementById('appointmentsTableBody');
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      const pageAppointments = this.filteredAppointments.slice(startIndex, endIndex);
+
+      if (pageAppointments.length === 0) {
+        document.getElementById('appointmentsTableContainer').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('paginationContainer').style.display = 'none';
+        return;
       }
 
-      applyFilters() {
-        let filtered = [...this.appointments];
+      document.getElementById('appointmentsTableContainer').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('paginationContainer').style.display = 'flex';
 
-        // Apply status filter
-        if (this.currentFilter !== 'all') {
-          filtered = filtered.filter(apt => apt.status === this.currentFilter);
-        }
+      tbody.innerHTML = pageAppointments.map(apt => {
+        const statusClass = `status-${apt.status}`;
+        return `
+        <tr>
+          <td><strong>${apt.id}</strong></td>
+          <td>${apt.clientName || ''}</td>
+          <td>${apt.date ? new Date(apt.date).toLocaleDateString() : ''}</td>
+          <td>${apt.time || ''}</td>
+          <td>${apt.service || ''}</td>
+          <td><span class="status-badge ${statusClass}">${apt.status}</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-view" onclick="appointmentManager.viewAppointment('${apt.id}')">
+                <i class="fas fa-eye"></i> View
+              </button>
+              ${apt.status === 'pending' ? `
+                <button class="btn-action btn-approve" onclick="updateStatus(${apt.id}, 'approved')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn-action btn-reject" onclick="updateStatus(${apt.id}, 'cancelled')">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="btn-action btn-notify" onclick="openNotifyModal(${apt.id})">
+                  <i class="fas fa-bell"></i> Notify
+                </button>` : `
+                <button class="btn-action btn-notify" onclick="openNotifyModal(${apt.id})">
+                  <i class="fas fa-bell"></i> Notify
+                </button>`}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+      this.updatePagination();
+      document.getElementById('appointmentCount').textContent =
+        `Showing ${startIndex + 1}-${Math.min(endIndex, this.filteredAppointments.length)} of ${this.filteredAppointments.length}`;
+    }
 
-        // Apply search filter
-        if (this.searchTerm) {
-          filtered = filtered.filter(apt => 
-            apt.clientName.toLowerCase().includes(this.searchTerm) ||
-            apt.id.toLowerCase().includes(this.searchTerm) ||
-            apt.service.toLowerCase().includes(this.searchTerm)
-          );
-        }
-
-        this.filteredAppointments = filtered;
-        this.updateDisplay();
+    changePage(direction) {
+      const totalPages = Math.ceil(this.filteredAppointments.length / this.itemsPerPage) || 1;
+      if (direction === 'next' && this.currentPage < totalPages) {
+        this.currentPage++;
+      } else if (direction === 'prev' && this.currentPage > 1) {
+        this.currentPage--;
       }
+      this.updateDisplay();
+    }
 
-      updateDisplay() {
-  const tbody = document.getElementById('appointmentsTableBody');
-  const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-  const endIndex = startIndex + this.itemsPerPage;
-  const pageAppointments = this.filteredAppointments.slice(startIndex, endIndex);
+    viewAppointment(id) {
+      const appointment = this.appointments.find(apt => apt.id == id);
+      if (!appointment) return;
 
-  if (pageAppointments.length === 0) {
-    document.getElementById('appointmentsTableContainer').style.display = 'none';
-    document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('paginationContainer').style.display = 'none';
-    return;
+      const bookingInfo = appointment.booking
+        ? `
+          <hr>
+          <h4><i class="fas fa-book"></i> Booking Details</h4>
+          <p><strong>Plot Number:</strong> ${appointment.booking.plot_number || 'N/A'}</p>
+          <p><strong>Location:</strong> ${appointment.booking.location || 'N/A'}</p>
+          <p><strong>Type:</strong> ${appointment.booking.type || 'N/A'}</p>
+          <p><strong>Price:</strong> ₱${appointment.booking.price?.toLocaleString() || '0.00'}</p>`
+        : `<hr><p><em>No booking details found for this appointment.</em></p>`;
+
+      const detailsHtml = `
+        <div style="display: grid; gap: 1rem;">
+          <p><strong>Appointment ID:</strong> ${appointment.id}</p>
+          <p><strong>Client Name:</strong> ${appointment.clientName}</p>
+          <p><strong>Email:</strong> ${appointment.email || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${appointment.phone || 'N/A'}</p>
+          <p><strong>Date:</strong> ${appointment.date ? new Date(appointment.date).toLocaleDateString() : 'N/A'}</p>
+          <p><strong>Time:</strong> ${appointment.time || 'N/A'}</p>
+          <p><strong>Service:</strong> ${appointment.service || 'N/A'}</p>
+          <p><strong>Status:</strong> ${appointment.status}</p>
+          ${bookingInfo}
+        </div>`;
+
+      document.getElementById('appointmentDetails').innerHTML = detailsHtml;
+      document.getElementById('appointmentModal').style.display = 'block';
+    }
+
+    updatePagination() {
+      const totalPages = Math.ceil(this.filteredAppointments.length / this.itemsPerPage) || 1;
+      document.getElementById('pageInfo').textContent = `Page ${this.currentPage} of ${totalPages}`;
+      document.getElementById('prevBtn').disabled = this.currentPage === 1;
+      document.getElementById('nextBtn').disabled = this.currentPage === totalPages;
+    }
+
+    updateStatistics() {
+      const stats = {
+        total: this.appointments.length,
+        pending: this.appointments.filter(apt => apt.status === 'pending').length,
+        approved: this.appointments.filter(apt => apt.status === 'approved').length,
+        ongoing: this.appointments.filter(apt => apt.status === 'ongoing').length
+      };
+      this.animateNumber('totalAppointments', stats.total);
+      this.animateNumber('pendingCount', stats.pending);
+      this.animateNumber('approvedCount', stats.approved);
+      this.animateNumber('ongoingCount', stats.ongoing);
+    }
+
+    animateNumber(id, target) {
+      const el = document.getElementById(id);
+      let num = 0;
+      const step = Math.max(1, target / 30);
+      const timer = setInterval(() => {
+        num += step;
+        if (num >= target) {
+          num = target;
+          clearInterval(timer);
+        }
+        el.textContent = Math.floor(num);
+      }, 20);
+    }
+
+    closeModal() {
+      document.getElementById('appointmentModal').style.display = 'none';
+    }
+
+    showNotification(msg, type = 'info') {
+      const n = document.createElement('div');
+      n.className = `notification ${type}`;
+      n.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${msg}`;
+      Object.assign(n.style, {
+        position: 'fixed', top: '100px', right: '20px', padding: '1rem 1.5rem',
+        borderRadius: '10px', color: 'white', fontWeight: '600', zIndex: '9999',
+        animation: 'slideInRight 0.2s ease', background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'
+      });
+      document.body.appendChild(n);
+      setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.remove(), 300); }, 3500);
+    }
   }
 
-  document.getElementById('appointmentsTableContainer').style.display = 'block';
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('paginationContainer').style.display = 'flex';
+  // GLOBAL INSTANCE
+  let appointmentManager;
+  function filterStatus(s){appointmentManager.filterStatus(s);}
+  function changePage(d){appointmentManager.changePage(d);}
+  function closeModal(){appointmentManager.closeModal();}
 
-  tbody.innerHTML = pageAppointments.map(apt => `
-    <tr>
-      <td><strong>${apt.id}</strong></td>
-      <td>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fas fa-user-circle" style="color: #8aac7c;"></i>
-          ${apt.clientName}
-        </div>
-      </td>
-      <td>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fas fa-calendar" style="color: #8aac7c;"></i>
-          ${new Date(apt.date).toLocaleDateString()}
-        </div>
-      </td>
-      <td>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fas fa-clock" style="color: #8aac7c;"></i>
-          ${apt.time}
-        </div>
-      </td>
-      <td>
-        <span style="text-transform: capitalize; font-weight: 600;">
-          ${this.getServiceIcon(apt.service)} ${apt.service}
-        </span>
-      </td>
-      <td>
-        <span class="status-badge status-${apt.status}">
-          ${this.getStatusIcon(apt.status)} ${apt.status}
-        </span>
-      </td>
-            <td>
-          <div class="action-buttons">
-            <button class="btn-action btn-view" onclick="appointmentManager.viewAppointment('${apt.id}')">
-              <i class="fas fa-eye"></i> View
-            </button>
-            ${apt.status === 'pending' ? `
-              <button class="btn-action btn-approve" onclick="updateStatus(${apt.id}, 'approved')">
-                <i class="fas fa-check"></i> Approve
-              </button>
-              <button class="btn-action btn-reject" onclick="updateStatus(${apt.id}, 'cancelled')">
-                <i class="fas fa-times"></i> Reject
-              </button>
-            ` : ''}
-          </div>
-        </td>
-
-    </tr>
-  `).join('');
-
-  this.updatePagination();
-  document.getElementById('appointmentCount').textContent = 
-    `Showing ${startIndex + 1}-${Math.min(endIndex, this.filteredAppointments.length)} of ${this.filteredAppointments.length}`;
-}
-
-
-      getServiceIcon(service) {
-        const icons = {
-          burial: '🏛️',
-          columbarium: '🏺',
-          consultation: '💬',
-          memorial: '🌹',
-          maintenance: '🔧'
-        };
-        return icons[service] || '📋';
-      }
-
-      getStatusIcon(status) {
-        const icons = {
-          pending: '⏳',
-          approved: '✅',
-          ongoing: '🔄',
-          completed: '✅',
-          cancelled: '❌'
-        };
-        return icons[status] || '📋';
-      }
-
-      updatePagination() {
-        const totalPages = Math.ceil(this.filteredAppointments.length / this.itemsPerPage);
-        document.getElementById('pageInfo').textContent = `Page ${this.currentPage} of ${totalPages}`;
-        
-        document.getElementById('prevBtn').disabled = this.currentPage === 1;
-        document.getElementById('nextBtn').disabled = this.currentPage === totalPages;
-      }
-
-      updateStatistics() {
-        const stats = {
-          total: this.appointments.length,
-          pending: this.appointments.filter(apt => apt.status === 'pending').length,
-          approved: this.appointments.filter(apt => apt.status === 'approved').length,
-          ongoing: this.appointments.filter(apt => apt.status === 'ongoing').length
-        };
-
-        // Animate numbers
-        this.animateNumber('totalAppointments', stats.total);
-        this.animateNumber('pendingCount', stats.pending);
-        this.animateNumber('approvedCount', stats.approved);
-        this.animateNumber('ongoingCount', stats.ongoing);
-      }
-
-      animateNumber(elementId, target) {
-        const element = document.getElementById(elementId);
-        let current = 0;
-        const increment = target / 30;
-        const timer = setInterval(() => {
-          current += increment;
-          if (current >= target) {
-            current = target;
-            clearInterval(timer);
-          }
-          element.textContent = Math.floor(current);
-        }, 50);
-      }
-
-      changePage(direction) {
-        const totalPages = Math.ceil(this.filteredAppointments.length / this.itemsPerPage);
-        
-        if (direction === 'prev' && this.currentPage > 1) {
-          this.currentPage--;
-        } else if (direction === 'next' && this.currentPage < totalPages) {
-          this.currentPage++;
+  // ---- Helpers for Admin actions (calls server endpoints) ----
+  async function updateStatus(bookingId, newStatus) {
+    try {
+      const endpoint = newStatus === 'approved' ? `/adminviewapp/approve/${bookingId}` : `/adminviewapp/reject/${bookingId}`;
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' } });
+      const data = await res.json();
+      if (data.success) {
+        const idx = appointmentManager.appointments.findIndex(a => (''+a.id) === (''+bookingId));
+        if (idx !== -1) {
+          appointmentManager.appointments[idx].status = newStatus;
+          appointmentManager.applyFilters();
+          appointmentManager.showNotification(`Booking ${newStatus}`, 'success');
+        } else {
+          location.reload();
         }
-        
-        this.updateDisplay();
+      } else {
+        appointmentManager.showNotification('Failed to update status', 'error');
       }
-
-
-      viewAppointment(id) {
-        const appointment = this.appointments.find(apt => apt.id === id);
-        if (!appointment) return;
-
-        const detailsHtml = `
-          <div style="display: grid; gap: 1rem;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-              <div>
-                <strong>Appointment ID:</strong><br>
-                <span style="color: #8aac7c; font-weight: 600;">${appointment.id}</span>
-              </div>
-              <div>
-                <strong>Status:</strong><br>
-                <span class="status-badge status-${appointment.status}">
-                  ${this.getStatusIcon(appointment.status)} ${appointment.status}
-                </span>
-              </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-              <div>
-                <strong>Client Name:</strong><br>
-                <span>${appointment.clientName}</span>
-              </div>
-              <div>
-                <strong>Phone:</strong><br>
-                <span>${appointment.phone}</span>
-              </div>
-            </div>
-            
-            <div>
-              <strong>Email:</strong><br>
-              <span>${appointment.email}</span>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-              <div>
-                <strong>Date:</strong><br>
-                <span>${new Date(appointment.date).toLocaleDateString()}</span>
-              </div>
-              <div>
-                <strong>Time:</strong><br>
-                <span>${appointment.time}</span>
-              </div>
-            </div>
-            
-            <div>
-              <strong>Service Type:</strong><br>
-              <span style="text-transform: capitalize;">${this.getServiceIcon(appointment.service)} ${appointment.service}</span>
-            </div>
-            
-            <div>
-              <strong>Notes:</strong><br>
-              <span>${appointment.notes}</span>
-            </div>
-            
-            <div>
-              <strong>Created:</strong><br>
-              <span>${appointment.createdAt.toLocaleDateString()} at ${appointment.createdAt.toLocaleTimeString()}</span>
-            </div>
-          </div>
-        `;
-
-        document.getElementById('appointmentDetails').innerHTML = detailsHtml;
-        document.getElementById('appointmentModal').style.display = 'block';
-      }
-
-      editAppointment(id) {
-        this.showNotification(`Edit functionality for appointment ${id} - Coming soon!`, 'info');
-      }
-
-      deleteAppointment(id) {
-        if (confirm(`Are you sure you want to delete appointment ${id}?`)) {
-          this.appointments = this.appointments.filter(apt => apt.id !== id);
-          this.applyFilters();
-          this.updateStatistics();
-          this.showNotification(`Appointment ${id} deleted successfully!`, 'success');
-        }
-      }
-
-      closeModal() {
-        document.getElementById('appointmentModal').style.display = 'none';
-      }
-
-      exportAppointments() {
-        this.showNotification('Exporting appointments to CSV...', 'info');
-        
-        // Simulate export
-        setTimeout(() => {
-          this.showNotification('Appointments exported successfully!', 'success');
-        }, 2000);
-      }
-
-      showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-          ${message}
-        `;
-        
-        Object.assign(notification.style, {
-          position: 'fixed',
-          top: '100px',
-          right: '20px',
-          padding: '1rem 1.5rem',
-          borderRadius: '10px',
-          color: 'white',
-          fontWeight: '600',
-          zIndex: '9999',
-          animation: 'slideInRight 0.3s ease',
-          background: type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8',
-          maxWidth: '350px',
-          wordWrap: 'break-word',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-        });
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.style.animation = 'slideOutRight 0.3s ease';
-          setTimeout(() => notification.remove(), 300);
-        }, 4000);
-      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+      appointmentManager.showNotification('Server error', 'error');
     }
+  }
 
-          // Global functions for onclick handlers
-      let appointmentManager;
+  // Notify modal logic
+  let currentBookingIdForNotify = null;
+  function openNotifyModal(bookingId) {
+    currentBookingIdForNotify = bookingId;
+    document.getElementById('notifyEmail').value = '';
+    document.getElementById('notifyMessage').value = '';
+    document.getElementById('notifyModal').style.display = 'block';
+  }
+  function closeNotifyModal() {
+    document.getElementById('notifyModal').style.display = 'none';
+  }
 
-    function filterStatus(status) {
-      appointmentManager.filterStatus(status);
-    }
-
-    function changePage(direction) {
-      appointmentManager.changePage(direction);
-    }
-
-    function exportAppointments() {
-      appointmentManager.exportAppointments();
-    }
-
-    function closeModal() {
-      appointmentManager.closeModal();
-    }
-
-              function updateStatus(id, status) {
-      fetch(`/adminviewapp/${status === 'approved' ? 'approve' : 'reject'}/${id}`, {
+  async function sendNotificationMessage() {
+    const message = document.getElementById('notifyMessage').value.trim();
+    const email = document.getElementById('notifyEmail').value.trim();
+    if (!message) return alert('Please enter a message.');
+    try {
+      const res = await fetch(`/adminviewapp/notify/${currentBookingIdForNotify}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ remarks: '' }) // send remarks if needed
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Use loose equality to match number/string ID
-          const apt = appointmentManager.appointments.find(a => a.id == id);
-          if (apt) {
-            apt.status = status;
-            appointmentManager.applyFilters(); // refresh table
-            appointmentManager.updateStatistics();
-            appointmentManager.showNotification(`Appointment ${id} marked as ${status}`, 'success');
-          }
-        } else {
-          alert('Failed to update status');
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Error updating status');
+        body: JSON.stringify({ message, email })
       });
+      const data = await res.json();
+      if (data.success) {
+        appointmentManager.showNotification('Notification sent', 'success');
+        closeNotifyModal();
+      } else {
+        appointmentManager.showNotification('Failed to send notification', 'error');
       }
+    } catch (err) {
+      console.error('Error sending notification:', err);
+      appointmentManager.showNotification('Server error', 'error');
+    }
+  }
 
+  // init
+  document.addEventListener('DOMContentLoaded', () => {
+    window.appointments.forEach(a => { if (a.createdAt) a.createdAt = new Date(a.createdAt); });
+    appointmentManager = new AppointmentManager();
+  });
 
-
-
-
-    // Add CSS animations for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Convert string dates to Date objects
-      window.appointments.forEach(apt => apt.createdAt = new Date(apt.createdAt));
-
-      // Instantiate the manager
-      appointmentManager = new AppointmentManager();
-    });
-  </script>
+</script>
 </body>
 </html>

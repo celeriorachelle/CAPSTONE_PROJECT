@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // DB connection
+const db = require('../db');
+const { addLog } = require('./log_helper');
 
-// Middleware to require login
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
 
-// GET /book → Booking Form
+// GET /book
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
-
   try {
     const [userBookings] = await db.query(
       `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
@@ -22,23 +21,18 @@ router.get('/', requireLogin, async (req, res) => {
       [userId]
     );
 
-    res.render('book', { 
-      title: 'Booking Form', 
-      bookingData: null,
-      bookings: userBookings
-    });
+    res.render('book', { title: 'Booking Form', bookingData: null, bookings: userBookings });
   } catch (err) {
     console.error('Error fetching bookings:', err);
-    res.render('book', { 
-      title: 'Booking Form', 
-      bookingData: null,
-      bookings: [] 
-    });
+    res.render('book', { title: 'Booking Form', bookingData: null, bookings: [] });
   }
 });
 
 // POST /book → Submit booking
 router.post('/', requireLogin, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const userRole = req.session.user.role;
+
   const bookingData = {
     firstname: req.body.firstname,
     lastname: req.body.lastname,
@@ -50,88 +44,66 @@ router.post('/', requireLogin, async (req, res) => {
     notes: req.body.notes || null
   };
 
-  const userId = req.session.user.user_id;
-
   const validServices = ['plot-booking', 'memorial', 'burial'];
   if (!validServices.includes(bookingData.serviceType)) {
-    return res.render('book', { 
-      title: 'Booking Form', 
-      error: 'Please select a valid service type.', 
-      bookingData, 
-      bookings: [] 
-    });
+    return res.render('book', { title: 'Booking Form', error: 'Please select a valid service type.', bookingData, bookings: [] });
   }
 
-  // Validate booking date for all types
   if (!bookingData.bookingDate) {
-    return res.render('book', {
-      title: 'Booking Form',
-      error: 'Please select a booking date.',
-      bookingData,
-      bookings: []
-    });
+    return res.render('book', { title: 'Booking Form', error: 'Please select a booking date.', bookingData, bookings: [] });
   }
 
-  // Validate visit time for Memorial/Burial
-  if ((bookingData.serviceType === 'memorial' || bookingData.serviceType === 'burial') &&
-      !bookingData.visitTime) {
-    return res.render('book', {
-      title: 'Booking Form',
-      error: 'Please select a visit time for Memorial/Burial service.',
-      bookingData,
-      bookings: []
-    });
+  if ((bookingData.serviceType === 'memorial' || bookingData.serviceType === 'burial') && !bookingData.visitTime) {
+    return res.render('book', { title: 'Booking Form', error: 'Please select a visit time.', bookingData, bookings: [] });
   }
 
   try {
-    // Double booking check only for Memorial/Burial
     if (bookingData.serviceType === 'memorial' || bookingData.serviceType === 'burial') {
       const [existing] = await db.query(
-        `SELECT * FROM booking_tbl
-         WHERE booking_date = ? AND visit_time = ? AND service_type = ? AND status != 'cancelled'`,
+        `SELECT * FROM booking_tbl WHERE booking_date = ? AND visit_time = ? AND service_type = ? AND status != 'cancelled'`,
         [bookingData.bookingDate, bookingData.visitTime, bookingData.serviceType]
       );
-
       if (existing.length > 0) {
-        return res.render('book', {
-          title: 'Booking Form',
-          error: 'This time slot is already booked. Please choose another schedule.',
-          bookingData,
-          bookings: []
-        });
+        return res.render('book', { title: 'Booking Form', error: 'This time slot is already booked.', bookingData, bookings: [] });
       }
     }
 
-    // Plot Booking: store all data in session, do not insert yet
     if (bookingData.serviceType === 'plot-booking') {
       req.session.bookingData = bookingData;
+
+      // Log plot booking session start
+      await addLog({
+        user_id: userId,
+        user_role: userRole,
+        action: 'Start Plot Booking',
+        details: `User started plot booking session for ${bookingData.firstname} ${bookingData.lastname}`
+      });
+
       return res.redirect('/bookplots');
     }
 
     // Insert booking for Memorial/Burial
     const [result] = await db.query(
-      `INSERT INTO booking_tbl
-       (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
+      `INSERT INTO booking_tbl (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        userId,
-        bookingData.firstname,
-        bookingData.lastname,
-        bookingData.email,
-        bookingData.phone,
-        bookingData.bookingDate,
-        bookingData.visitTime,
-        bookingData.serviceType,
-        bookingData.notes
-      ]
+      [userId, bookingData.firstname, bookingData.lastname, bookingData.email, bookingData.phone, bookingData.bookingDate, bookingData.visitTime, bookingData.serviceType, bookingData.notes]
     );
     const bookingId = result.insertId;
-    // Create notification for successful booking
+
+    // Create notification
     await db.query(
       `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
        VALUES (?, ?, ?, 0, NOW(), NULL)`,
       [userId, bookingId, 'Your booking has been submitted and is pending approval.']
     );
+
+    // ✅ Log booking creation
+    await addLog({
+      user_id: userId,
+      user_role: userRole,
+      action: 'Create Booking',
+      details: `Created ${bookingData.serviceType} booking for ${bookingData.firstname} ${bookingData.lastname}, Booking ID: ${bookingId}`
+    });
 
     const [userBookings] = await db.query(
       `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
@@ -142,21 +114,10 @@ router.post('/', requireLogin, async (req, res) => {
       [userId]
     );
 
-    res.render('book', {
-      title: 'Booking Form',
-      bookingData: null,
-      success: 'Your booking has been submitted and is pending approval.',
-      bookings: userBookings
-    });
-
+    res.render('book', { title: 'Booking Form', bookingData: null, success: 'Your booking has been submitted and is pending approval.', bookings: userBookings });
   } catch (err) {
     console.error('Error saving booking:', err);
-    res.render('book', {
-      title: 'Booking Form',
-      error: 'Failed to create booking. Please try again.',
-      bookingData,
-      bookings: []
-    });
+    res.render('book', { title: 'Booking Form', error: 'Failed to create booking. Please try again.', bookingData, bookings: [] });
   }
 });
 

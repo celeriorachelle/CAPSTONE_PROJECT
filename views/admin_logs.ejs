@@ -64,9 +64,9 @@
     <h1>Admin Dashboard</h1>
     <nav>
       <ul>
-        <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -82,6 +82,7 @@
         <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -120,11 +121,11 @@
                 <% logs.forEach(log => { %>
                   <tr>
                     <td><%= log.log_id %></td>
-                    <td><%= log.user_name || 'Unknown User' %></td>
+                    <td><%= log.user_name %></td>
                     <td><%= log.user_role || 'N/A' %></td>
                     <td><%= log.action %></td>
                     <td><%= log.details %></td>
-                    <td><%= log.timestamp %></td>
+                    <td><%= log.timestamp.toLocaleString() %></td>
                   </tr>
                 <% }) %>
               <% } %>
@@ -138,8 +139,7 @@
   <script>
     // Live date/time
     setInterval(() => {
-      document.getElementById("currentDateTime").textContent =
-        new Date().toLocaleString();
+      document.getElementById("currentDateTime").textContent = new Date().toLocaleString();
     }, 1000);
 
     // Clear logs via fetch API

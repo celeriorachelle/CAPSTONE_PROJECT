@@ -6,6 +6,91 @@
   <title>Admin Dashboard | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
+  <style>
+    /* 🛎️ Notification Dropdown (Updated Design) */
+    .notification-dropdown {
+      position: absolute;
+      top: 55px;
+      right: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      width: 330px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+      z-index: 1000;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-dropdown header {
+      background: linear-gradient(135deg, #8aac7c, #6d9360);
+      color: #fff;
+      padding: 12px 15px;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .notification-dropdown ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .notification-dropdown ul::-webkit-scrollbar {
+      width: 6px;
+    }
+    .notification-dropdown ul::-webkit-scrollbar-thumb {
+      background: #cfcfcf;
+      border-radius: 3px;
+    }
+
+    .notification-dropdown li {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f1f1f1;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .notification-dropdown li:hover {
+      background: #f7fdf5;
+    }
+
+    .notification-dropdown li.unread {
+      background: #f0f7ec;
+      font-weight: 600;
+    }
+
+    .notification-dropdown li small {
+      display: block;
+      color: #555;
+      font-size: 0.8rem;
+      margin-top: 3px;
+    }
+
+    .notification-badge {
+      background: #e63946;
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      padding: 3px 6px;
+      position: relative;
+      top: -10px;
+      right: 10px;
+      display: none;
+    }
+
+    .icons {
+      position: relative;
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -15,7 +100,7 @@
       <ul>
         <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -31,6 +116,7 @@
         <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -44,8 +130,17 @@
         </div>
         <div class="icons">
           <i class="fas fa-bell" id="notificationBtn">
-            <span class="notification-badge">3</span>
+            <span class="notification-badge" id="notificationCount">0</span>
           </i>
+
+          <!-- 🔔 Updated Notification Dropdown -->
+          <div class="notification-dropdown" id="notificationDropdown">
+            <header>Notifications</header>
+            <ul id="notificationList">
+              <li>Loading notifications...</li>
+            </ul>
+          </div>
+
           <i class="fas fa-user-circle" id="profileBtn"></i>
         </div>
       </header>
@@ -120,14 +215,103 @@
     </section>
   </main>
 
+  <!-- ✅ Updated Script (unchanged logic) -->
   <script>
-    // Show current date/time
     function updateDateTime() {
       const now = new Date();
       document.getElementById("currentDateTime").textContent = now.toLocaleString();
     }
     updateDateTime();
     setInterval(updateDateTime, 60000);
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/admin/notifications/count');
+        const data = await res.json();
+        const badge = document.getElementById('notificationCount');
+        const unread = getUnreadCount();
+        badge.textContent = unread > 0 ? unread : 0;
+        badge.style.display = unread > 0 ? 'inline' : 'none';
+      } catch (err) {
+        console.error('Error fetching notification count:', err);
+      }
+    }
+
+    function getReadNotifications() {
+      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    }
+
+    function markAsRead(id) {
+      let read = getReadNotifications();
+      if (!read.includes(id)) {
+        read.push(id);
+        localStorage.setItem('readNotifications', JSON.stringify(read));
+      }
+      fetchNotificationList();
+      fetchNotifications();
+    }
+
+    function getUnreadCount() {
+      const read = getReadNotifications();
+      const allItems = JSON.parse(localStorage.getItem('latestNotifications') || '[]');
+      return allItems.filter(item => !read.includes(item.booking_id)).length;
+    }
+
+    async function fetchNotificationList() {
+      try {
+        const res = await fetch('/admin/notifications/list');
+        const list = await res.json();
+        localStorage.setItem('latestNotifications', JSON.stringify(list));
+
+        const read = getReadNotifications();
+        const container = document.getElementById('notificationList');
+
+        if (list.length === 0) {
+          container.innerHTML = '<li>No recent bookings</li>';
+        } else {
+         container.innerHTML = list.map(item => {
+  const isRead = read.includes(item.booking_id);
+  return `
+    <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.booking_id})">
+      <strong>${item.full_name}</strong> (ID: ${item.booking_id})
+      <small>Service: ${item.service_type || 'N/A'}</small>
+      <small>Status: ${item.status}</small>
+      <small>Payment: ${item.payment_status || 'No Payment Record'}</small> <!-- ✅ Added Line -->
+      <small>Booking Date: ${new Date(item.booking_date).toLocaleDateString()}</small>
+      <small>Submitted: ${new Date(item.generated_at).toLocaleString()}</small>
+    </li>
+  `;
+}).join('');
+
+        }
+
+        fetchNotifications();
+      } catch (err) {
+        console.error('Error fetching notification list:', err);
+      }
+    }
+
+    function openBooking(id) {
+      markAsRead(id);
+      window.location.href = '/adminviewapp';
+    }
+
+    fetchNotifications();
+    setInterval(fetchNotifications, 10000);
+
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notificationDropdown');
+
+    notifBtn.addEventListener('click', () => {
+      notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';
+      fetchNotificationList();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>

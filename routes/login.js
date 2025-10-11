@@ -21,12 +21,12 @@ router.get('/logout', async (req, res) => {
   try {
     if (req.session.user) {
       // ✅ Add logout log entry
-      await addLog(
-        req.session.user.user_id,
-        req.session.user.role,
-        'Logout',
-        `${req.session.user.email} logged out`
-      );
+      await addLog({
+        user_id: req.session.user.user_id,
+        user_role: req.session.user.role,
+        action: 'Logout',
+        details: `${req.session.user.name || req.session.user.email} logged out`
+      });
     }
 
     req.session.destroy(err => {
@@ -50,6 +50,26 @@ router.post('/', async (req, res) => {
   const email = (req.body.username || '').trim();
   const password = (req.body.password || '');
 
+  // ✅ Hardcoded admin
+  if (email === 'admin@everlasting.com' && password === 'everlastingCapstone1022@') {
+    req.session.user = {
+      user_id: 0, // not in DB
+      email,
+      role: 'admin',
+      name: 'Admin'
+    };
+
+    // ✅ Add admin login log
+    await addLog({
+      user_id: 0,
+      user_role: 'admin',
+      action: 'Login',
+      details: 'Admin logged in via hardcoded credentials'
+    });
+
+    return res.redirect('/admin');
+  }
+
   try {
     // ✅ Fetch user from database
     const [rows] = await db.query(
@@ -69,38 +89,30 @@ router.post('/', async (req, res) => {
       return res.render('login', { error: 'Incorrect password. Please try again.', success: null });
     }
 
-    // ✅ Store user info in session
-      req.session.user = {
-      user_id: user.user_id, // use "user_id" instead of "id"
+    // ✅ Store session info
+    req.session.user = {
+      user_id: user.user_id,
       email: user.email,
-      name: user.firstName,
+      name: `${user.firstName} ${user.lastName}`,
       role: user.role
     };
 
-
-    // Handle "Remember me"
+    // ✅ Remember me cookie
     if (req.body.remember_me) {
-      req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30;
+      req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30; // 30 days
     } else {
       req.session.cookie.expires = false;
     }
 
     // ✅ Add log entry for successful login
-    await addLog(
-      user.user_id,
-      user.role,
-      'Login',
-      `${user.firstName} ${user.lastName} (${user.role}) logged in`
-    );
+    await addLog({
+      user_id: user.user_id,
+      user_role: user.role,
+      action: 'Login',
+      details: `${user.firstName} ${user.lastName} (${user.role}) logged in`
+    });
 
-    // Redirect based on role
-    if (user.role === 'admin') {
-      return res.redirect('/admin');
-    } else if (user.role === 'staff') {
-      return res.redirect('/staff_dashboard');
-    } else {
-      return res.redirect('/userdashboard');
-    }
+    res.redirect('/');
   } catch (error) {
     console.error('Login database query error:', error);
     return res.render('login', { error: 'An internal error occurred. Please try again.', success: null });
