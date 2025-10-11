@@ -251,7 +251,7 @@
         }
       });
 
-      // ✨ Show Toast Notification
+      // ✨ Toast popup
       function showToast(message) {
         toast.textContent = message;
         toast.classList.add("show");
@@ -260,28 +260,28 @@
         }, 4000);
       }
 
-      // 🟢 Fetch unread notification count
+      // 🟢 Fetch unread count
       async function updateNotificationBadge() {
         try {
-          const res = await fetch("/notifications/unread/count");
+          const res = await fetch("/notification/unread/count");
           if (!res.ok) throw new Error("Failed to fetch unread count");
 
           const data = await res.json();
-          const count = data.count;
+          const count = data.count || 0;
 
           if (count > 0) {
             notifBadge.style.display = "inline-block";
             notifBadge.textContent = count;
           } else {
             notifBadge.style.display = "none";
+            notifBadge.textContent = 0;
           }
 
-          // 🔥 If new notifications appeared → animate bell & toast popup
+          // 🔥 Animate if new notification appears
           if (count > lastUnreadCount) {
             notifBtn.classList.add("new");
-            setTimeout(() => notifBtn.classList.remove("new"), 1200);
-
             showToast("🔔 New notification received!");
+            setTimeout(() => notifBtn.classList.remove("new"), 1200);
           }
 
           lastUnreadCount = count;
@@ -290,9 +290,9 @@
         }
       }
 
-      // Initial load & refresh every 10 seconds
+      // Initial load + refresh every 5s
       updateNotificationBadge();
-      setInterval(updateNotificationBadge, 10000);
+      setInterval(updateNotificationBadge, 5000);
     });
   </script>
 </body>

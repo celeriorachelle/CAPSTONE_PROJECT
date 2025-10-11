@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notifications | Everlasting Peace Memorial Park</title>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     body {
@@ -16,122 +15,101 @@
     }
 
     .notif-container {
-      max-width: 700px;
+      max-width: 750px;
       margin: 50px auto;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      padding: 20px 30px;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      padding: 25px 30px;
     }
 
     h1 {
       text-align: center;
       color: #2b6e2f;
-      margin-bottom: 25px;
-    }
-
-    .no-notifs {
-      text-align: center;
-      color: gray;
-      font-size: 1.1em;
-    }
-
-    .notif-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      margin-bottom: 30px;
+      font-weight: 600;
     }
 
     .notif-card {
-      padding: 15px 20px;
+      padding: 18px 22px;
       border-radius: 10px;
       border-left: 6px solid #2b6e2f;
-      transition: 0.2s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.4s ease;
+      opacity: 1;
     }
 
     .notif-card.unread {
       background-color: #e9f9e9;
       border-left-color: #4CAF50;
+      font-weight: 600;
+      animation: fadePulse 1.2s ease forwards;
     }
 
     .notif-card.read {
       background-color: #f9f9f9;
       opacity: 0.9;
-    }
-
-    .notif-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      font-weight: 400;
     }
 
     .notif-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: #333;
       margin-bottom: 6px;
     }
 
     .notif-message {
       color: #555;
-      margin-top: 4px;
-      line-height: 1.4;
+      font-size: 0.95rem;
+      margin: 4px 0;
     }
 
     .notif-time {
-      font-size: 0.9em;
+      font-size: 0.85rem;
       color: gray;
     }
 
-    .back-btn {
-      display: inline-flex;
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      background-color: #2b6e2f;
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      background: #2b6e2f;
       color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
+      font-weight: 500;
       text-decoration: none;
       transition: 0.3s;
-      margin-bottom: 20px;
     }
 
-    .back-btn:hover {
-      background-color: #3d8c42;
-      transform: scale(1.05);
+    .btn:hover {
+      background: #3d8c42;
     }
 
-    .back-btn i {
-      margin-right: 8px;
-    }
-
-    /* 🔔 Popup Notification */
-    .notif-popup {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #2b6e2f;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      z-index: 9999;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: popupFade 0.5s forwards;
-    }
-
-    @keyframes popupFade {
-      to {
+    /* 🔹 Fade + Pulse Animation */
+    @keyframes fadePulse {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+      }
+      50% {
         opacity: 1;
         transform: translateY(0);
+        box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
       }
     }
   </style>
@@ -139,90 +117,91 @@
 
 <body>
   <div class="notif-container">
-    <a href="/userdashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    <div class="btn-row">
+      <a href="/userdashboard" class="btn">⬅ Back</a>
+      <button id="markAllRead" class="btn"><i class="fas fa-check-double"></i> Mark All as Read</button>
+    </div>
+
     <h1><i class="fas fa-bell"></i> Notifications</h1>
 
-    <% if (notifications.length === 0) { %>
-      <p class="no-notifs">No notifications found.</p>
-    <% } else { %>
-      <div class="notif-list">
+    <div id="notificationList">
+      <% if (notifications.length === 0) { %>
+        <p style="text-align:center; color:gray;">No notifications found.</p>
+      <% } else { %>
         <% notifications.forEach(n => { %>
-          <div class="notif-card <%= n.is_read ? 'read' : 'unread' %>">
+          <div class="notif-card <%= n.is_read ? 'read' : 'unread' %>" data-id="<%= n.id %>">
             <div class="notif-header">
-              <p><strong><%= n.firstName || 'Everlasting Peace Memorial Park Cemetery' %> <%= n.lastName || '' %></strong></p>
+              <strong>Everlasting Peace Memorial Park</strong>
               <span class="notif-time"><%= new Date(n.datestamp).toLocaleString() %></span>
             </div>
             <p class="notif-message"><%= n.message %></p>
           </div>
         <% }) %>
-      </div>
-    <% } %>
+      <% } %>
+    </div>
   </div>
 
   <script>
-    // Automatically mark notifications as read when page loads
-    document.addEventListener("DOMContentLoaded", async () => {
+    async function fetchNotifications() {
       try {
-        await fetch("/notifications/mark-read", { method: "POST" });
-        console.log("✅ Notifications marked as read");
-      } catch (err) {
-        console.error("Error marking notifications as read:", err);
-      }
-    });
+        const res = await fetch("/notification/json");
+        const notifications = await res.json();
+        const container = document.getElementById("notificationList");
 
-    // Popup notification for new messages
-    let lastCount = <%= notifications.filter(n => !n.is_read).length %>;
-
-    async function checkNewNotifications() {
-      try {
-        const res = await fetch("/notifications/json");
-        const data = await res.json();
-        const unread = data.filter(n => !n.is_read);
-
-        // If new unread appeared, show popup
-        if (unread.length > lastCount) {
-          showPopup(unread[0].message);
+        if (!notifications || notifications.length === 0) {
+          container.innerHTML = '<p style="text-align:center; color:gray;">No notifications found.</p>';
+          return;
         }
 
-        lastCount = unread.length;
+        // Build notification HTML
+        container.innerHTML = notifications.map(n => `
+          <div class="notif-card ${n.is_read ? 'read' : 'unread'}" data-id="${n.id}">
+            <div class="notif-header">
+              <strong>Everlasting Peace Memorial Park</strong>
+              <span class="notif-time">${new Date(n.datestamp).toLocaleString()}</span>
+            </div>
+            <p class="notif-message">${n.message}</p>
+          </div>
+        `).join('');
       } catch (err) {
         console.error("Error fetching notifications:", err);
       }
     }
 
-    // 🔔 Function to show popup
-    function showPopup(message) {
-      const popup = document.createElement("div");
-      popup.classList.add("notif-popup");
-      popup.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
-      document.body.appendChild(popup);
-
-      setTimeout(() => {
-        popup.style.opacity = "0";
-        popup.style.transform = "translateY(10px)";
-        setTimeout(() => popup.remove(), 500);
-      }, 4000);
-    }
-
-    // 🕒 Check every 10 seconds
-    setInterval(checkNewNotifications, 10000);
-
-    // 🟢 OPTIONAL: update badge count if you have a navbar bell
     async function updateBadge() {
       try {
-        const res = await fetch("/notifications/unread/count");
+        const res = await fetch("/notification/unread/count");
         const { count } = await res.json();
-        const badge = document.querySelector(".notif-badge");
-        if (badge) {
-          badge.textContent = count > 0 ? count : "";
-          badge.style.display = count > 0 ? "inline-block" : "none";
-        }
+        // Optional: update bell badge if exists
       } catch (err) {
         console.error("Error updating badge:", err);
       }
     }
 
-    setInterval(updateBadge, 10000);
+    // 🔹 Automatically mark all as read
+    document.getElementById("markAllRead").addEventListener("click", async () => {
+      try {
+        await fetch("/notification/mark-read", { method: "POST" });
+        document.querySelectorAll(".notif-card").forEach(card => {
+          card.classList.remove("unread");
+          card.classList.add("read");
+        });
+        updateBadge();
+      } catch (err) {
+        console.error("Error marking all as read:", err);
+      }
+    });
+
+    // 🔹 Auto-refresh notifications every 10 seconds
+    setInterval(async () => {
+      const oldIds = Array.from(document.querySelectorAll(".notif-card")).map(c => c.dataset.id);
+      await fetchNotifications();
+
+      // Animate newly added notifications
+      const newCards = Array.from(document.querySelectorAll(".notif-card")).filter(c => !oldIds.includes(c.dataset.id));
+      newCards.forEach(card => card.classList.add("unread"));
+      updateBadge();
+    }, 10000);
   </script>
 </body>
 </html>

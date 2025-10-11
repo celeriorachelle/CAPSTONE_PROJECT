@@ -1,22 +1,22 @@
-
-// routes/adminviewapp.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db'); // your db connection (mysql2/promise)
 const nodemailer = require('nodemailer');
 
-// Make sure express app uses `app.use(express.json())` and `app.use(express.urlencoded({ extended: true }))`
-
-// Nodemailer transporter (use your credentials or move to .env)
+// ================================
+// Nodemailer setup
+// ================================
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'rheachellegutierrez17@gmail.com', // replace if needed
-    pass: 'cpflmrprhngxnsxo' // use App Password or env var
+    user: 'rheachellegutierrez17@gmail.com', // replace with your email
+    pass: 'cpflmrprhngxnsxo' // Gmail App Password (not your real password)
   }
 });
 
-// Middleware to require admin login
+// ================================
+// Middleware: Require Admin Login
+// ================================
 function requireAdmin(req, res, next) {
   if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
     return res.redirect('/login');
@@ -24,7 +24,9 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// GET /adminviewapp
+// ================================
+// GET /adminviewapp - View all bookings
+// ================================
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const [bookings] = await db.query(`
@@ -50,20 +52,22 @@ router.get('/', requireAdmin, async (req, res) => {
   }
 });
 
-// POST /adminviewapp/approve/:id
+// ================================
+// POST /adminviewapp/approve/:id - Approve a booking
+// ================================
 router.post('/approve/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
   try {
-    // Update booking status
+    // 1️⃣ Update booking status
     await db.query(`UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`, [bookingId]);
 
-    // update plot status if exists
+    // 2️⃣ Update plot availability if linked
     const [plotRes] = await db.query(`SELECT plot_id FROM booking_tbl WHERE booking_id = ?`, [bookingId]);
     if (plotRes[0] && plotRes[0].plot_id) {
-      await db.query(`UPDATE plot_map_tbl SET status = 'occupied' WHERE plot_id = ?`, [plotRes[0].plot_id]);
+      await db.query(`UPDATE plot_map_tbl SET availability = 'occupied' WHERE plot_id = ?`, [plotRes[0].plot_id]);
     }
 
-    // fetch booking details to notify user
+    // 3️⃣ Fetch booking details for notification/email
     const [bookingRows] = await db.query(`
       SELECT user_id, firstname, lastname, email, service_type, booking_date, visit_time, plot_id
       FROM booking_tbl WHERE booking_id = ?
@@ -79,13 +83,13 @@ router.post('/approve/:id', requireAdmin, async (req, res) => {
 
       const message = `Your ${service} booking on ${date} at ${time} has been approved. Please come at the scheduled time.`;
 
-      // insert notification
+      // 4️⃣ Insert into notifications table
       await db.query(`
         INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
         VALUES (?, ?, ?, 0, NOW(), ?)
       `, [userId, bookingId, message, bk.plot_id || null]);
 
-      // optional: send email if present
+      // 5️⃣ Send email notification (optional)
       if (email) {
         try {
           await transporter.sendMail({
@@ -107,16 +111,18 @@ router.post('/approve/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// POST /adminviewapp/reject/:id
+// ================================
+// POST /adminviewapp/reject/:id - Reject a booking
+// ================================
 router.post('/reject/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
   try {
-    // Update status
+    // 1️⃣ Update booking status
     await db.query(`UPDATE booking_tbl SET status = 'cancelled' WHERE booking_id = ?`, [bookingId]);
 
-    // fetch booking details for notification
+    // 2️⃣ Fetch booking details for notification/email
     const [bookingRows] = await db.query(`
-      SELECT user_id, firstname, lastname, email, service_type, booking_date, visit_time
+      SELECT user_id, firstname, lastname, email, service_type, booking_date, visit_time, plot_id
       FROM booking_tbl WHERE booking_id = ?
     `, [bookingId]);
 
@@ -130,11 +136,18 @@ router.post('/reject/:id', requireAdmin, async (req, res) => {
 
       const message = `We're sorry — your ${service} booking on ${date} at ${time} has been declined/cancelled. Please contact the office for assistance.`;
 
+      // 3️⃣ Insert into notifications table
       await db.query(`
-        INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp)
-        VALUES (?, ?, ?, 0, NOW())
-      `, [userId, bookingId, message]);
+        INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+        VALUES (?, ?, ?, 0, NOW(), ?)
+      `, [userId, bookingId, message, bk.plot_id || null]);
 
+      // 4️⃣ Optionally free up the plot (set back to 'available')
+      if (bk.plot_id) {
+        await db.query(`UPDATE plot_map_tbl SET availability = 'available' WHERE plot_id = ?`, [bk.plot_id]);
+      }
+
+      // 5️⃣ Send rejection email
       if (email) {
         try {
           await transporter.sendMail({
@@ -156,10 +169,13 @@ router.post('/reject/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// POST /adminviewapp/notify/:id  -> admin manual notify (custom message)
+// ================================
+// POST /adminviewapp/notify/:id - Manual notification
+// ================================
 router.post('/notify/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
   const { message } = req.body || {};
+
   if (!message || !message.trim()) {
     return res.status(400).json({ success: false, error: 'Message required' });
   }
@@ -178,13 +194,13 @@ router.post('/notify/:id', requireAdmin, async (req, res) => {
     const userId = bk.user_id;
     const email = bk.email;
 
-    // Save to notifications
+    // Insert notification
     await db.query(`
       INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
       VALUES (?, ?, ?, 0, NOW(), ?)
     `, [userId, bookingId, message, bk.plot_id || null]);
 
-    // optional: send email
+    // Optional: send email
     if (email) {
       try {
         await transporter.sendMail({
@@ -206,4 +222,3 @@ router.post('/notify/:id', requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
-

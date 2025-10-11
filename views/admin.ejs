@@ -80,15 +80,57 @@
       color: white;
       border-radius: 50%;
       font-size: 0.75rem;
-      padding: 3px 6px;
+      padding: 4px 7px;
       position: relative;
       top: -10px;
       right: 10px;
       display: none;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
     .icons {
       position: relative;
+    }
+
+    /* 🔔 Bell Bounce Animation */
+    @keyframes bellBounce {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-15deg); }
+      50% { transform: rotate(15deg); }
+      75% { transform: rotate(-10deg); }
+    }
+
+    .bell-animate {
+      animation: bellBounce 0.6s ease;
+    }
+
+    /* 🔔 Side Toast Notification */
+    .side-toast {
+      position: fixed;
+      top: 80px;
+      right: -350px;
+      background: #2e7d32;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      font-weight: 500;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: right 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+
+    .side-toast.show {
+      right: 20px;
+      opacity: 1;
+    }
+
+    .side-toast i {
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -215,7 +257,13 @@
     </section>
   </main>
 
-  <!-- ✅ Updated Script (unchanged logic) -->
+  <!-- 🔔 Side Toast -->
+  <div class="side-toast" id="sideToast">
+    <i class="fas fa-bell"></i>
+    <span>New booking received! 🎉</span>
+  </div>
+
+  <!-- ✅ Updated Script -->
   <script>
     function updateDateTime() {
       const now = new Date();
@@ -224,17 +272,13 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/admin/notifications/count');
-        const data = await res.json();
-        const badge = document.getElementById('notificationCount');
-        const unread = getUnreadCount();
-        badge.textContent = unread > 0 ? unread : 0;
-        badge.style.display = unread > 0 ? 'inline' : 'none';
-      } catch (err) {
-        console.error('Error fetching notification count:', err);
-      }
+    let lastUnreadCount = 0;
+
+    function showSideToast(message) {
+      const toast = document.getElementById('sideToast');
+      toast.querySelector('span').textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000); // hide after 4s
     }
 
     function getReadNotifications() {
@@ -257,9 +301,31 @@
       return allItems.filter(item => !read.includes(item.booking_id)).length;
     }
 
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/admin/notification/count');
+        const data = await res.json();
+        const badge = document.getElementById('notificationCount');
+        const unread = getUnreadCount();
+
+        badge.textContent = unread > 0 ? unread : 0;
+        badge.style.display = unread > 0 ? 'inline' : 'none';
+
+        if (unread > lastUnreadCount) {
+          const bell = document.getElementById('notificationBtn');
+          bell.classList.add('bell-animate');
+          showSideToast("New booking received! 🎉"); // show side toast
+          setTimeout(() => bell.classList.remove('bell-animate'), 600);
+        }
+        lastUnreadCount = unread;
+      } catch (err) {
+        console.error('Error fetching notification count:', err);
+      }
+    }
+
     async function fetchNotificationList() {
       try {
-        const res = await fetch('/admin/notifications/list');
+        const res = await fetch('/admin/notification/list');
         const list = await res.json();
         localStorage.setItem('latestNotifications', JSON.stringify(list));
 
@@ -269,20 +335,18 @@
         if (list.length === 0) {
           container.innerHTML = '<li>No recent bookings</li>';
         } else {
-         container.innerHTML = list.map(item => {
-  const isRead = read.includes(item.booking_id);
-  return `
-    <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.booking_id})">
-      <strong>${item.full_name}</strong> (ID: ${item.booking_id})
-      <small>Service: ${item.service_type || 'N/A'}</small>
-      <small>Status: ${item.status}</small>
-      <small>Payment: ${item.payment_status || 'No Payment Record'}</small> <!-- ✅ Added Line -->
-      <small>Booking Date: ${new Date(item.booking_date).toLocaleDateString()}</small>
-      <small>Submitted: ${new Date(item.generated_at).toLocaleString()}</small>
-    </li>
-  `;
-}).join('');
-
+          container.innerHTML = list.map(item => {
+            const isRead = read.includes(item.booking_id);
+            return `
+              <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.booking_id})">
+                <strong>${item.full_name}</strong> (ID: ${item.booking_id})
+                <small>Service: ${item.service_type || 'N/A'}</small>
+                <small>Status: ${item.status}</small>
+                <small>Payment: ${item.payment_status || 'No Payment Record'}</small>
+                <small>Booking Date: ${new Date(item.booking_date).toLocaleDateString()}</small>
+                <small>Submitted: ${new Date(item.generated_at).toLocaleString()}</small>
+              </li>`;
+          }).join('');
         }
 
         fetchNotifications();
@@ -296,8 +360,8 @@
       window.location.href = '/adminviewapp';
     }
 
-    fetchNotifications();
-    setInterval(fetchNotifications, 10000);
+    fetchNotificationList();
+    setInterval(fetchNotificationList, 10000);
 
     const notifBtn = document.getElementById('notificationBtn');
     const notifDropdown = document.getElementById('notificationDropdown');

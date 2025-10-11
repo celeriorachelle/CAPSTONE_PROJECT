@@ -51,8 +51,8 @@ router.get("/", requireAdmin, async (req, res) => {
   }
 });
 
-// ✅ Notification count (recent 24 hours)
-router.get("/notifications/count", requireAdmin, async (req, res) => {
+// ✅ Notification count (recent 24 hours) - singular route
+router.get("/notification/count", requireAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT COUNT(*) AS count 
@@ -66,8 +66,8 @@ router.get("/notifications/count", requireAdmin, async (req, res) => {
   }
 });
 
-// ✅ Latest bookings (for dropdown) + include payment status
-router.get("/notifications/list", requireAdmin, async (req, res) => {
+// ✅ Latest bookings (for dropdown) - singular route
+router.get("/notification/list", requireAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -77,7 +77,7 @@ router.get("/notifications/list", requireAdmin, async (req, res) => {
         b.service_type,
         b.status,
         b.generated_at,
-        p.status AS payment_status   -- ✅ Added: payment status from payment_tbl
+        p.status AS payment_status
       FROM booking_tbl b
       LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id
       ORDER BY b.generated_at DESC
