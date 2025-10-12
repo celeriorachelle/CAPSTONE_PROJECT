@@ -34,6 +34,11 @@ var staff_viewbookingsRouter = require('./routes/staff_viewbookings');
 var staff_installmentsRouter = require('./routes/staff_installments');
 var staff_logsRouter = require('./routes/staff_logs');
 var adminviewbookingsRouter = require('./routes/adminviewbookings');
+var apiPlotsRouter = require('./routes/plots');
+
+// New route for API access to plots
+
+
 
 
 
@@ -146,6 +151,7 @@ app.use('/staff_viewbookings', staff_viewbookingsRouter)
 app.use('/staff_installments', staff_installmentsRouter);
 app.use('/staff_logs', staff_logsRouter);
 app.use('/adminviewbookings', adminviewbookingsRouter);
+app.use('/api/plots', apiPlotsRouter); 
 
 
 app.use('/boxicons', express.static(__dirname + '/node_modules/boxicons'));

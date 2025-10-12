@@ -29,7 +29,7 @@
             </div>
           <div class="profile-dropdown-wrapper">
             <div class="profile-btn">
-        <i class="bi bi-person-circle"></i>
+                <i class="bi bi-person-circle"></i>
             </div>
             <div class="dropdown-toggle">
                 <i class="bi bi-caret-down-fill"></i>
@@ -99,34 +99,207 @@
             </div>
         </div>
 
-        <div class="right-column" style="padding-bottom: 10%;">
-            <div class="search-fields">
-                <div class="search-panel">
-                    <h3 class="search-title">Find Your Loved Ones</h3>
-                    <div class="search-grid">
-                    <input type="text" class="search-input" placeholder="First Name" id="firstName">
-                    <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
-                    <input type="text" class="search-input" placeholder="Last Name" id="lastName">
-                    <input type="number" class="search-input" placeholder="Year Born" id="yearBorn" min="0" max="9999">
-                    <input type="number" class="search-input" placeholder="Year Died" id="yearDied" min="0" max="9999">
-                    <div class="search-action">
-                        <button type="button" class="search-btn" onclick="applySearch()">
-                            SEARCH
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-            <div class="map-container" >
-                    <h3 class="map-title">Cemetery Map</h3>
-                    <div id="map"></div>
-                </div>
-            </div>
+<div class="right-column" style="padding-bottom: 10%;">
+  <div class="search-fields">
+    <div class="search-panel">
+      <h3 class="search-title">Find Your Loved Ones</h3>
+      <div class="search-grid">
+        <input type="text" class="search-input" placeholder="First Name" id="firstName">
+        <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
+        <input type="text" class="search-input" placeholder="Last Name" id="lastName">
+        <input type="number" class="search-input" placeholder="Year Born" id="yearBorn" min="0" max="9999">
+        <input type="number" class="search-input" placeholder="Year Died" id="yearDied" min="0" max="9999">
+        <div class="search-action">
+          <button type="button" class="search-btn" onclick="applySearch()">SEARCH</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-container">
+    <h3 class="map-title">Cemetery Map</h3>
+    <div id="map" style="height: 600px;"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
+  console.log("🗺️ Cemetery Map — coordinate plots + clickable sections");
+
+  // ✅ Initialize map
+  const map = L.map("map", {
+    crs: L.CRS.Simple,
+    minZoom: -2,
+    maxZoom: 5,
+  });
+
+  // ✅ Background image and dimensions
+  const w = 886, h = 768;
+  const bounds = [[0, 0], [h, w]];
+  L.imageOverlay("/images/1.png", bounds).addTo(map);
+  map.fitBounds(bounds);
+
+map.on("click", function (e) {
+  const lat = Math.round(e.latlng.lat);
+  const lng = Math.round(e.latlng.lng);
+  console.log(`Clicked at: [${lat}, ${lng}]`);
+  alert(`Clicked at: [${lat}, ${lng}]`); // optional for quick testing
+});
+  const plotLayer = L.layerGroup().addTo(map);
+
+  // ✅ Fetch plots from backend
+  const res = await fetch("/plots");
+  const plots = await res.json();
+  console.log("✅ Loaded plots:", plots.length);
+// ✅ Adjusted section bounding boxes
+const sectionBounds = {
+  "Heritage Gardens":  [[480, 580], [720, 760]],// moved to bottom-left
+  "Family Estates": [[289, 301], [231, 350]],
+  "Veterans Memorial": [[480, 580], [720, 760]],
+  "Memorial Chapel & Administration": [[310, 492]], 
+  "Serenity Columbarium": [[420, 700], [520, 850]], // moved rightward
+};
+
+// ✅ Adjusted section centers (for zoom focus)
+const sectionCenters = {
+  "Heritage Gardens": [670, 170],
+  "Family Estates": [320, 300],
+  "Veterans Memorial": [600, 680],
+  "Memorial Chapel & Administration": [430, 250],
+  "Serenity Columbarium": [470, 780],
+};
+
+
+  // ✅ Plot color logic
+  const getColor = s =>
+    s === "available" ? "green" :
+    s === "reserved" ? "yellow" :
+    s === "occupied" ? "red" : "gray";
+
+  // ✅ Draw plots (all or filtered)
+  function drawPlots(list = plots, highlightList = []) {
+    plotLayer.clearLayers();
+
+    list.forEach(p => {
+      if (!p.coord_x || !p.coord_y) return;
+      const coords = [p.coord_y, p.coord_x];
+      const color = getColor(p.availability);
+      const isHighlighted = highlightList.some(h => h.plot_number === p.plot_number);
+
+      const icon = L.divIcon({
+        html: `<div style="
+          width:${isHighlighted ? 14 : 9}px;
+          height:${isHighlighted ? 14 : 9}px;
+          border-radius:50%;
+          background:${color};
+          border:${isHighlighted ? '2px solid black' : '1px solid #000'};
+          box-shadow:${isHighlighted ? '0 0 5px 2px #000' : 'none'};
+        "></div>`,
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
+      });
+
+      const popup = `
+        <b>${p.plot_number}</b><br>
+        Location: ${p.location}<br>
+        Status: <b style="color:${color}">${p.availability}</b><br>
+        Type: ${p.type}<br>
+        ${p.deceased_firstName ? `${p.deceased_firstName} ${p.deceased_lastName}` : ""}
+      `;
+
+      L.marker(coords, { icon }).addTo(plotLayer).bindPopup(popup);
+    });
+  }
+
+  // ✅ Draw clickable section boxes (overview)
+  function drawClickableSections() {
+    plotLayer.clearLayers();
+
+    Object.entries(sectionBounds).forEach(([name, box]) => {
+      const rect = L.rectangle(box, {
+        color: "transparent",
+        weight: 1,
+        fillOpacity: 0.05,
+        fillColor: "white"
+      })
+        .addTo(plotLayer)
+        .bindPopup(`<b>${name}</b><br>Click to view plots`)
+        .on("click", () => {
+          const filtered = plots.filter(p => p.location === name);
+          if (!filtered.length) {
+            alert(`⚠️ No plots found in ${name}`);
+            return;
+          }
+          map.setView(sectionCenters[name], 3);
+          drawPlots(filtered);
+          addBackButton();
+        });
+
+      rect.on("mouseover", () => rect.setStyle({ color: "transparent", weight: 2 }));
+      rect.on("mouseout", () => rect.setStyle({ color: "transparent", weight: 1 }));
+    });
+  }
+
+  // ✅ Back button to return to overview
+  function addBackButton() {
+    const backIcon = L.divIcon({
+      html: `<div style="
+        width: 60px; height: 25px;
+        background: white; border: 1px solid black;
+        border-radius: 5px; text-align: center; line-height: 25px;
+        font-size: 11px;">Back</div>`,
+      iconSize: [60, 25],
+      iconAnchor: [30, 12]
+    });
+
+    L.marker([100, 100], { icon: backIcon })
+      .addTo(plotLayer)
+      .on("click", () => {
+        map.fitBounds(bounds);
+        drawClickableSections();
+      });
+  }
+
+  // ✅ SEARCH FUNCTION (highlight search results)
+  window.applySearch = async function () {
+    const params = new URLSearchParams({
+      firstName: document.getElementById("firstName").value.trim(),
+      middleName: document.getElementById("middleName").value.trim(),
+      lastName: document.getElementById("lastName").value.trim(),
+      yearBorn: document.getElementById("yearBorn").value,
+      yearDied: document.getElementById("yearDied").value
+    });
+
+    const res = await fetch(`/plots/search?${params}`);
+    const results = await res.json();
+
+    if (!results.length) {
+      alert("No matching records found.");
+      map.fitBounds(bounds);
+      drawClickableSections();
+      return;
+    }
+
+    const section = results[0].location;
+    const filtered = plots.filter(p => p.location === section);
+
+    if (sectionCenters[section]) {
+      map.setView(sectionCenters[section], 3);
+      drawPlots(filtered, results);
+      addBackButton();
+    } else {
+      alert(`Result found in unknown section: ${section}`);
+    }
+  };
+
+  // ✅ Initial load (overview mode)
+  drawClickableSections();
+});
+</script>
 
 <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -150,161 +323,7 @@
             });
         });
 
-  function applySearch() {
-    const filters = {
-      firstName: document.getElementById("firstName").value.trim(),
-      middleName: document.getElementById("middleName").value.trim(),
-      lastName: document.getElementById("lastName").value.trim(),
-      yearBorn: document.getElementById("yearBorn").value,
-      yearDied: document.getElementById("yearDied").value
-    };
-    console.log("Applied Filters:", filters);
-  }
-
-                    document.addEventListener("DOMContentLoaded", function () {
-                        const w = 1017; 
-                        const h = 573;  
-
-                        const map = L.map("map", {
-                            crs: L.CRS.Simple,
-                            minZoom: -1,
-                            maxZoom: 4
-                        });
-
-                        const bounds = [[0,0], [h,w]];
-                        L.imageOverlay("/images/map.png", bounds).addTo(map);
-                        map.fitBounds(bounds);
-
-                        const plotLayer = L.layerGroup().addTo(map);
-
-                    
-                        const categories = [
-                            { name: "Garden A", coords: [100, 200], plots: [
-                                {coords: [120, 210], status: "available", info: "Plot 1: John Doe, 1920-2000"},
-                                {coords: [130, 220], status: "occupied", info: "Plot 2: Jane Smith, 1930-1990"},
-                                {coords: [125, 215], status: "reserved", info: "Plot 3: Reserved"}
-                            ]},
-                            { name: "Garden B", coords: [300, 500], plots: [
-                                {coords: [310, 510], status: "available", info: "Plot 4: Someone Else"}
-                            ]}
-                        ];
-
-                        function getPlotColor(status) {
-                        switch(status) {
-                            case "available": return "green";
-                            case "occupied": return "red";
-                            case "reserved": return "yellow";
-                            default: return "gray";
-                        }
-                    }
-                    let currentZoomedPlot = null;
-                    let originalView = null;
-
-                    function showPlots(plots) {
-                        plotLayer.clearLayers();
-                        currentZoomedPlot = null; 
-
-                        plots.forEach((p, index) => {
-                            const color = getPlotColor(p.status);
-                            const borderColor = color; 
-
-                            const spacedCoords = [
-                                p.coords[0] + (index * 60), // Add vertical spacing
-                                p.coords[1] + (index * 60)  // Add horizontal spacing
-                            ];
-
-                            const icon = L.divIcon({
-                                className: "plot-dot",
-                                html: `<div style="
-                                    width: 50px;
-                                    height: 50px;
-                                    border-radius: 25%;
-                                    background-color: ${color};
-                                    border: 2px solid black;
-                                    margin: 10px;
-                                "></div>`,
-                                iconSize: [50, 50], // Updated to match the actual size
-                                iconAnchor: [25, 25] // Center the larger dot
-                            });
-
-                            const marker = L.marker(spacedCoords, {icon: icon})
-                            .addTo(plotLayer)
-                            .bindPopup(p.info);
-
-                            // Add click event for zoom functionality
-                            marker.on('click', function(e) {
-                                e.originalEvent.stopPropagation(); // Prevent map click event
-                                
-                                if (currentZoomedPlot === marker) {
-                                    // If clicking the same plot, zoom out
-                                    if (originalView) {
-                                        map.setView(originalView.center, originalView.zoom);
-                                    }
-                                    currentZoomedPlot = null;
-                                    originalView = null;
-                                } else {
-                                    // Store original view if not already stored
-                                    if (!originalView) {
-                                        originalView = {
-                                            center: map.getCenter(),
-                                            zoom: map.getZoom()
-                                        };
-                                    }
-                                    
-                                    // Zoom in to the clicked plot
-                                    map.setView(spacedCoords, 4); // Higher zoom level
-                                    currentZoomedPlot = marker;
-                                }
-                            });
-                        });
-                    }
-
-                    // Icon for categories (larger dots)
-                    function addCategoryMarkers(categories) {
-                        categories.forEach(cat => {
-                            const icon = L.divIcon({
-                                className: "category-dot",
-                                html: `<div style="
-                                    width: 10px;
-                                    height: 10px;
-                                    border-radius: 50%;
-                                    background-color: yellow;
-                                    border: 2px solid yellow;
-                                "></div>`,
-                                iconSize: [10, 10],
-                                iconAnchor: [12, 12]
-                            });
-
-                            const marker = L.marker(cat.coords, {icon: icon}).addTo(map);
-                            marker.bindPopup(`<b>${cat.name}</b><br>Click to view plots`);
-
-                            marker.on('click', () => {
-                                map.setView(cat.coords, 2); // zoom in
-                                showPlots(cat.plots);
-                            });
-                        });
-                    }
-
-                    // Add categories to the map
-                    addCategoryMarkers(categories);
-
-                    // Add map click event to zoom out when clicking empty space
-                    map.on('click', function(e) {
-                        if (currentZoomedPlot && originalView) {
-                            map.setView(originalView.center, originalView.zoom);
-                            currentZoomedPlot = null;
-                            originalView = null;
-                        } else if (map.getZoom() >= 2) {
-                            // If we're zoomed in to a garden view, zoom out to main view and clear plots
-                            map.fitBounds(bounds);
-                            plotLayer.clearLayers();
-                            currentZoomedPlot = null;
-                            originalView = null;
-                        }
-                    });
-
-                    });
-                    </script>
+    </script>
             </div>
         </div>
     </main>
