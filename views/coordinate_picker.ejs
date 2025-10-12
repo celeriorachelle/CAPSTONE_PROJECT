@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🗺️ Cemetery Plot Coordinate Picker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; }
+    #map { height: 100vh; width: 100%; }
+    .control-box {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    input {
+      margin-top: 5px;
+      padding: 5px;
+      width: 180px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 6px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="control-box">
+    <b>🪦 Coordinate Picker</b><br>
+    <label>Plot Number:</label><br>
+    <input type="text" id="plotNumber" placeholder="e.g. A-101"><br>
+    <div id="coordsDisplay">Click map to get coords</div>
+    <button id="saveBtn" disabled>Save to Database</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    const map = L.map("map", {
+      crs: L.CRS.Simple,
+      minZoom: -2,
+      maxZoom: 5
+    });
+
+    const w = 886, h = 768; // Match your image dimensions
+    const bounds = [[0, 0], [h, w]];
+    L.imageOverlay("/images/map2.png", bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    let lastMarker = null;
+    const coordsDisplay = document.getElementById("coordsDisplay");
+    const saveBtn = document.getElementById("saveBtn");
+    const plotInput = document.getElementById("plotNumber");
+
+    let currentCoords = null;
+
+    map.on("click", (e) => {
+      const y = Math.round(e.latlng.lat);
+      const x = Math.round(e.latlng.lng);
+      currentCoords = { x, y };
+
+      coordsDisplay.textContent = `coord_x: ${x}, coord_y: ${y}`;
+      saveBtn.disabled = false;
+
+      if (lastMarker) map.removeLayer(lastMarker);
+      lastMarker = L.marker([y, x]).addTo(map);
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      const plot_number = plotInput.value.trim();
+      if (!plot_number) {
+        alert("Please enter a plot number first!");
+        return;
+      }
+      if (!currentCoords) {
+        alert("Click on the map to get coordinates.");
+        return;
+      }
+
+      const response = await fetch("/plots/update-coord", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plot_number,
+          coord_x: currentCoords.x,
+          coord_y: currentCoords.y
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert(`✅ Saved ${plot_number} at (${currentCoords.x}, ${currentCoords.y})`);
+        saveBtn.disabled = true;
+        plotInput.value = "";
+        coordsDisplay.textContent = "Click map to get coords";
+        map.removeLayer(lastMarker);
+      } else {
+        alert("❌ Failed to save coordinates. Check server logs.");
+      }
+    });
+  </script>
+</body>
+</html>
