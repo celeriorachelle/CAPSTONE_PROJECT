@@ -3,145 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notifications | Everlasting Peace Memorial Park</title>
+  <title>Notifications - Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="/stylesheets/notification.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f0f5f0;
-      margin: 0;
-      padding: 0;
-    }
-
-    .notif-container {
-      max-width: 750px;
-      margin: 50px auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      padding: 25px 30px;
-    }
-
-    h1 {
-      text-align: center;
-      color: #2b6e2f;
-      margin-bottom: 30px;
-      font-weight: 600;
-    }
-
-    .notif-card {
-      padding: 18px 22px;
-      border-radius: 10px;
-      border-left: 6px solid #2b6e2f;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all 0.4s ease;
-      opacity: 1;
-    }
-
-    .notif-card.unread {
-      background-color: #e9f9e9;
-      border-left-color: #4CAF50;
-      font-weight: 600;
-      animation: fadePulse 1.2s ease forwards;
-    }
-
-    .notif-card.read {
-      background-color: #f9f9f9;
-      opacity: 0.9;
-      font-weight: 400;
-    }
-
-    .notif-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .notif-message {
-      color: #555;
-      font-size: 0.95rem;
-      margin: 4px 0;
-    }
-
-    .notif-time {
-      font-size: 0.85rem;
-      color: gray;
-    }
-
-    .btn-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      cursor: pointer;
-      background: #2b6e2f;
-      color: white;
-      font-weight: 500;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      background: #3d8c42;
-    }
-
-    /* 🔹 Fade + Pulse Animation */
-    @keyframes fadePulse {
-      0% {
-        opacity: 0;
-        transform: translateY(-10px);
-        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
-      }
-      50% {
-        opacity: 1;
-        transform: translateY(0);
-        box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-  <div class="notif-container">
-    <div class="btn-row">
-      <a href="/userdashboard" class="btn">⬅ Back</a>
-      <button id="markAllRead" class="btn"><i class="fas fa-check-double"></i> Mark All as Read</button>
-    </div>
+  <!-- ✅ Sidebar -->
+  <%- include('partials/sidebar') %>
 
-    <h1><i class="fas fa-bell"></i> Notifications</h1>
+  <div class="main" id="main">
+    <!-- ✅ Topbar -->
+    <%- include('partials/topbar', { title: "Notifications" }) %>
 
-    <div id="notificationList">
-      <% if (notifications.length === 0) { %>
-        <p style="text-align:center; color:gray;">No notifications found.</p>
-      <% } else { %>
-        <% notifications.forEach(n => { %>
-          <div class="notif-card <%= n.is_read ? 'read' : 'unread' %>" data-id="<%= n.id %>">
-            <div class="notif-header">
-              <strong>Everlasting Peace Memorial Park</strong>
-              <span class="notif-time"><%= new Date(n.datestamp).toLocaleString() %></span>
+    <!-- ✅ Main Content -->
+    <div class="notif-container">
+      <div class="btn-row">
+        <a href="/userdashboard" class="btn">⬅ Back</a>
+        <button id="markAllRead" class="btn"><i class="fas fa-check-double"></i> Mark All as Read</button>
+      </div>
+
+      <h1><i class="fas fa-bell"></i> Notifications</h1>
+
+      <div id="notificationList">
+        <% if (notifications.length === 0) { %>
+          <p style="text-align:center; color:gray;">No notifications found.</p>
+        <% } else { %>
+          <% notifications.forEach(n => { %>
+            <div class="notif-card <%= n.is_read ? 'read' : 'unread' %>" data-id="<%= n.id %>">
+              <div class="notif-header">
+                <strong>Everlasting Peace Memorial Park</strong>
+                <span class="notif-time"><%= new Date(n.datestamp).toLocaleString() %></span>
+              </div>
+              <p class="notif-message"><%= n.message %></p>
             </div>
-            <p class="notif-message"><%= n.message %></p>
-          </div>
-        <% }) %>
-      <% } %>
+          <% }) %>
+        <% } %>
+      </div>
     </div>
+
+    <!-- ✅ Footer -->
+    <footer>
+      <%- include('partials/footer') %>
+    </footer>
   </div>
 
-  <script>
+  <!-- ✅ JavaScript -->
+    <script>
     async function fetchNotifications() {
       try {
         const res = await fetch("/notification/json");

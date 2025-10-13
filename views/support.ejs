@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/stylesheets/support.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <!-- Sidebar -->
   <%- include('partials/sidebar') %>
@@ -15,15 +16,15 @@
     <!-- Topbar -->
     <%- include('partials/topbar', { title: "Support" }) %>
 
-    <div class="content">
-      <!-- FAQ -->
-      <div class="faq-container">
-        <h2>Frequently Asked Questions (FAQ)</h2>
+    <div class="support-container">
+      <!-- FAQ Section -->
+      <section class="faq-section">
+        <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
 
         <div class="faq-item">
           <div class="faq-question">
-            <span>📅 How do I book an appointment?</span>
-            <span>▼</span>
+            📅 How do I book an appointment?
+            <i class="fas fa-chevron-down"></i>
           </div>
           <div class="faq-answer">
             To book an appointment, go to the "Book" section in the sidebar and fill out the booking form.
@@ -32,8 +33,8 @@
 
         <div class="faq-item">
           <div class="faq-question">
-            <span>⏰ Support Hours & Response Time</span>
-            <span>▼</span>
+            ⏰ What are your support hours and response times?
+            <i class="fas fa-chevron-down"></i>
           </div>
           <div class="faq-answer">
             Our team is available <strong>Monday–Friday, 8:00 AM to 5:00 PM</strong>.  
@@ -43,73 +44,92 @@
 
         <div class="faq-item">
           <div class="faq-question">
-            <span>📍 Where is the cemetery located?</span>
-            <span>▼</span>
+            📍 Where is the cemetery located?
+            <i class="fas fa-chevron-down"></i>
           </div>
           <div class="faq-answer">
             You can view the full address and map in the "View Map" section of the sidebar.
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Contact Support -->
-      <div class="contact-card">
-        <h2>Contact Support</h2>
+      <!-- Contact Support Section -->
+      <section class="contact-section">
+        <h2><i class="fas fa-headset"></i> Contact Support</h2>
         <div class="contact-info">
-          <div>📧 <span>Email:</span> support@everlastingpeace.com</div>
-          <div>📞 <span>Phone:</span> +63 9670072385</div>
-          <div>📍 <span>Address:</span> Everlasting Peace Memorial Park, Malabon City, Philippines</div>
+          <p>📧 <strong>Email:</strong> support@everlastingpeace.com</p>
+          <p>📞 <strong>Phone:</strong> +63 967 007 2385</p>
+          <p>📍 <strong>Address:</strong> Everlasting Peace Memorial Park, Malabon City, Philippines</p>
         </div>
-      </div>
+      </section>
     </div>
-      <footer>
-        <%- include('partials/footer') %>
+
+    <!-- Footer -->
+    <footer>
+      <%- include('partials/footer') %>
     </footer>
   </div>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleBtn");
+  document.addEventListener("DOMContentLoaded", function () {
+   
 
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
-      toggleBtn.textContent = sidebar.classList.contains("collapsed") ? "▶" : "◀";
+  // FAQ accordion using event delegation
+  const supportContainer = document.querySelector('.support-container');
+  if (!supportContainer) {
+    console.warn('Support container not found — FAQ script aborted.');
+    return;
+  }
+
+  // helper to close other items (optional)
+  function closeOtherItems(currentItem) {
+    document.querySelectorAll('.faq-item.active').forEach(other => {
+      if (other === currentItem) return;
+      other.classList.remove('active');
+      const ans = other.querySelector('.faq-answer');
+      const icon = other.querySelector('.faq-question i');
+      if (ans) ans.style.maxHeight = null;
+      if (icon) icon.style.transform = '';
     });
+  }
 
-    // Accordion effect
-    document.querySelectorAll(".faq-item").forEach(item => {
-      item.addEventListener("click", () => {
-        document.querySelectorAll(".faq-item").forEach(el => {
-          if (el !== item) el.classList.remove("active");
-        });
-        item.classList.toggle("active");
-      });
-    });
+  supportContainer.addEventListener('click', (e) => {
+    const q = e.target.closest('.faq-question');
+    if (!q) return;
 
-for    // Notification popup toggle (guarded; topbar manages this by default)
-    const notifIcon = document.getElementById("notif-icon");
-    const notifPopup = document.getElementById("notification-popup");
-    if (notifIcon && notifPopup) {
-      notifIcon.addEventListener("click", (e) => {
-        e.stopPropagation();
-        notifPopup.classList.toggle("hidden");
-      });
+    const item = q.closest('.faq-item');
+    if (!item) return;
 
-      document.addEventListener("click", function(e) {
-        if (!notifPopup.contains(e.target) && !notifIcon.contains(e.target)) {
-          notifPopup.classList.add("hidden");
-        }
-      });
+    // Close others (so only one open at a time). Remove this line if you want multiple open.
+    closeOtherItems(item);
+
+    const answer = item.querySelector('.faq-answer');
+    const icon = q.querySelector('i');
+
+    // Toggle active class
+    const willOpen = !item.classList.contains('active');
+    item.classList.toggle('active', willOpen);
+
+    if (willOpen) {
+      // Open: set maxHeight to scrollHeight so CSS transition animates
+      if (answer) {
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+      if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+      // Close
+      if (answer) answer.style.maxHeight = null;
+      if (icon) icon.style.transform = '';
     }
+  });
 
-    // Profile icon redirect (guarded)
-    const profileIcon = document.getElementById("profile-icon");
-    if (profileIcon) {
-      profileIcon.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.location.href = "/settings";
-      });
-    }
+  // If some items are pre-marked active in HTML, set their maxHeight on load
+  document.querySelectorAll('.faq-item.active .faq-answer').forEach(ans => {
+    ans.style.maxHeight = ans.scrollHeight + 'px';
+  });
+});
+</script>
+
   </script>
 </body>
 </html>
