@@ -57,6 +57,17 @@ router.post("/checkout", async (req, res) => {
     // Set label for Stripe UI
     const paymentLabel = n_option === "downpayment" ? "Down Payment" : "Full Payment";
 
+    // Check for active installment if downpayment
+    if (n_option === "downpayment") {
+      const [activeRows] = await db.query(
+        `SELECT * FROM payment_tbl WHERE user_id = ? AND status = 'active'`,
+        [n_user_id]
+      );
+      if (activeRows.length > 0) {
+        return res.status(400).json({ error: "You currently have an active installment, please complete your current installment before making another transaction" });
+      }
+    }
+
     // ✅ Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -86,7 +97,8 @@ router.post("/checkout", async (req, res) => {
       details: `User ${n_user_email} started a ${paymentLabel.toLowerCase()} for Plot #${n_plot_id} (₱${n_amount}).`,
     });
 
-    res.redirect(session.url);
+    // Respond with JSON containing Stripe session URL for fetch/AJAX
+    res.json({ url: session.url });
   } catch (err) {
     console.error("Error creating checkout:", err);
     res.status(500).json({ error: "Failed to create checkout session" });

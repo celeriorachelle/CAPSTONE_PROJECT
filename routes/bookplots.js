@@ -293,20 +293,22 @@ router.get('/success', async (req, res) => {
     // 3️⃣ Insert payment record linked to booking
     if (bookingId && paymentData) {
       const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
-     const [paymentResult] = await db.query(
+      const paymentStatus = paymentMethod === 'downpayment' ? 'active' : 'paid';
+      const [paymentResult] = await db.query(
         `INSERT INTO payment_tbl
           (booking_id, user_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount)
-        VALUES (?, ?, ?, ?, ?, 'paid', NOW(), ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)`,
         [
-          bookingId,                     // booking_id (freshly created above)
-          userId,                        // user_id (from session/stripe)
-          normalizedPaymentData.amount,  // amount
-          'card',                        // method
-          session.payment_intent,        // transaction_id
-          normalizedPaymentData.due_date || null,  // due_date
-          normalizedPaymentData.payment_type,      // payment_type
-          normalizedPaymentData.months || null,    // months
-          normalizedPaymentData.monthly_amount || null // monthly_amount
+          bookingId,
+          userId,
+          normalizedPaymentData.amount,
+          'card',
+          session.payment_intent,
+          paymentStatus,
+          normalizedPaymentData.due_date || null,
+          normalizedPaymentData.payment_type,
+          normalizedPaymentData.months || null,
+          normalizedPaymentData.monthly_amount || null
         ]
       );
       // Create notification for successful payment

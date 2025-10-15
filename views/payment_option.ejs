@@ -57,6 +57,8 @@
       <p><strong>Duration:</strong> <span id="duration"></span> months</p>
     </div>
 
+    <div id="errorMessage" style="color:red; margin-bottom:1em; display:none;"></div>
+
     <button type="submit">Proceed to Pay</button>
   </form>
 
@@ -129,8 +131,32 @@
     optionSelect.addEventListener("change", updateAmount);
     monthsSelect.addEventListener("change", updateAmount);
 
-    document.getElementById("paymentForm")?.addEventListener("submit", function (e) {
+    document.getElementById("paymentForm")?.addEventListener("submit", async function (e) {
+      e.preventDefault();
       updateAmount();
+      const form = this;
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v, k) => data[k] = v);
+      try {
+        const resp = await fetch("/payment/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await resp.json();
+        if (!resp.ok) {
+          if (result.error) {
+            document.getElementById("errorMessage").textContent = result.error;
+            document.getElementById("errorMessage").style.display = "block";
+            return;
+          }
+        }
+        window.location = result.url;
+      } catch (err) {
+        document.getElementById("errorMessage").textContent = "Server error. Please try again.";
+        document.getElementById("errorMessage").style.display = "block";
+      }
     });
 
     updateAmount();
