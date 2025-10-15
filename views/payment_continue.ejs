@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continue Payment | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="/stylesheets/userdashboard.css">
+  <link rel="stylesheet" href="/stylesheets/payment.css">
+</head>
+<body>
+  <div class="container">
+    <div class="payment-card">
+      <h2>Continue Payment</h2>
+      <p>Booking Reference: <strong><%= booking.booking_id %></strong></p>
+
+      <div class="payment-details">
+        <p><strong>Plot Number:</strong> <%= booking.plot_number %></p>
+        <p><strong>Location:</strong> <%= booking.location %></p>
+        <p><strong>Total Price:</strong> ₱<%= booking.total_price.toLocaleString() %></p>
+        <p><strong>Payment Type:</strong> <%= booking.payment_type %></p>
+      </div>
+
+      <form action="/payment/checkout" method="POST">
+        <input type="hidden" name="booking_id" value="<%= booking.booking_id %>">
+        <input type="hidden" name="user_id" value="<%= booking.user_id %>">
+        <input type="hidden" name="plot_id" value="<%= booking.plot_id %>">
+        <input type="hidden" name="user_email" value="<%= booking.user_email %>">
+        <input type="hidden" name="option" value="downpayment">
+        <input type="hidden" name="payment_type" value="downpayment">
+
+        <div class="payment-section">
+          <label for="amount">Enter Amount to Pay (₱):</label>
+          <input 
+            type="number" 
+            name="amount" 
+            id="amount" 
+            placeholder="Enter installment amount" 
+            required 
+            step="0.01" 
+            min="100"
+          >
+
+          <label for="months">Months Remaining:</label>
+          <input 
+            type="number" 
+            name="months" 
+            id="months" 
+            placeholder="e.g. 6" 
+            min="1"
+          >
+
+          <label for="due_date">Next Due Date:</label>
+          <input type="date" name="due_date" id="due_date">
+        </div>
+
+        <div class="payment-actions">
+          <button type="submit" class="pay-btn">Proceed to Payment</button>
+          <a href="/payment/history" class="cancel-btn">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    body {
+      background: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .payment-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 420px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .payment-details p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      color: #333;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+
+    .payment-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+    }
+
+    .pay-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .pay-btn:hover {
+      background: #43a047;
+    }
+
+    .cancel-btn {
+      text-decoration: none;
+      color: #777;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .cancel-btn:hover {
+      color: #333;
+    }
+  </style>
+</body>
+</html>

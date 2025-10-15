@@ -1,14 +1,16 @@
+// 📂 routes/book.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db'); // DB connection
+const { addLog } = require('./log_helper'); // ✅ Integrated from ver2: Logging helper
 
-// Middleware to require login
+// ✅ Middleware to require login
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
 
-// GET /book → Booking Form
+// ✅ GET /book → Booking Form
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
 
@@ -37,7 +39,7 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
-// POST /book → Submit booking
+// ✅ POST /book → Submit booking
 router.post('/', requireLogin, async (req, res) => {
   const bookingData = {
     firstname: req.body.firstname,
@@ -102,7 +104,7 @@ router.post('/', requireLogin, async (req, res) => {
       }
     }
 
-    // Plot Booking: store all data in session, do not insert yet
+    // Plot Booking: store data in session, do not insert yet
     if (bookingData.serviceType === 'plot-booking') {
       req.session.bookingData = bookingData;
       return res.redirect('/bookplots');
@@ -125,7 +127,7 @@ router.post('/', requireLogin, async (req, res) => {
       return res.redirect('/book/burial-details');
     }
 
-    // Insert booking for Memorial
+    // ✅ Insert booking for Memorial
     const [result] = await db.query(
       `INSERT INTO booking_tbl
        (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, status)
@@ -143,13 +145,23 @@ router.post('/', requireLogin, async (req, res) => {
       ]
     );
     const bookingId = result.insertId;
-    // Create notification for successful booking
+
+    // ✅ Create notification for successful booking
     await db.query(
       `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
        VALUES (?, ?, ?, 0, NOW(), NULL)`,
       [userId, bookingId, 'Your booking has been submitted and is pending approval.']
     );
 
+    // ✅ Log the booking (Memorial)
+    await addLog({
+      user_id: userId,
+      user_role: req.session.user.role,
+      action: 'Booking',
+      details: `${req.session.user.role} ${req.session.user.name} booked a ${bookingData.serviceType} on ${bookingData.bookingDate}.`
+    });
+
+    // Fetch updated bookings list
     const [userBookings] = await db.query(
       `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
        FROM booking_tbl b
@@ -177,7 +189,7 @@ router.post('/', requireLogin, async (req, res) => {
   }
 });
 
-// Burial details routes
+// ✅ Burial details routes
 router.get('/burial-details', requireLogin, async (req, res) => {
   const bookingData = req.session.burialBookingData;
   if (!bookingData) return res.redirect('/book');
@@ -242,16 +254,26 @@ router.post('/burial-details', requireLogin, async (req, res) => {
     );
     const bookingId = result.insertId;
 
+    // ✅ Create notification for burial booking
     await db.query(
       `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
        VALUES (?, ?, ?, 0, NOW(), ?)`,
       [userId, bookingId, 'Your burial booking has been submitted and is pending approval.', plotId]
     );
 
+    // ✅ Log the burial booking
+    await addLog({
+      user_id: userId,
+      user_role: req.session.user.role,
+      action: 'Booking',
+      details: `${req.session.user.role} ${req.session.user.name} booked a burial for ${deceased_firstName} ${deceased_lastName}.`
+    });
+
     // Clear session vars for burial flow
     req.session.burialBookingData = null;
     req.session.burialPlotId = null;
 
+    // Fetch updated bookings list
     const [userBookings] = await db.query(
       `SELECT b.*, p.type AS plot_type, p.plot_number, p.location
        FROM booking_tbl b

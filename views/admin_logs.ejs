@@ -57,6 +57,37 @@
     tbody tr:hover {
       background: #f4f8f2;
     }
+
+    /* ✅ Filter Form Styling */
+    .filter-form {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-form label {
+      font-weight: 600;
+      color: #2d4a24;
+    }
+    .filter-form select,
+    .filter-form input {
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .filter-form button {
+      background: #6b915e;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .filter-form button:hover {
+      background: #587c4d;
+    }
   </style>
 </head>
 <body>
@@ -77,14 +108,14 @@
     <aside class="sidebar">
       <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
         <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
         <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
+        <li><a href="/admin_logs" class="active"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
     </aside>
 
@@ -99,8 +130,28 @@
       <div class="main-content">
         <div class="header">
           <h1>Activity Logs</h1>
-          <button id="clearLogs"><i class="fas fa-trash"></i> Clear Logs</button>
         </div>
+
+        <!-- ✅ Filter Form -->
+        <form method="get" class="filter-form">
+          <label>Role:</label>
+          <select name="role">
+            <option value="all" <%= filters.role === 'all' ? 'selected' : '' %>>All</option>
+            <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>>Admin</option>
+            <option value="staff" <%= filters.role === 'staff' ? 'selected' : '' %>>Staff</option>
+            <option value="user" <%= filters.role === 'user' ? 'selected' : '' %>>User</option>
+          </select>
+
+          <label>From:</label>
+          <input type="date" name="startDate" value="<%= filters.startDate %>">
+
+          <label>To:</label>
+          <input type="date" name="endDate" value="<%= filters.endDate %>">
+
+          <button type="submit"><i class="fas fa-filter"></i> Apply</button>
+          <button type="button" id="resetFilters"><i class="fas fa-undo"></i> Reset</button>
+          <button type="button" id="clearLogs"><i class="fas fa-trash"></i> Clear Logs</button>
+        </form>
 
         <div class="content-area">
           <table>
@@ -125,7 +176,7 @@
                     <td><%= log.user_role || 'N/A' %></td>
                     <td><%= log.action %></td>
                     <td><%= log.details %></td>
-                    <td><%= log.timestamp.toLocaleString() %></td>
+                    <td><%= new Date(log.timestamp).toLocaleString() %></td>
                   </tr>
                 <% }) %>
               <% } %>
@@ -142,7 +193,12 @@
       document.getElementById("currentDateTime").textContent = new Date().toLocaleString();
     }, 1000);
 
-    // Clear logs via fetch API
+    // ✅ Reset filters
+    document.getElementById("resetFilters").addEventListener("click", () => {
+      window.location.href = "/admin_logs";
+    });
+
+    // ✅ Clear logs
     document.getElementById("clearLogs").addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear all logs?")) {
         const res = await fetch("/admin_logs/clear", { method: "POST" });
