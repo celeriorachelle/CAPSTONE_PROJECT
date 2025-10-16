@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
     const [installmentRows] = await db.query(
       `SELECT b.booking_id, pm.plot_number, pm.location, pm.price AS total_price,
               COALESCE(SUM(p.amount),0) AS total_paid,
-              MIN(CASE WHEN p.status = 'pending' THEN p.due_date END) AS next_due_date
+              MIN(CASE WHEN p.status = 'active' THEN p.due_date END) AS next_due_date
        FROM booking_tbl b
        JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
        LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id
@@ -47,6 +47,12 @@ router.get("/", async (req, res) => {
       installmentProgress = Math.round(
         (currentInstallment.total_paid / currentInstallment.total_price) * 100
       );
+      // Fetch latest due_date from payment_tbl for this booking and plot
+      const [latestDueRows] = await db.query(
+        `SELECT due_date FROM payment_tbl WHERE booking_id = ? AND plot_id = (SELECT plot_id FROM booking_tbl WHERE booking_id = ?) ORDER BY paid_at DESC LIMIT 1`,
+        [currentInstallment.booking_id, currentInstallment.booking_id]
+      );
+      currentInstallment.latest_due_date = latestDueRows.length ? latestDueRows[0].due_date : null;
     }
 
     res.render("payment_history", {

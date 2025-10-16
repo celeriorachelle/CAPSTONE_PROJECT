@@ -296,11 +296,12 @@ router.get('/success', async (req, res) => {
       const paymentStatus = paymentMethod === 'downpayment' ? 'active' : 'paid';
       const [paymentResult] = await db.query(
         `INSERT INTO payment_tbl
-          (booking_id, user_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount)
-        VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)`,
+          (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount, total_paid)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)`,
         [
           bookingId,
           userId,
+          (plot && plot.plot_id) ? plot.plot_id : null,
           normalizedPaymentData.amount,
           'card',
           session.payment_intent,
@@ -308,7 +309,8 @@ router.get('/success', async (req, res) => {
           normalizedPaymentData.due_date || null,
           normalizedPaymentData.payment_type,
           normalizedPaymentData.months || null,
-          normalizedPaymentData.monthly_amount || null
+          normalizedPaymentData.monthly_amount || null,
+          normalizedPaymentData.amount
         ]
       );
       // Create notification for successful payment

@@ -123,6 +123,9 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/maps', mapsRouter);  

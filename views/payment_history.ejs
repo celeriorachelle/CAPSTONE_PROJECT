@@ -32,8 +32,8 @@
                 <p><strong><i class="fas fa-tag"></i> Total Price:</strong> ₱<%= (currentInstallment.total_price || 0).toLocaleString() %></p>
                 <p><strong><i class="fas fa-money-bill-wave"></i> Total Paid:</strong> ₱<%= (currentInstallment.total_paid || 0).toLocaleString() %></p>
                 <p><strong><i class="fas fa-calendar-alt"></i> Next Due Date:</strong> 
-                  <%= currentInstallment.next_due_date 
-                        ? new Date(currentInstallment.next_due_date).toISOString().split('T')[0] 
+                  <%= currentInstallment.latest_due_date 
+                        ? new Date(currentInstallment.latest_due_date).toISOString().split('T')[0] 
                         : "N/A" %>
                 </p>
                 <% const progress = Math.round((currentInstallment.total_paid / currentInstallment.total_price) * 100) || 0; %>
@@ -44,22 +44,11 @@
                   </div>
                 </div>
 
-                <!-- ✅ ALWAYS SHOW PAY HERE BUTTON WHEN THERE’S REMAINING BALANCE -->
-                <%
-                  const hasRemainingBalance = (currentInstallment.total_paid || 0) < (currentInstallment.total_price || 0);
-                %>
-
-                <% if (hasRemainingBalance) { %>
                   <form action="/payment/continue/<%= currentInstallment.booking_id %>" method="GET" style="margin-top: 15px;">
                     <button type="submit" class="pay-btn">
                       <i class="fas fa-credit-card"></i> PAY HERE
                     </button>
                   </form>
-                <% } else { %>
-                  <p class="no-data" style="margin-top: 10px; color: green;">
-                    <i class="fas fa-check-circle"></i> Fully paid — no further payment needed.
-                  </p>
-                <% } %>
               </div>
             <% } else { %>
               <p class="no-data"><i class="fas fa-check-circle"></i> No active installment found.</p>
