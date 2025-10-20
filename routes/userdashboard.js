@@ -71,13 +71,19 @@ router.get('/', requireLogin, async (req, res) => {
       );
     }
 
+    // Add detail link for each recommendation so front-end can redirect to the booking form
+    const recommendationsWithLinks = (recommendations || []).map(r => ({
+      ...r,
+      detailUrl: `/book/${r.plot_id || r.plotId || r.plotNumber || ''}`
+    }));
+
     console.log('✅ Final dashboard recommendations mix:', recommendations?.map(r => `${r.location} | ${r.type}`));
 
     res.render('userdashboard', {
       user: req.session.user,
       pendingBookings: [],
       reminders: [],
-      recommendations: recommendations || [],
+      recommendations: recommendationsWithLinks || [],
       showSurvey: !hasPreferences && !hasHistory,
       alert: req.query.alert
     });

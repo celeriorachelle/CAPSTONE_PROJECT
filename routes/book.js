@@ -39,6 +39,20 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
+// Render booking form for a given plot id
+router.get('/:plotId', requireLogin, async (req, res) => {
+  const plotId = req.params.plotId;
+  try {
+    const [rows] = await db.query('SELECT * FROM plot_map_tbl WHERE plot_id = ?', [plotId]);
+    if (!rows.length) return res.status(404).send('Plot not found');
+    const plot = rows[0];
+    res.render('book', { plot, user: req.session.user });
+  } catch (err) {
+    console.error('Error loading booking form:', err);
+    res.status(500).send('Server error');
+  }
+});
+
 // ✅ POST /book → Submit booking
 router.post('/', requireLogin, async (req, res) => {
   const bookingData = {
@@ -186,6 +200,34 @@ router.post('/', requireLogin, async (req, res) => {
       bookingData,
       bookings: []
     });
+  }
+});
+
+// Handle booking form submission - store bookingData in session and redirect to payment option page
+router.post('/submit', requireLogin, async (req, res) => {
+  try {
+    const bookingData = {
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      email: req.body.email,
+      phone: req.body.phone,
+      bookingDate: req.body.bookingDate,
+      serviceType: req.body.serviceType || 'plot_booking',
+      notes: req.body.notes || ''
+    };
+    // plotId should be submitted as hidden field
+    const plotId = req.body.plot_id;
+    if (!plotId) return res.status(400).send('Missing plot id');
+
+    // store bookingData and selected plot id in session then redirect to payment option
+    req.session.bookingData = bookingData;
+    // Keep selectedPlot minimal so bookplots.option can fetch full record
+    req.session.selectedPlot = { plot_id: plotId };
+
+    res.redirect(`/bookplots/option/${plotId}`);
+  } catch (err) {
+    console.error('Error submitting booking form:', err);
+    res.status(500).send('Failed to submit booking');
   }
 });
 
