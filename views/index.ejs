@@ -19,9 +19,10 @@
                     <img src="/images/system.png" alt="Memorial Services Logo" class="logo-img" style="height:50px;">
                 </div>
                 <nav class="nav-links">
-                <a href="#support">ABOUT US</a>
-                <a href="#support">SUPPORT</a>
-                <a href="#contact">CONTACT US</a>
+        <a href="#support">ABOUT US</a>
+        <a href="#support">SUPPORT</a>
+        <a href="#contact">CONTACT US</a>
+        <a href="/maps">MAP</a>
                 <% if (user) { %>
                     <a href="/userdashboard">DASHBOARD</a>
                 <% } %>
@@ -100,270 +101,36 @@
         </div>
 
     
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<div class="right-column" style="padding-bottom: 10%;">
-  <div class="search-fields">
-    <div class="search-panel">
-      <h3 class="search-title">Find Your Loved Ones</h3>
-      <div class="search-grid">
-        <input type="text" class="search-input" placeholder="First Name" id="firstName">
-        <input type="text" class="search-input" placeholder="Middle Name" id="middleName">
-        <input type="text" class="search-input" placeholder="Last Name" id="lastName">
-        <input type="number" class="search-input" placeholder="Year Born" id="yearBorn" min="0" max="9999">
-        <input type="number" class="search-input" placeholder="Year Died" id="yearDied" min="0" max="9999">
-        <div class="search-action">
-          <button type="button" class="search-btn" onclick="applySearch()">SEARCH</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="map-container">
-    <h3 class="map-title">Cemetery Map</h3>
-    <div id="map" style="height: 600px;"></div>
-  </div>
-</div>
 
 <script>
-document.addEventListener("DOMContentLoaded", async function () {
-  console.log("🗺️ Cemetery Map — coordinate plots + clickable sections");
+    document.addEventListener("DOMContentLoaded", () => {
+        const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
+        const dropdownMenu = document.querySelector(".dropdown-menu");
+        const profileBtn = document.querySelector(".profile-btn");
+        const dropdownToggle = document.querySelector(".dropdown-toggle");
 
-  // ✅ Initialize map
-  const map = L.map("map", {
-    crs: L.CRS.Simple,
-    minZoom: -2,
-    maxZoom: 5,
-  });
-
-  // ✅ Background image and dimensions
-  const w = 886, h = 768;
-  const bounds = [[0, 0], [h, w]];
-  L.imageOverlay("/images/1.png", bounds).addTo(map);
-  map.fitBounds(bounds);
-
-map.on("click", function (e) {
-  const lat = Math.round(e.latlng.lat);
-  const lng = Math.round(e.latlng.lng);
-  console.log(`Clicked at: [${lat}, ${lng}]`);
-  alert(`Clicked at: [${lat}, ${lng}]`); // optional for quick testing
-});
-  const plotLayer = L.layerGroup().addTo(map);
-
-  // ✅ Fetch plots from backend
-  const res = await fetch("/plots");
-  const plots = await res.json();
-  console.log("✅ Loaded plots:", plots.length);
-// ✅ Adjusted section bounding boxes
-const sectionBounds = {
-  "Heritage Gardens":  [[480, 580], [720, 760]],// moved to bottom-left
-  "Family Estates": [[289, 301], [231, 350]],
-  "Veterans Memorial": [[480, 580], [720, 760]],
-  "Memorial Chapel & Administration": [[310, 492]], 
-  "Serenity Columbarium": [[420, 700], [520, 850]], // moved rightward
-};
-
-// ✅ Adjusted section centers (for zoom focus)
-const sectionCenters = {
-  "Heritage Gardens": [670, 170],
-  "Family Estates": [320, 300],
-  "Veterans Memorial": [600, 680],
-  "Memorial Chapel & Administration": [430, 250],
-  "Serenity Columbarium": [470, 780],
-};
-
-
-  // ✅ Plot color logic
-  const getColor = s =>
-    s === "available" ? "green" :
-    s === "reserved" ? "yellow" :
-    s === "occupied" ? "red" : "gray";
-
-  // ✅ Draw plots (all or filtered)
-  function drawPlots(list = plots, highlightList = []) {
-    plotLayer.clearLayers();
-
-    list.forEach(p => {
-      if (!p.coord_x || !p.coord_y) return;
-      const coords = [p.coord_y, p.coord_x];
-      const color = getColor(p.availability);
-      const isHighlighted = highlightList.some(h => h.plot_number === p.plot_number);
-
-      const icon = L.divIcon({
-        html: `<div style="
-          width:${isHighlighted ? 14 : 9}px;
-          height:${isHighlighted ? 14 : 9}px;
-          border-radius:50%;
-          background:${color};
-          border:${isHighlighted ? '2px solid black' : '1px solid #000'};
-          box-shadow:${isHighlighted ? '0 0 5px 2px #000' : 'none'};
-        "></div>`,
-        iconSize: [10, 10],
-        iconAnchor: [5, 5]
-      });
-
-      const popup = `
-        <b>${p.plot_number}</b><br>
-        Location: ${p.location}<br>
-        Status: <b style="color:${color}">${p.availability}</b><br>
-        Type: ${p.type}<br>
-        ${p.deceased_firstName ? `${p.deceased_firstName} ${p.deceased_lastName}` : ""}
-      `;
-
-      L.marker(coords, { icon }).addTo(plotLayer).bindPopup(popup);
-    });
-  }
-
-  // ✅ Draw clickable section boxes (overview)
-  function drawClickableSections() {
-    plotLayer.clearLayers();
-
-    Object.entries(sectionBounds).forEach(([name, box]) => {
-      const rect = L.rectangle(box, {
-        color: "transparent",
-        weight: 1,
-        fillOpacity: 0.05,
-        fillColor: "white"
-      })
-        .addTo(plotLayer)
-        .bindPopup(`<b>${name}</b><br>Click to view plots`)
-        .on("click", () => {
-          const filtered = plots.filter(p => p.location === name);
-          if (!filtered.length) {
-            alert(`⚠️ No plots found in ${name}`);
-            return;
-          }
-          map.setView(sectionCenters[name], 3);
-          drawPlots(filtered);
-          addBackButton();
-        });
-
-      rect.on("mouseover", () => rect.setStyle({ color: "transparent", weight: 2 }));
-      rect.on("mouseout", () => rect.setStyle({ color: "transparent", weight: 1 }));
-    });
-  }
-
-  // ✅ Back button to return to overview
-  function addBackButton() {
-    const backIcon = L.divIcon({
-      html: `<div style="
-        width: 60px; height: 25px;
-        background: white; border: 1px solid black;
-        border-radius: 5px; text-align: center; line-height: 25px;
-        font-size: 11px;">Back</div>`,
-      iconSize: [60, 25],
-      iconAnchor: [30, 12]
-    });
-
-    L.marker([100, 100], { icon: backIcon })
-      .addTo(plotLayer)
-      .on("click", () => {
-        map.fitBounds(bounds);
-        drawClickableSections();
-      });
-  }
-
-  // ✅ SEARCH FUNCTION (highlight search results)
-  window.applySearch = async function () {
-    const params = new URLSearchParams({
-      firstName: document.getElementById("firstName").value.trim(),
-      middleName: document.getElementById("middleName").value.trim(),
-      lastName: document.getElementById("lastName").value.trim(),
-      yearBorn: document.getElementById("yearBorn").value,
-      yearDied: document.getElementById("yearDied").value
-    });
-
-    const res = await fetch(`/plots/search?${params}`);
-    const results = await res.json();
-
-    if (!results.length) {
-      alert("No matching records found.");
-      map.fitBounds(bounds);
-      drawClickableSections();
-      return;
-    }
-
-    const section = results[0].location;
-    const filtered = plots.filter(p => p.location === section);
-
-    if (sectionCenters[section]) {
-      map.setView(sectionCenters[section], 3);
-      drawPlots(filtered, results);
-      addBackButton();
-    } else {
-      alert(`Result found in unknown section: ${section}`);
-    }
-  };
-
-  // ✅ Initial load (overview mode)
-  drawClickableSections();
-});
-</script>
-
-<script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const dropdownWrapper = document.querySelector(".profile-dropdown-wrapper");
-            const dropdownMenu = document.querySelector(".dropdown-menu");
-            const profileBtn = document.querySelector(".profile-btn");
-            const dropdownToggle = document.querySelector(".dropdown-toggle");
-
-            [profileBtn, dropdownToggle].forEach(btn => {
-                btn.addEventListener("click", () => {
-                    profileBtn.classList.toggle("active");
-                    dropdownToggle.classList.toggle("active");
-                });
-            });
-
-            document.addEventListener("click", (e) => {
-                if (!e.target.closest(".profile-dropdown-wrapper")) {
-                    profileBtn.classList.remove("active");
-                    dropdownToggle.classList.remove("active");
-                }
+        [profileBtn, dropdownToggle].forEach(btn => {
+            btn.addEventListener("click", () => {
+                profileBtn.classList.toggle("active");
+                dropdownToggle.classList.toggle("active");
             });
         });
 
-    </script>
-            </div>
-        </div>
-    </main>
-    <script>
-        // Smooth scrolling for navigation
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-        
-            
-            // Add entrance animation delay
-            setTimeout(() => {
-                document.querySelector('.content-section').style.opacity = '1';
-                document.querySelector('.search-section').style.opacity = '1';
-            }, 300);
-        });
-
-        // Add keyboard support for search
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchRecords();
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".profile-dropdown-wrapper")) {
+                profileBtn.classList.remove("active");
+                dropdownToggle.classList.remove("active");
             }
         });
+    });
+</script>
 
-        
-    </script>   
-    <footer class="footer-info">
+<!-- Right column: embedded map (non-zoomable, scroll-friendly) -->
+<div class="right-column" style="padding-bottom: 10%;">
+    <!-- map CTA removed as requested -->
+</div>
+
+        <footer class="footer-info">
     <div class="footer-content">
         
         <div class="footer-section">

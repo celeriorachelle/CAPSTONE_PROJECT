@@ -1,258 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Everlasting Peace Memorial</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/stylesheets/maps.css">
+  <title>Cemetery Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+  <style>
+    .map-container { max-width: 1200px; margin: 0 auto; }
+    #map { height: 700px; width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+    .info-box { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
+  </style>
 </head>
 <body>
-  <div class="home-button">
-  <button onclick="goHome()"><i class="fas fa-home"></i> Home</button>
-</div>
-
-  <div class="container">
-    <div class="header">
-      <h1><i class="fas fa-cross"></i> Everlasting Peace Memorial Cemetery Plot Management</h1>
-      <p>Manage and track cemetery plots with ease</p>
-    </div>
-
-    <div class="main-content">
-      <div class="cemetery-section">
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search by plot number or person name...">
-          <i class="fas fa-search"></i>
-        </div>
-
-        <div class="cemetery-grid" id="cemeteryGrid"></div>
-
-        <div class="legend">
-      <h3>Categories</h3>
-      <div class="legend-item"><button class="category-btn" data-category="all">All</button></div>
-      <div class="legend-item"><button class="category-btn" data-category="heritage">Heritage Gardens</button></div>
-      <div class="legend-item"><button class="category-btn" data-category="family">Family Estates</button></div>
-      <div class="legend-item"><button class="category-btn" data-category="columbarium">Serenity Columbarium</button></div>
-      <div class="legend-item"><button class="category-btn" data-category="veterans">Veterans Memorial</button></div>
-      <div class="legend-item"><button class="category-btn" data-category="chapel">Memorial Chapel & Administration</button></div>
-
-      <h3>Status</h3>
-     <div class="legend-item"><span class="legend-color available"></span> Available</div>
-     <div class="legend-item"><span class="legend-color reserved"></span> Reserved</div>
-    <div class="legend-item"><span class="legend-color occupied"></span> Occupied</div>
-      </div>
-    <div class="sidebar">
-        <h2><i class="fas fa-info-circle"></i> Plot Information</h2>
-        <div class="stats">
-          <div class="stat-card">
-            <div class="stat-number" id="availableCount">0</div>
-            <div class="stat-label">Available</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="reservedCount">0</div>
-            <div class="stat-label">Reserved</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="occupiedCount">0</div>
-            <div class="stat-label">Occupied</div>
-          </div>
-        </div>
-
-        <div class="plot-details" id="plotDetails">
-          <p style="text-align: center; color: #666; font-style: italic;">
-            <i class="fas fa-mouse-pointer"></i><br>
-            Click on a plot to view details
-          </p>
-        </div>
-      </div>
+  <div class="map-container">
+    <h3>Cemetery Map (Click a Section)</h3>
+    <div id="map"></div>
+    <div id="infoBox" class="info-box">
+      <em>Click a section to view plots. You can also draw/edit polygons.</em>
     </div>
   </div>
 
-  <div id="plotModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modalTitle">Edit Plot Details</h2>
-        <span class="close">&times;</span>
-      </div>
-      <form id="plotForm">
-        <div class="form-group">
-          <label for="plotStatus">Status:</label>
-          <select id="plotStatus" required>
-            <option value="available">Available</option>
-            <option value="reserved">Reserved</option>
-            <option value="occupied">Occupied</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="personName">Person Name:</label>
-          <input type="text" id="personName" placeholder="Enter full name">
-        </div>
-        <div class="form-group">
-          <label for="birthDate">Birth Date:</label>
-          <input type="date" id="birthDate">
-        </div>
-        <div class="form-group">
-          <label for="deathDate">Death Date:</label>
-          <input type="date" id="deathDate">
-        </div>
-        <div class="form-group">
-          <label for="contactInfo">Contact Information:</label>
-          <input type="text" id="contactInfo" placeholder="Phone or email">
-        </div>
-        <div class="form-group">
-          <label for="notes">Notes:</label>
-          <textarea id="notes" rows="3" placeholder="Additional information..."></textarea>
-        </div>
-        <div class="action-buttons">
-          <button type="button" class="btn btn-danger" id="cancelBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
   <script>
-    function goHome() {
-  window.location.href = '/'; // change '/' to your actual home page URL
-}
-class CemeteryManager {
-  constructor() {
-    this.plots = {};
-    this.totalPlots = 100;
-    this.currentFilter = 'all'; // status filter: all, available, reserved, occupied
-    this.currentCategory = 'all'; // category filter
-    this.selectedPlot = null;
-    this.categories = ['heritage','family','columbarium','veterans','chapel'];
-    this.initializePlots();
-    this.renderGrid();
-    this.bindEvents();
-    this.updateStats();
-  }
-
-  initializePlots() {
-    for (let i = 1; i <= this.totalPlots; i++) {
-      const category = this.categories[Math.floor((i-1)/20)];
-      this.plots[i] = {
-        id: i,
-        status: 'available',
-        category: category,
-        name: '',
-        birth: '',
-        death: '',
-        contact: '',
-        notes: ''
-      };
-    }
-    // Example reserved/occupied plots
-    this.plots[5].status = 'occupied';
-    this.plots[12].status = 'reserved';
-    this.plots[23].status = 'occupied';
-  }
-
-  renderGrid() {
-    const grid = document.getElementById('cemeteryGrid');
-    grid.innerHTML = '';
-
-    for (let i = 1; i <= this.totalPlots; i++) {
-      const plot = this.plots[i];
-      const plotElement = document.createElement('div');
-      plotElement.className = `plot ${plot.status} ${plot.category}`;
-      plotElement.textContent = i;
-      plotElement.dataset.plotId = i;
-
-      // Apply filters
-      if (
-        (this.currentFilter !== 'all' && plot.status !== this.currentFilter) ||
-        (this.currentCategory !== 'all' && plot.category !== this.currentCategory)
-      ) {
-        plotElement.style.display = 'none';
-      } else {
-        plotElement.style.display = 'block';
-      }
-
-      plotElement.addEventListener('click', () => this.selectPlot(i));
-      plotElement.addEventListener('dblclick', () => this.openModal(i));
-      grid.appendChild(plotElement);
-    }
-
-    // Update stats based on current category filter
-    this.updateStats();
-  }
-
-  selectPlot(plotId) {
-    document.querySelectorAll('.plot.highlighted').forEach(plot => plot.classList.remove('highlighted'));
-    const plotElement = document.querySelector(`[data-plot-id="${plotId}"]`);
-    plotElement.classList.add('highlighted');
-    this.selectedPlot = plotId;
-    this.displayPlotDetails(plotId);
-  }
-
-  displayPlotDetails(plotId) {
-    const plot = this.plots[plotId];
-    const detailsContainer = document.getElementById('plotDetails');
-    const statusClass = `status-${plot.status}`;
-
-    detailsContainer.innerHTML = `
-      <div class="detail-row"><span class="detail-label">Plot Number:</span><span class="detail-value">#${plot.id}</span></div>
-      <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value"><span class="status-badge ${statusClass}">${plot.status}</span></span></div>
-      ${plot.name ? `<div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${plot.name}</span></div>` : ''}
-      ${plot.birth ? `<div class="detail-row"><span class="detail-label">Birth Date:</span><span class="detail-value">${new Date(plot.birth).toLocaleDateString()}</span></div>` : ''}
-      ${plot.death ? `<div class="detail-row"><span class="detail-label">Death Date:</span><span class="detail-value">${new Date(plot.death).toLocaleDateString()}</span></div>` : ''}
-      ${plot.contact ? `<div class="detail-row"><span class="detail-label">Contact:</span><span class="detail-value">${plot.contact}</span></div>` : ''}
-      ${plot.notes ? `<div class="detail-row"><span class="detail-label">Notes:</span><span class="detail-value">${plot.notes}</span></div>` : ''}
-    `;
-  }
-
-  filterPlots(filter) {
-    this.currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-    this.renderGrid();
-  }
-
-  filterByCategory(category) {
-    this.currentCategory = category;
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-category="${category}"]`)?.classList.add('active');
-    this.renderGrid();
-  }
-
-  updateStats() {
-    let stats = { available: 0, reserved: 0, occupied: 0 };
-    Object.values(this.plots).forEach(plot => {
-      if (this.currentCategory === 'all' || plot.category === this.currentCategory) {
-        stats[plot.status]++;
-      }
+   // ----- 1. Preloaded sections -----
+  const currentSections = {
+  "Family Estates": { "coords":[[{"lat":285.9296875,"lng":344.625},{"lat":326.9296875,"lng":473.625},{"lat":214.1796875,"lng":499.875},{"lat":172.1796875,"lng":372.625}]], "color":"#4A90E2" },
+  "Family Estates ": { "coords":[[{"lat":284.4296875,"lng":377.5},{"lat":290.4296875,"lng":397},{"lat":257.6796875,"lng":404.75},{"lat":250.6796875,"lng":384.5}]], "color":"#E24A90" },
+  "LEVEL 1": { "coords":[[{"lat":338.4296875,"lng":588.125},{"lat":344.1796875,"lng":603.625},{"lat":315.9296875,"lng":610.625},{"lat":311.1796875,"lng":595.125}]], "color":"#904AE2" },
+  "LEVEL 2": { "coords":[[{"lat":302.6796875,"lng":596.625},{"lat":308.1796875,"lng":613.125},{"lat":279.1796875,"lng":619.625},{"lat":274.6796875,"lng":602.625}]], "color":"#904AE2" },
+  "LEVEL 3": { "coords":[[{"lat":266.9296875,"lng":604.875},{"lat":271.9296875,"lng":620.875},{"lat":243.6796875,"lng":628.875},{"lat":239.4296875,"lng":612.375}]], "color":"#904AE2" },
+  "Heritage Garden A": { "coords":[[{"lat":433.58984375,"lng":636.1875},{"lat":453.08984375,"lng":636.1875},{"lat":453.08984375,"lng":663.0625},{"lat":433.58984375,"lng":663.0625}]], "color":"#E24A90" },
+  "Heritage Garden B": { "coords":[[{"lat":432.33984375,"lng":669.9375},{"lat":452.96484375,"lng":669.9375},{"lat":452.96484375,"lng":696.6875},{"lat":432.33984375,"lng":696.6875}]], "color":"#E2904A" },
+  "Veterans Memorial A": { "coords":[[{"lat":448.96484375,"lng":793.8125},{"lat":468.33984375,"lng":793.8125},{"lat":468.33984375,"lng":820.9375},{"lat":448.96484375,"lng":820.9375}]], "color":"#90E24A" },
+  "Veterans Memorial B": { "coords":[[{"lat":448.08984375,"lng":890.5625},{"lat":468.83984375,"lng":890.5625},{"lat":468.83984375,"lng":918.0625},{"lat":448.08984375,"lng":918.0625}]], "color":"#E24A90" },
+  "Serenity Columbarium A": { "coords":[[{"lat":194.1796875,"lng":795.375},{"lat":212.6796875,"lng":795.375},{"lat":212.6796875,"lng":821.375},{"lat":194.1796875,"lng":821.375}]], "color":"#4A90E2" },
+  "Serenity Columbarium B": { "coords":[[{"lat":193.9296875,"lng":888.875},{"lat":212.1796875,"lng":888.875},{"lat":212.1796875,"lng":916.125},{"lat":193.9296875,"lng":916.125}]], "color":"#904AE2" },
+  "OPEN SPACE": { "coords":[[{"lat":129.359375,"lng":538.75},{"lat":151.359375,"lng":759.25},{"lat":91.859375,"lng":762.25},{"lat":71.859375,"lng":543.75}]], "color":"#904AE2" },
+  "CHAPEL": { "coords":[[{"lat":91.58984375,"lng":283.9375},{"lat":98.21484375,"lng":343.9375},{"lat":45.4296875,"lng":349.875},{"lat":38.1796875,"lng":289.125}]], "color":"#E24A90" },
+  "OFFICE": { "coords":[[{"lat":101.9296875,"lng":362.375},{"lat":108.9296875,"lng":423.125},{"lat":57.1796875,"lng":427.875},{"lat":48.9296875,"lng":366.875}]], "color":"#90E24A" },
+  "CREMATORIUM": { "coords":[[{"lat":114.9296875,"lng":441.125},{"lat":122.6796875,"lng":518.375},{"lat":70.4296875,"lng":522.875},{"lat":62.6796875,"lng":445.875}]], "color":"#E2904A" },
+  "Memorial Chapel & Administration": { "coords":[[{"lat":317.9296875,"lng":498.875},{"lat":352.6796875,"lng":607.125},{"lat":238.6796875,"lng":635.375},{"lat":205.1796875,"lng":526.625}]], "color":"#E24A90" },
+  "Heritage Gardens": { "coords":[[{"lat":427.859375,"lng":631.25},{"lat":608.859375,"lng":631.25},{"lat":608.859375,"lng":701.75},{"lat":427.859375,"lng":701.75}]], "color":"#90E24A" },
+  "Veterans Memorial": { "coords":[[{"lat":444.359375,"lng":753.25},{"lat":624.359375,"lng":753.25},{"lat":624.359375,"lng":920.25},{"lat":444.359375,"lng":920.25}]], "color":"#E2904A" },
+  "Serenity Columbarium": { "coords":[[{"lat":186.359375,"lng":754.25},{"lat":368.859375,"lng":754.25},{"lat":368.859375,"lng":921.25},{"lat":186.359375,"lng":921.25}]], "color":"#904AE2" },
+  "ENTRANCE": { "coords":[[{"lat":145.359375,"lng":189.25},{"lat":172.359375,"lng":229.75},{"lat":110.859375,"lng":261.25},{"lat":87.859375,"lng":219.25}]], "color":"#4A90E2" }
+};
+    // ----- 2. Initialize Map -----
+    const map = L.map('map', {
+      crs: L.CRS.Simple,
+      minZoom: -2,
+      maxZoom: 2,
+      zoom: 0,
+      center: [0,0]
     });
-    document.getElementById('availableCount').textContent = stats.available;
-    document.getElementById('reservedCount').textContent = stats.reserved;
-    document.getElementById('occupiedCount').textContent = stats.occupied;
-  }
 
-  bindEvents() {
-    document.getElementById('searchInput').addEventListener('input', (e) => this.searchPlots(e.target.value));
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => this.filterPlots(btn.dataset.filter)));
-    document.querySelectorAll('.category-btn').forEach(btn => btn.addEventListener('click', () => this.filterByCategory(btn.dataset.category)));
-    document.querySelector('.close').addEventListener('click', () => this.closeModal());
-    document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal());
-    document.getElementById('plotForm').addEventListener('submit', (e) => { e.preventDefault(); this.savePlotDetails(); });
-    window.addEventListener('click', (e) => { if (e.target === document.getElementById('plotModal')) this.closeModal(); });
-  }
+    const imgWidth = 4269;
+    const imgHeight = 2400;
+    const bounds = [[0, 0], [imgHeight, imgWidth]];
+    L.imageOverlay('/images/newmap.png', bounds).addTo(map);
+    map.fitBounds(bounds);
 
-  searchPlots(query) {
-    query = query.toLowerCase();
-    Object.values(this.plots).forEach(plot => {
-      const el = document.querySelector(`[data-plot-id="${plot.id}"]`);
-      const match = plot.id.toString().includes(query) || plot.name.toLowerCase().includes(query);
-      el.style.display = match ? 'block' : 'none';
+    // ----- 3. Feature Group for polygons -----
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({
+      edit: { featureGroup: drawnItems },
+      draw: { polygon: true, rectangle: true, circle: false, marker: false, polyline: false }
     });
-    this.updateStats();
-  }
+    map.addControl(drawControl);
 
-  // ... add openModal, closeModal, savePlotDetails, changePlotStatus functions as before ...
-}
+    // ----- 4. Render sections -----
+    Object.keys(currentSections).forEach(name => {
+      currentSections[name].coords.forEach(coordSet => {
+        const latlngs = coordSet.map(pt => [pt.lat, pt.lng]);
 
-const cemeteryManager = new CemeteryManager();
+        const polygon = L.polygon(latlngs, {
+          color: currentSections[name].color,
+          fillColor: currentSections[name].color,
+          fillOpacity: 0.2,
+          weight: 2
+        }).addTo(drawnItems);
+
+        // Hover effect
+        polygon.on('mouseover', () => polygon.setStyle({ fillOpacity: 0.5 }));
+        polygon.on('mouseout', () => polygon.setStyle({ fillOpacity: 0.2 }));
+
+        // Click to show plots
+        polygon.on('click', async () => {
+          const bounds = polygon.getBounds();
+          const south = Math.min(bounds.getSouth(), bounds.getNorth());
+          const north = Math.max(bounds.getSouth(), bounds.getNorth());
+          const west  = Math.min(bounds.getWest(), bounds.getEast());
+          const east  = Math.max(bounds.getWest(), bounds.getEast());
+
+          try {
+            const res = await fetch(`/plots/in-bounds?latMin=${south}&latMax=${north}&lngMin=${west}&lngMax=${east}`);
+            const plots = await res.json();
+
+            let html = `<b>${name}</b>:<br>`;
+            if (!plots || plots.length === 0) html += "No plots in this section.";
+            else {
+              html += '<ul>';
+              plots.forEach(p => {
+                html += `<li>${p.plot_number} - ${p.deceased_firstName || ''} ${p.deceased_lastName || ''} (${p.type || ''})</li>`;
+              });
+              html += '</ul>';
+            }
+            document.getElementById('infoBox').innerHTML = html;
+          } catch (err) {
+            console.error(err);
+            document.getElementById('infoBox').innerHTML = "Error fetching plots.";
+          }
+        });
+      });
+    });
+
+    // ----- 5. Handle newly drawn polygons -----
+    map.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      drawnItems.addLayer(layer);
+      console.log("✅ New polygon added:", layer.getLatLngs());
+    });
+
   </script>
 </body>
 </html>
