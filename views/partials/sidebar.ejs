@@ -31,7 +31,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  transition: transform 0.4s ease;
+  transition: transform 0.35s ease, background 0.2s ease;
   transform: translateX(0);
   z-index: 1000;
   box-shadow: 4px 0 12px rgba(0,0,0,0.25);
@@ -39,6 +39,16 @@
 
 .sidebar.collapsed {
   transform: translateX(-100%);
+}
+
+/* Ensure the main content shifts when sidebar is present */
+.main {
+  transition: margin-left 0.35s ease, filter 0.25s ease;
+  margin-left: 250px; /* default space for sidebar */
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 0;
 }
 
 .sidebar-header {
@@ -120,23 +130,54 @@
   left: 14px; /* small spacing from the viewport edge when collapsed */
 }
 
-.sidebar.collapsed ~ .main {
-  margin-left: 0;
-}
-
 /* ANIMATIONS */
 @keyframes fadeIn {
-  from {opacity: 0; transform: translateY(-10px);}
-  to {opacity: 1; transform: translateY(0);}
+  from {opacity: 0; transform: translateY(-10px);} 
+  to {opacity: 1; transform: translateY(0);} 
 }
+
+/* Dark mode styles (basic variables) */
+:root {
+  --bg: #ffffff;
+  --text: #222222;
+  --muted: #555;
+}
+body.dark-mode, .dark-mode .main {
+  background: #0f1720;
+  color: #e6eef6;
+}
+body.dark-mode .sidebar {
+  background: #08110a;
+}
+body.dark-mode .toggle-btn {
+  background: #08110a;
+  border-color: rgba(230,238,246,0.06);
+}
+
 </style>
 
 <script>
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggleBtn");
 
+// Apply dark-mode from cookie or localStorage across the whole site
+(function applyDarkModeSetting() {
+  try {
+    const ls = localStorage.getItem('darkMode');
+    const cookieMatch = document.cookie.match(/(?:^|; )darkMode=(true|false)/);
+    const cookieVal = cookieMatch ? cookieMatch[1] : null;
+    const enabled = (ls === 'true') || (cookieVal === 'true');
+    if (enabled) document.body.classList.add('dark-mode');
+  } catch (e) {
+    console.error('Dark mode apply error', e);
+  }
+})();
+
 toggleBtn.addEventListener("click", () => {
   sidebar.classList.toggle("collapsed");
+  // also toggle a class on body to allow global adjustments if needed
+  document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+  // toggleBtn.textContent = sidebar.classList.contains("collapsed") ? "\u25B6" : "\u25C0";
 });
 
 // Auto-set active link based on current path

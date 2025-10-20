@@ -4,63 +4,68 @@
   <meta charset="UTF-8">
   <title>Select Payment Option</title>
   <link rel="stylesheet" href="/stylesheets/payment.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+    <div class="payment-card">
+      <h2>Payment Options for Plot #<%= plot.plot_number %></h2>
+      <p>Location: <%= plot.location %></p>
+      <p>Type: <%= plot.type %></p>
+      <p>Total Price: ₱<%= plot.price.toLocaleString() %></p>
 
-  <h2>Payment Options for Plot #<%= plot.plot_number %></h2>
-  <p>Location: <%= plot.location %></p>
-  <p>Type: <%= plot.type %></p>
-  <p>Total Price: ₱<%= plot.price.toLocaleString() %></p>
+      <!-- Stripe JS -->
+      <script src="https://js.stripe.com/v3/"></script>
 
-  <!-- Stripe JS -->
-  <script src="https://js.stripe.com/v3/"></script>
+      <form action="/payment/checkout" method="POST" id="paymentForm">
+        <input type="hidden" name="plot_id" value="<%= plot.plot_id %>">
+        <input type="hidden" id="plotPrice" value="<%= plot.price %>">
 
-  <form action="/payment/checkout" method="POST" id="paymentForm">
-    <input type="hidden" name="plot_id" value="<%= plot.plot_id %>">
-    <input type="hidden" id="plotPrice" value="<%= plot.price %>">
-
-    <% if (typeof booking !== "undefined" && booking) { %>
-      <input type="hidden" name="booking_id" value="<%= booking.booking_id %>">
-    <% } %>
-
-    <% if (typeof user !== "undefined" && user) { %>
-      <input type="hidden" name="user_id" value="<%= user.user_id %>">
-      <input type="hidden" name="user_email" value="<%= user.email %>">
-    <% } %>
-    <input type="hidden" name="payment_type" id="paymentTypeField">
-    <input type="hidden" name="monthly_amount" id="monthlyAmountField">
-    <input type="hidden" name="due_date" id="dueDateField">
-
-    <label for="option">Select Payment Option:</label>
-    <select name="option" id="option" required>
-      <option value="downpayment">Down Payment</option>
-      <option value="fullpayment">Full Payment</option>
-    </select>
-
-    <div id="installmentFields" style="display: none;">
-      <label for="months">Select Installment Duration (months):</label>
-      <select id="months" name="months">
-        <% for(let m=3; m<=24; m++) { %>
-          <option value="<%= m %>"><%= m %> months</option>
+        <% if (typeof booking !== "undefined" && booking) { %>
+          <input type="hidden" name="booking_id" value="<%= booking.booking_id %>">
         <% } %>
-      </select>
+
+        <% if (typeof user !== "undefined" && user) { %>
+          <input type="hidden" name="user_id" value="<%= user.user_id %>">
+          <input type="hidden" name="user_email" value="<%= user.email %>">
+        <% } %>
+        <input type="hidden" name="payment_type" id="paymentTypeField">
+        <input type="hidden" name="monthly_amount" id="monthlyAmountField">
+        <input type="hidden" name="due_date" id="dueDateField">
+
+        <label for="option">Select Payment Option:</label>
+        <select name="option" id="option" required>
+          <option value="downpayment">Down Payment</option>
+          <option value="fullpayment">Full Payment</option>
+        </select>
+
+        <div id="installmentFields" style="display: none;">
+          <label for="months">Select Installment Duration (months):</label>
+          <select id="months" name="months">
+            <% for(let m=3; m<=24; m++) { %>
+              <option value="<%= m %>"><%= m %> months</option>
+            <% } %>
+          </select>
+        </div>
+
+        <label for="amount">Amount to Pay Now:</label>
+        <input type="number" name="amount" id="amount" readonly>
+
+        <div id="installmentSummary" style="display: none;">
+          <p><strong>Total Price:</strong> ₱<span id="totalPrice"></span></p>
+          <p><strong>Down Payment:</strong> ₱<span id="downPayment"></span></p>
+          <p><strong>Remaining Balance:</strong> ₱<span id="remainingBalance"></span></p>
+          <p><strong>Monthly Installment:</strong> ₱<span id="monthlyInstallment"></span> / month</p>
+          <p><strong>Duration:</strong> <span id="duration"></span> months</p>
+        </div>
+
+        <div id="errorMessage" style="color:red; margin-bottom:1em; display:none;"></div>
+
+        <div style="margin-top:1.2em; display:flex; gap:10px;">
+          <button type="submit" style="flex:1;" class="pay-btn">Proceed to Pay</button>
+          <a href="/bookplots" style="align-self:center; text-decoration:none; color:#777;">Back</a>
+        </div>
+      </form>
     </div>
-
-    <label for="amount">Amount to Pay Now:</label>
-    <input type="number" name="amount" id="amount" readonly>
-
-    <div id="installmentSummary" style="margin-top: 1em; display: none;">
-      <p><strong>Total Price:</strong> ₱<span id="totalPrice"></span></p>
-      <p><strong>Down Payment:</strong> ₱<span id="downPayment"></span></p>
-      <p><strong>Remaining Balance:</strong> ₱<span id="remainingBalance"></span></p>
-      <p><strong>Monthly Installment:</strong> ₱<span id="monthlyInstallment"></span> / month</p>
-      <p><strong>Duration:</strong> <span id="duration"></span> months</p>
-    </div>
-
-    <div id="errorMessage" style="color:red; margin-bottom:1em; display:none;"></div>
-
-    <button type="submit">Proceed to Pay</button>
-  </form>
 
   <script>
     const optionSelect = document.getElementById("option");
@@ -97,7 +102,7 @@
         installmentFields.style.display = "block";
         installmentSummary.style.display = "block";
 
-        const downPayment = plotPrice * 0.20;
+        const downPayment = Math.ceil(plotPrice * 0.20);
         amountInput.value = downPayment;
 
         const months = parseInt(monthsSelect.value, 10);
@@ -161,5 +166,76 @@
 
     updateAmount();
   </script>
+
+  <style>
+body {
+      background: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .payment-card {
+      background: white;
+      padding: 1.8rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      min-height: fit-content;
+      max-height: 650px;
+      max-width: 820px;
+    }
+    
+    h2 {
+      text-align: left;
+      color: #333;
+      margin-bottom: 0.6rem;
+    }
+
+    p {
+      margin: 6px 0;
+      color: #555;
+    }
+
+    label {
+      display: block;
+      margin-top: 0.9rem;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 6px;
+      box-sizing: border-box;
+    }
+
+    .pay-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .pay-btn:hover { background: #43a047; }
+
+    a { color: #777; text-decoration: none; }
+    a:hover { color: #333; }
+
+    @media (max-width: 600px) {
+      .payment-card { padding: 1.2rem; }
+    }
+  </style>
 </body>
 </html>

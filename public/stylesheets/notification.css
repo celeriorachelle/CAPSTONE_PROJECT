@@ -55,7 +55,7 @@ footer {
   border-radius: 16px;
   margin: 40px auto;
   padding: 30px 40px;
-  max-width: 900px;
+  min-width: 900px;
   border: 1px solid rgba(16,27,13,0.12);
   box-shadow: 0 8px 24px rgba(16, 27, 13, 0.08);
 }

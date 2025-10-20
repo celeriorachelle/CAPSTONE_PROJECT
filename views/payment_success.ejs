@@ -3,12 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <title>Payment Success</title>
-  <link rel="stylesheet" href="/stylesheets/payment.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .success-card {
+      background: white;
+      padding: 3rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: #4caf50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      animation: scaleIn 0.5s ease-out;
+    }
+
+    .success-icon::before {
+      content: "✓";
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    @keyframes scaleIn {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .btn-dashboard {
+      display: inline-block;
+      background: #4caf50;
+      color: white;
+      padding: 12px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-dashboard:hover {
+      background: #43a047;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    @media (max-width: 600px) {
+      .success-card {
+        padding: 2rem 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .success-icon {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .success-icon::before {
+        font-size: 40px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Payment Successful!</h1>
-
-
-  <a href="/userdashboard">Back to Dashboard</a>
+  <div class="success-card">
+    <div class="success-icon"></div>
+    <h1>Payment Successful!</h1>
+    <p>Your payment has been processed successfully. Thank you for your purchase.</p>
+    <a href="/userdashboard" class="btn-dashboard">Back to Dashboard</a>
+  </div>
 </body>
 </html>
