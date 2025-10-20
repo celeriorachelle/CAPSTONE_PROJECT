@@ -98,7 +98,7 @@
             <% if (r.isBestMatch) { %>
               <span class="badge">Best Match</span>
             <% } %>
-            <button onclick="window.location.href='/plot/<%= r.plot_id %>'">View Details</button>
+            <button onclick="window.location.href='<%= r.detailUrl %>'">View Details</button>
           </div>
         <% }) %>
       <% } else { %>

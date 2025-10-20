@@ -15,7 +15,11 @@
     <%- include('partials/topbar', { title: "Schedule a Service" }) %>
 
     <div class="form-container">
-      <h2>BOOKING FORM</h2>
+      <h2><%= typeof plot !== 'undefined' && plot ? ('BOOK PLOT #' + plot.plot_number) : 'BOOKING FORM' %></h2>
+
+      <% if (typeof plot !== 'undefined' && plot) { %>
+        <p style="margin-bottom: 5%;">Location: <%= plot.location %> | Type: <%= plot.type %> | Price: ₱<%= plot.price ? plot.price.toLocaleString() : 'N/A' %></p>
+      <% } %>
 
       <% if (typeof error !== 'undefined' && error) { %>
         <div class="error-message" style="color:red; margin-bottom:10px;">
@@ -25,7 +29,11 @@
 
       <% const data = (typeof bookingData !== 'undefined' && bookingData) ? bookingData : {}; %>
 
-      <form action="/book" method="POST" class="form-grid">
+      <form action="<%= (typeof plot !== 'undefined' && plot) ? '/book/submit' : '/book' %>" method="POST" class="form-grid">
+        <% if (typeof plot !== 'undefined' && plot) { %>
+          <input type="hidden" name="plot_id" value="<%= plot.plot_id %>">
+        <% } %>
+
         <div class="form-group">
           <label for="firstname">First Name</label>
           <input type="text" name="firstname" id="firstname" required value="<%= data.firstname || '' %>">
@@ -88,6 +96,17 @@
           <button type="submit">Next</button>
         </div>
       </form>
+
+      <!-- <% if ((typeof plot === 'undefined' || !plot) && bookings && bookings.length > 0) { %>
+        <section style="margin-top:24px;">
+          <h3>Your Recent Bookings</h3>
+          <ul>
+            <% bookings.forEach(b => { %>
+              <li><strong><%= b.service_type %></strong> on <%= new Date(b.booking_date).toDateString() %> - Status: <%= b.status || 'pending' %></li>
+            <% }) %>
+          </ul>
+        </section>
+      <% } %> -->
     </div>
 
     <footer>
