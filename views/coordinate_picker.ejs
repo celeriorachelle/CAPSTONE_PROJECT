@@ -1,115 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>🗺️ Cemetery Plot Coordinate Picker</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <style>
-    body { margin: 0; }
-    #map { height: 100vh; width: 100%; }
-    .control-box {
-      position: absolute;
-      top: 10px; left: 10px;
-      background: rgba(255,255,255,0.9);
-      padding: 10px;
-      border-radius: 8px;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    input {
-      margin-top: 5px;
-      padding: 5px;
-      width: 180px;
-      font-size: 14px;
-    }
-    button {
-      margin-top: 8px;
-      width: 100%;
-      padding: 6px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover { background: #0056b3; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 400px; gap: 20px; }
+    .map-area { height: 700px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+    .sidebar { background: #f9f9f9; padding: 16px; border-radius: 8px; overflow-y: auto; max-height: 700px; }
+    .coord-info { background: white; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; }
+    .coord-info strong { color: #0078d7; }
+    .copy-btn { padding: 4px 8px; margin-top: 8px; background: #0078d7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .copy-btn:hover { background: #005fa3; }
+    h3 { margin-top: 0; }
+    .instruction { background: #fff3cd; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+    .sql-output { background: #f4f4f4; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <div class="control-box">
-    <b>🪦 Coordinate Picker</b><br>
-    <label>Plot Number:</label><br>
-    <input type="text" id="plotNumber" placeholder="e.g. A-101"><br>
-    <div id="coordsDisplay">Click map to get coords</div>
-    <button id="saveBtn" disabled>Save to Database</button>
+  <h1>📍 Cemetery Plot Coordinate Calculator</h1>
+  
+  <div class="container">
+    <div>
+      <div class="instruction">
+        <strong>Instructions:</strong> Click anywhere on the map to get coordinates. 
+        Use these to update your database for each plot location.
+      </div>
+      <div class="map-area">
+        <div id="map" style="width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+    
+    <div class="sidebar">
+      <h3>Clicked Coordinates</h3>
+      <div id="coordList"></div>
+      
+      <h3>SQL Statements</h3>
+      <button class="copy-btn" onclick="copySQL()" style="margin-bottom: 8px;">Copy All SQL</button>
+      <div id="sqlOutput" class="sql-output">-- Click on plots to generate UPDATE statements</div>
+    </div>
   </div>
 
-  <div id="map"></div>
-
   <script>
-    const map = L.map("map", {
+    const imageWidth = 1100;
+    const imageHeight = 700;
+    const imageUrl = '/images/newmap.png';
+    
+    const map = L.map('map', {
       crs: L.CRS.Simple,
-      minZoom: -2,
-      maxZoom: 5
+      minZoom: -1,
+      maxZoom: 3,
+      zoomControl: true,
     });
 
-    const w = 886, h = 768; // Match your image dimensions
-    const bounds = [[0, 0], [h, w]];
-    L.imageOverlay("/images/map2.png", bounds).addTo(map);
+    const bounds = [[0, 0], [imageHeight, imageWidth]];
+    L.imageOverlay(imageUrl, bounds).addTo(map);
     map.fitBounds(bounds);
 
-    let lastMarker = null;
-    const coordsDisplay = document.getElementById("coordsDisplay");
-    const saveBtn = document.getElementById("saveBtn");
-    const plotInput = document.getElementById("plotNumber");
+    // Section reference polygons
+    const sections = {
+      "Family Estates": [[333, 349], [366, 472], [271, 498], [245, 380]],
+      "Memorial Chapel": [[388, 606], [360, 502], [265, 530], [294, 634]],
+      "Heritage Gardens": [[616, 634], [615, 700], [464, 700], [464, 634]],
+      "Veterans Memorial": [[630, 758], [631, 919], [474, 919], [476, 759]],
+      "Serenity Columbarium": [[404, 756], [400, 918], [249, 921], [248, 758]]
+    };
 
-    let currentCoords = null;
-
-    map.on("click", (e) => {
-      const y = Math.round(e.latlng.lat);
-      const x = Math.round(e.latlng.lng);
-      currentCoords = { x, y };
-
-      coordsDisplay.textContent = `coord_x: ${x}, coord_y: ${y}`;
-      saveBtn.disabled = false;
-
-      if (lastMarker) map.removeLayer(lastMarker);
-      lastMarker = L.marker([y, x]).addTo(map);
+    // Draw reference sections
+    Object.entries(sections).forEach(([name, coords]) => {
+      L.polygon(coords, {
+        color: '#0078d7',
+        weight: 2,
+        fillColor: '#0078d7',
+        fillOpacity: 0.2
+      })
+      .addTo(map)
+      .bindPopup(`<b>${name}</b>`);
     });
 
-    saveBtn.addEventListener("click", async () => {
-      const plot_number = plotInput.value.trim();
-      if (!plot_number) {
-        alert("Please enter a plot number first!");
-        return;
-      }
-      if (!currentCoords) {
-        alert("Click on the map to get coordinates.");
-        return;
-      }
+    const clickedCoords = [];
+    let currentPlotNumber = '';
+    let currentLocation = '';
 
-      const response = await fetch("/plots/update-coord", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plot_number,
-          coord_x: currentCoords.x,
-          coord_y: currentCoords.y
-        })
+    // Click handler
+    map.on('click', function(e) {
+      const lat = Math.round(e.latlng.lat * 100) / 100;
+      const lng = Math.round(e.latlng.lng * 100) / 100;
+      
+      // Prompt for plot info
+      const plotNum = prompt('Enter plot number (e.g., O001, V001, P001):');
+      if (!plotNum) return;
+      
+      const location = prompt('Enter location (e.g., Family Estates - A):');
+      if (!location) return;
+      
+      // Add marker
+      L.circleMarker([lat, lng], {
+        radius: 8,
+        fillColor: '#ff0000',
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      })
+      .addTo(map)
+      .bindPopup(`${plotNum}<br>${location}<br>X: ${lng}, Y: ${lat}`);
+      
+      // Store coordinate
+      const coord = { plotNumber: plotNum, location, x: lng, y: lat };
+      clickedCoords.push(coord);
+      
+      updateDisplay();
+    });
+
+    function updateDisplay() {
+      // Update coordinate list
+      const coordList = document.getElementById('coordList');
+      coordList.innerHTML = clickedCoords.map((c, i) => `
+        <div class="coord-info">
+          <strong>${c.plotNumber}</strong><br>
+          Location: ${c.location}<br>
+          X: ${c.x}, Y: ${c.y}
+          <button class="copy-btn" onclick="removeCoord(${i})">Remove</button>
+        </div>
+      `).join('');
+      
+      // Update SQL output
+      const sqlOutput = document.getElementById('sqlOutput');
+      sqlOutput.textContent = clickedCoords.map(c => 
+        `UPDATE plot_map_tbl SET coord_x = ${c.x}, coord_y = ${c.y} WHERE plot_number = '${c.plotNumber}' AND location = '${c.location}';`
+      ).join('\n');
+    }
+
+    function removeCoord(index) {
+      clickedCoords.splice(index, 1);
+      updateDisplay();
+    }
+
+    function copySQL() {
+      const sql = document.getElementById('sqlOutput').textContent;
+      navigator.clipboard.writeText(sql).then(() => {
+        alert('SQL copied to clipboard!');
       });
+    }
 
-      const result = await response.json();
-      if (result.success) {
-        alert(`✅ Saved ${plot_number} at (${currentCoords.x}, ${currentCoords.y})`);
-        saveBtn.disabled = true;
-        plotInput.value = "";
-        coordsDisplay.textContent = "Click map to get coords";
-        map.removeLayer(lastMarker);
-      } else {
-        alert("❌ Failed to save coordinates. Check server logs.");
+    // Generate grid helper
+    function generateGrid(section, rows, cols, startX, startY, spacingX, spacingY) {
+      console.log(`Generating ${rows}x${cols} grid for ${section}`);
+      let count = 1;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const x = startX + (col * spacingX);
+          const y = startY + (row * spacingY);
+          console.log(`${section}-${count}: X=${x}, Y=${y}`);
+          count++;
+        }
       }
-    });
+    }
+
+    // Example usage (uncomment and adjust):
+    // generateGrid('Family Estates', 4, 5, 280, 360, 30, 20);
   </script>
 </body>
 </html>
