@@ -4,6 +4,13 @@ const bcrypt = require('bcrypt');
 const db = require('../db');
 const multer = require("multer");
 const path = require("path");
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Middleware to require login
 function requireLogin(req,res,next){
@@ -13,10 +20,17 @@ function requireLogin(req,res,next){
 
 // Multer config for avatar upload
 const storage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,"public/uploads/"),
-  filename:(req,file,cb)=>{cb(null,`avatar_${req.session.user.user_id}${path.extname(file.originalname)}`);}
+  destination:(req,file,cb)=>cb(null,uploadDir),
+  filename:(req,file,cb)=>{cb(null,`avatar_${req.session.user.user_id}_${Date.now()}${path.extname(file.originalname)}`);} 
 });
-const upload = multer({ storage });
+
+// only accept image files
+function fileFilter (req, file, cb) {
+  if (file.mimetype && file.mimetype.startsWith('image/')) cb(null, true);
+  else cb(new Error('Only image files are allowed'), false);
+}
+
+const upload = multer({ storage, fileFilter });
 
 // GET account settings
 router.get('/', requireLogin, async(req,res)=>{
@@ -75,9 +89,32 @@ router.post("/update-avatar", requireLogin, upload.single("avatar"), async(req,r
   try{
     if(!req.file) return res.redirect("/accountsettings");
     const avatarPath = "/uploads/"+req.file.filename;
-    await db.query("UPDATE user_tbl SET avatar=? WHERE user_id=?", [avatarPath, req.session.user.user_id]);
-    req.session.user.avatar = avatarPath;
-    res.redirect("/accountsettings");
+
+    // fetch previous avatar to remove file if stored in uploads
+    try{
+      const [rows] = await db.query("SELECT avatar FROM user_tbl WHERE user_id=? LIMIT 1", [req.session.user.user_id]);
+      const prev = rows && rows[0] && rows[0].avatar ? rows[0].avatar : null;
+      await db.query("UPDATE user_tbl SET avatar=? WHERE user_id=?", [avatarPath, req.session.user.user_id]);
+
+      // delete previous file if in uploads and not the default image
+      if (prev && prev.startsWith('/uploads/') && prev !== '/images/g.png'){
+        const prevFull = path.join(__dirname, '..', 'public', prev.replace(/^[\/]+/, ''));
+        fs.unlink(prevFull, (err)=>{
+          if (err) console.warn('Failed to delete old avatar:', err);
+        });
+      }
+
+      // set session avatar with a cache-busting query param so redirected page shows the new image immediately
+      req.session.user.avatar = avatarPath + "?t=" + Date.now();
+      res.redirect("/accountsettings");
+    }catch(dbErr){
+      console.error(dbErr);
+      // if DB update failed, remove the uploaded file to avoid orphan
+      const uploadedFull = path.join(uploadDir, req.file.filename);
+      fs.unlink(uploadedFull, ()=>{});
+      res.redirect("/accountsettings");
+    }
+
   }catch(err){
     console.error(err);
     res.redirect("/accountsettings");

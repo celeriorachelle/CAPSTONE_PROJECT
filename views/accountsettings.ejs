@@ -9,6 +9,14 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/stylesheets/accountsettings.css">
+  <style>
+    /* Ensure footer is pushed to bottom */
+    html, body { height: 100%; }
+    body.account-settings-page { min-height: 100vh; display: flex; flex-direction: column; }
+    .main { display: flex; flex-direction: column; min-height: 100vh; }
+    .main-content { flex: 1 0 auto; }
+    footer.footer { flex-shrink: 0; }
+  </style>
 </head>
 <body class="account-settings-page">
   <%- include('partials/sidebar') %>
@@ -21,13 +29,13 @@
       <section class="profile-header">
         <div class="profile-photo">
           <img src="<%= formData.avatar || '/images/g.png' %>" alt="Profile Avatar" id="profileImage"/>
-          <button class="edit-avatar"><i class="fa fa-camera"></i></button>
-          <form id="avatarForm" action="/profile/update-avatar" method="POST" enctype="multipart/form-data" style="display:none;">
-            <input type="file" name="avatar" id="avatarInput" accept="image/*">
+          <button type="button" class="edit-avatar"><i class="fa fa-camera"></i></button>
+          <form id="avatarForm" action="/accountsettings/update-avatar" method="POST" enctype="multipart/form-data" style="display:inline-block;">
+            <input type="file" name="avatar" id="avatarInput" accept="image/*" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;">
           </form>
         </div>
 
-        <div class="profile-details">
+        <div class="profile-details" style="min-width: 600px;">
           <h2><%= formData.firstname %> <%= formData.lastname %></h2>
           <p><i class="fa fa-envelope"></i> <%= formData.email %></p>
           <p><i class="fa fa-phone"></i> <%= formData.phone %></p>
@@ -143,7 +151,7 @@
 
     </div>
 
-    <footer class="footer">
+    <footer class="footer" style="margin-top: auto;">
       <%- include('partials/footer') %>
     </footer>
   </div>
@@ -153,32 +161,36 @@
   document.addEventListener("DOMContentLoaded", function () {
     const editBtn = document.querySelector(".btn.edit");
     const editForm = document.getElementById("editForm");
-    editBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      if (editForm.style.display === "none") {
-        editForm.style.display = "block";
-        editBtn.textContent = "Cancel Edit";
-      } else {
-        editForm.style.display = "none";
-        editBtn.textContent = "Edit Profile";
-      }
-    });
+    if (editBtn && editForm) {
+      editBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (editForm.style.display === "none") {
+          editForm.style.display = "block";
+          editBtn.textContent = "Cancel Edit";
+        } else {
+          editForm.style.display = "none";
+          editBtn.textContent = "Edit Profile";
+        }
+      });
+    }
 
     const editAvatarBtn = document.querySelector(".edit-avatar");
     const avatarInput = document.getElementById("avatarInput");
     const avatarForm = document.getElementById("avatarForm");
     const profileImage = document.getElementById("profileImage");
-    editAvatarBtn.addEventListener("click", () => avatarInput.click());
-    avatarInput.addEventListener("change", () => {
-      if (avatarInput.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          profileImage.src = e.target.result;
-        };
-        reader.readAsDataURL(avatarInput.files[0]);
-        avatarForm.submit();
-      }
-    });
+    if (editAvatarBtn && avatarInput && avatarForm && profileImage) {
+      editAvatarBtn.addEventListener("click", () => avatarInput.click());
+      avatarInput.addEventListener("change", () => {
+        if (avatarInput.files.length > 0) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            profileImage.src = e.target.result;
+          };
+          reader.readAsDataURL(avatarInput.files[0]);
+          avatarForm.submit();
+        }
+      });
+    }
 
     const darkModeToggle = document.getElementById('darkModeToggle');
     const emailNotificationsToggle = document.getElementById('emailNotifications');
@@ -188,32 +200,44 @@
     const autoLogoutSelect = document.getElementById('autoLogoutSelect');
     const exportDataBtn = document.getElementById('exportDataBtn');
 
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark-mode');
-      darkModeToggle.checked = true;
+    if (darkModeToggle) {
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.checked = true;
+      }
+      darkModeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', darkModeToggle.checked);
+      });
+    } else {
+      if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
     }
-    if (localStorage.getItem('emailNotifications') === 'false') {
-      emailNotificationsToggle.checked = false;
-    }
-    if (localStorage.getItem('language')) languageSelect.value = localStorage.getItem('language');
-    if (localStorage.getItem('dateFormat')) dateFormatSelect.value = localStorage.getItem('dateFormat');
-    if (localStorage.getItem('textSize')) document.body.style.fontSize = localStorage.getItem('textSize');
-    if (localStorage.getItem('autoLogout')) autoLogoutSelect.value = localStorage.getItem('autoLogout');
 
-    darkModeToggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('darkMode', darkModeToggle.checked);
-    });
-    emailNotificationsToggle.addEventListener('change', () => {
-      localStorage.setItem('emailNotifications', emailNotificationsToggle.checked);
-    });
-    languageSelect.addEventListener('change', () => {
-      localStorage.setItem('language', languageSelect.value);
-    });
-    dateFormatSelect.addEventListener('change', () => {
-      localStorage.setItem('dateFormat', dateFormatSelect.value);
-    });
-    textSizeSelect.addEventListener('change', () => {
+    if (emailNotificationsToggle) {
+      if (localStorage.getItem('emailNotifications') === 'false') {
+        emailNotificationsToggle.checked = false;
+      } else if (localStorage.getItem('emailNotifications') === 'true') {
+        emailNotificationsToggle.checked = true;
+      }
+      emailNotificationsToggle.addEventListener('change', () => {
+        localStorage.setItem('emailNotifications', emailNotificationsToggle.checked);
+      });
+    }
+
+    if (languageSelect && localStorage.getItem('language')) languageSelect.value = localStorage.getItem('language');
+    if (dateFormatSelect && localStorage.getItem('dateFormat')) dateFormatSelect.value = localStorage.getItem('dateFormat');
+    if (textSizeSelect && localStorage.getItem('textSize')) document.body.style.fontSize = localStorage.getItem('textSize');
+    if (autoLogoutSelect && localStorage.getItem('autoLogout')) autoLogoutSelect.value = localStorage.getItem('autoLogout');
+
+    if (darkModeToggle) {
+      // already attached above
+    }
+    if (emailNotificationsToggle) {
+      // already attached above
+    }
+    if (languageSelect) languageSelect.addEventListener('change', () => { localStorage.setItem('language', languageSelect.value); });
+    if (dateFormatSelect) dateFormatSelect.addEventListener('change', () => { localStorage.setItem('dateFormat', dateFormatSelect.value); });
+    if (textSizeSelect) textSizeSelect.addEventListener('change', () => {
       let size = '16px';
       if (textSizeSelect.value === 'small') size = '14px';
       else if (textSizeSelect.value === 'medium') size = '16px';
@@ -221,7 +245,7 @@
       document.body.style.fontSize = size;
       localStorage.setItem('textSize', size);
     });
-    autoLogoutSelect.addEventListener('change', () => {
+    if (autoLogoutSelect) autoLogoutSelect.addEventListener('change', () => {
       localStorage.setItem('autoLogout', autoLogoutSelect.value);
     });
 
@@ -240,20 +264,22 @@
     document.addEventListener('keydown', resetLogoutTimer);
     resetLogoutTimer();
 
-    exportDataBtn.addEventListener('click', () => {
-      const profileData = {
-        firstname: document.getElementById('firstname').value,
-        lastname: document.getElementById('lastname').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value
-      };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", "profile_data.json");
-      dlAnchor.click();
-    });
+    if (exportDataBtn) {
+      exportDataBtn.addEventListener('click', () => {
+        const profileData = {
+          firstname: (document.getElementById('firstname') && document.getElementById('firstname').value) || '',
+          lastname: (document.getElementById('lastname') && document.getElementById('lastname').value) || '',
+          email: (document.getElementById('email') && document.getElementById('email').value) || '',
+          phone: (document.getElementById('phone') && document.getElementById('phone').value) || '',
+          address: (document.getElementById('address') && document.getElementById('address').value) || ''
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", "profile_data.json");
+        dlAnchor.click();
+      });
+    }
 
   });
   </script>
