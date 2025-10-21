@@ -342,3 +342,4 @@ router.post('/burial-details', requireLogin, async (req, res) => {
 });
 
 module.exports = router;
+

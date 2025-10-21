@@ -4,14 +4,161 @@
   <meta charset="UTF-8">
   <title>Staff | Track Installments</title>
   <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+  <style>
+    .due-soon { background-color: #fff3cd; }
+    .overdue { background-color: #f8d7da; }
+    .btn-remind {
+      background-color: #17a2b8;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-remind:hover { background-color: #526D82; }
+
+    /* ===== Modal Styling ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal {
+      background: white;
+      width: 600px;
+      max-width: 95%;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+      animation: fadeIn 0.25s ease-in-out;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #27374D;
+    }
+
+    .modal .close {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 20px;
+      color: #444;
+    }
+
+    .form-row {
+      margin-bottom: 14px;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="email"],
+    .form-row textarea,
+    .form-row select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      resize: vertical;
+    }
+
+    textarea {
+      min-height: 120px;
+      max-height: 300px;
+    }
+
+    .modal .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: #27374D;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #messagePreview {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #fafafa;
+      font-size: 13px;
+    }
+
+    /* Responsive Modal */
+    @media (max-width: 600px) {
+      .modal {
+        width: 95%;
+        padding: 15px;
+      }
+      .modal h3 {
+        font-size: 16px;
+      }
+      .form-row label {
+        font-size: 12px;
+      }
+    }
+
+    #installmentTable tr.hidden { display: none; }
+  </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>Staff Panel</h2>
     <ul>
-      <li><a href="/staff_dashboard" class="active">Dashboard</a></li>
+      <li><a href="/staff_dashboard">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
-      <li><a href="/staff_installments">Track Installments</a></li>
+      <li><a href="/staff_installments" class="active">Track Installments</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
@@ -26,34 +173,81 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Client</th>
+          <th>Down Payment By</th>
           <th>Amount</th>
           <th>Due Date</th>
           <th>Status</th>
           <th>Days Left</th>
-          <th>Actions</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="installmentTable">
-        <% installments.forEach(p => { %>
-          <tr class="<%= p.days_left <= 3 ? 'due-soon' : '' %>">
-            <td><%= p.id %></td>
-            <td><%= p.clientName %></td>
-            <td>₱<%= p.amount.toLocaleString() %></td>
-            <td><%= new Date(p.due_date).toLocaleDateString() %></td>
-            <td class="status <%= p.status %>"><%= p.status %></td>
-            <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
-            <td>
-              <button class="btn-remind" onclick="sendReminder(<%= p.id %>)">Remind</button>
-            </td>
-          </tr>
-        <% }) %>
+        <% if (installments.length === 0) { %>
+          <tr><td colspan="7">No downpayment records found.</td></tr>
+        <% } else { %>
+          <% installments.forEach(p => { %>
+            <tr class="<%= p.days_left < 0 ? 'overdue' : (p.days_left <= 3 ? 'due-soon' : '') %>" data-payment-id="<%= p.id %>">
+              <td><%= p.id %></td>
+              <td><%= p.clientName %></td>
+              <td>₱<%= Number(p.amount).toLocaleString() %></td>
+              <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }) %></td>
+              <td><%= p.status %></td>
+              <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
+              <td><button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button></td>
+            </tr>
+          <% }) %>
+        <% } %>
       </tbody>
     </table>
   </div>
 
+  <!-- Reminder Modal -->
+  <div id="remindBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <header>
+        <h3 id="modalTitle">Send Payment Reminder</h3>
+        <span class="close" onclick="closeRemindModal()">✕</span>
+      </header>
+
+      <div>
+        <div class="form-row">
+          <label>Send Type</label>
+          <select id="sendType">
+            <option value="auto">Automatic (templated)</option>
+            <option value="manual">Manual (edit message)</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>To (email)</label>
+          <input id="emailTo" type="email" readonly>
+        </div>
+
+        <div class="form-row">
+          <label>Subject</label>
+          <input id="emailSubject" type="text">
+        </div>
+
+        <div class="form-row">
+          <label>Message (HTML allowed)</label>
+          <textarea id="emailBody" rows="8"></textarea>
+        </div>
+
+        <div class="form-row">
+          <label>Preview</label>
+          <div id="messagePreview"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" onclick="closeRemindModal()">Cancel</button>
+          <button class="btn-primary" id="sendEmailBtn" onclick="sendReminderFromModal()">Send Email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Search Filter
+    // Search filter
     document.getElementById("searchInput").addEventListener("input", function() {
       const term = this.value.toLowerCase();
       document.querySelectorAll("#installmentTable tr").forEach(row => {
@@ -62,15 +256,92 @@
       });
     });
 
-    // Send Reminder
-    function sendReminder(id) {
-      if (!confirm("Send payment reminder for this installment?")) return;
-      fetch(`/staff_installments/remind/${id}`, { method: "POST" })
+    const backdrop = document.getElementById('remindBackdrop');
+    let currentPaymentId = null;
+
+    function openRemindModal(id) {
+      currentPaymentId = id;
+      fetch(`/staff_installments/${id}`)
         .then(res => res.json())
         .then(data => {
-          if (data.success) alert("Reminder sent successfully!");
-          else alert("Failed to send reminder.");
-        });
+          const client = data.payment;
+          document.getElementById('emailTo').value = client.email;
+          const dueDate = new Date(client.due_date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+          const formattedAmount = (Number(client.amount || 0)).toLocaleString();
+
+          const defaultSubject = `Payment Reminder – Payment ID ${client.payment_id} due ${dueDate}`;
+          const defaultBody = `<p>Dear ${client.name},</p>
+          <p>This is a friendly reminder that your <strong>${client.payment_type}</strong> of <strong>₱${formattedAmount}</strong> is due on <strong>${dueDate}</strong>.</p>
+          <p>Please settle your payment on or before the due date to avoid penalties.</p>
+          <p>Thank you,<br>Everlasting Peace Memorial Park</p>`;
+
+          document.getElementById('emailSubject').value = defaultSubject;
+          document.getElementById('emailBody').value = defaultBody;
+          document.getElementById('messagePreview').innerHTML = defaultBody;
+          backdrop.style.display = 'flex';
+
+          updateSendType(); // apply editable/readonly logic
+        })
+        .catch(() => alert("Failed to load payment details."));
+    }
+
+    function closeRemindModal() {
+      backdrop.style.display = 'none';
+      currentPaymentId = null;
+    }
+
+    document.getElementById('emailBody').addEventListener('input', () => {
+      document.getElementById('messagePreview').innerHTML = document.getElementById('emailBody').value;
+    });
+
+    function sendReminderFromModal() {
+      const payload = {
+        sendType: document.getElementById('sendType').value,
+        subject: document.getElementById('emailSubject').value,
+        html: document.getElementById('emailBody').value,
+        to: document.getElementById('emailTo').value
+      };
+
+      const btn = document.getElementById('sendEmailBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      fetch(`/staff_installments/remind/${currentPaymentId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        closeRemindModal();
+        btn.disabled = false;
+        btn.textContent = 'Send Email';
+      })
+      .catch(() => {
+        alert("Error sending reminder.");
+        btn.disabled = false;
+        btn.textContent = 'Send Email';
+      });
+    }
+
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeRemindModal();
+    });
+
+    // ===== NEW FEATURE: AUTO vs MANUAL =====
+    const sendTypeSelect = document.getElementById('sendType');
+    sendTypeSelect.addEventListener('change', updateSendType);
+
+    function updateSendType() {
+      const isManual = sendTypeSelect.value === 'manual';
+      const subj = document.getElementById('emailSubject');
+      const body = document.getElementById('emailBody');
+
+      subj.readOnly = !isManual;
+      body.readOnly = !isManual;
+      body.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
+      subj.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
     }
   </script>
 </body>

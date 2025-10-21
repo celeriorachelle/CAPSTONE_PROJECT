@@ -1,24 +1,33 @@
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
   display: flex;
-  background-color: #f7f8fa;
   height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
+      min-height: 100vh;
+      color: #333;
 }
 
 /* Sidebar */
 .sidebar {
   width: 250px;
-  background-color: #27374D;
-  color: #fff;
+  background: linear-gradient(180deg, #8aac7c 0%, #7a9c6c 100%);
+  color: #1d1d1d;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.1);
 }
 
 .sidebar h2 {
-  text-align: center;
-  margin-bottom: 30px;
+  color: #2d4a24;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      text-align: center;
+      backdrop-filter: blur(10px);
 }
 
 .sidebar ul {
@@ -31,16 +40,22 @@ body {
 }
 
 .sidebar a {
-  color: white;
-  text-decoration: none;
-  display: block;
-  padding: 10px 15px;
-  border-radius: 8px;
-  transition: background 0.3s;
+    color: #1d1d1d;
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      background: rgba(255,255,255,0.1);
 }
 
 .sidebar a:hover, .sidebar a.active {
-  background-color: #526D82;
+   background: rgba(255,255,255,0.25);
+      transform: translateX(5px);
+      color: #2d4a24;
 }
 
 /* Main */
@@ -51,12 +66,12 @@ body {
 }
 
 header h1 {
-  color: #27374D;
+  color: #4a6b46;
   margin-bottom: 5px;
 }
 
 header p {
-  color: #666;
+  color: #4a6b46;
   margin-bottom: 25px;
 }
 
@@ -76,7 +91,7 @@ header p {
 }
 
 .card h3 {
-  color: #27374D;
+  color: #4a6b46;
   margin-bottom: 10px;
 }
 
@@ -97,7 +112,7 @@ header p {
 }
 
 .action-btn {
-  background-color: #27374D;
+  background-color: #4a6b46;
   color: white;
   padding: 15px 25px;
   border-radius: 10px;
@@ -108,5 +123,5 @@ header p {
 }
 
 .action-btn:hover {
-  background-color: #526D82;
+  background-color: #4a6b46;
 }

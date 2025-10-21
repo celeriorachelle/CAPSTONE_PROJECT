@@ -189,6 +189,26 @@
     L.imageOverlay('/images/newmap.png', bounds).addTo(map);
     map.fitBounds(bounds);
 
+    // Utility: build HTML for plot tooltip/popup
+    function plotHtml(p) {
+      const fullName = [p.deceased_firstName, p.deceased_middleName, p.deceased_lastName].filter(Boolean).join(' ');
+      const born = p.birth_date ? new Date(p.birth_date).toLocaleDateString() : '—';
+      const died = p.death_date ? new Date(p.death_date).toLocaleDateString() : '—';
+      return `
+        <div>
+          <div><b>Plot:</b> ${p.plot_number || 'N/A'}</div>
+          <div><b>Location:</b> ${p.location || 'N/A'}</div>
+          <div><b>Type:</b> ${p.type || 'N/A'}</div>
+          <div><b>Status:</b> ${p.availability || 'N/A'}</div>
+          <hr style="margin:6px 0;"/>
+          <div><b>Name:</b> ${fullName || 'N/A'}</div>
+          <div><b>Born:</b> ${born}</div>
+          <div><b>Died:</b> ${died}</div>
+          <div><b>X,Y:</b> ${p.coord_x}, ${p.coord_y}</div>
+        </div>
+      `;
+    }
+
     // ----- 3. Render Family Estates polygon and plots -----
     // 1. Draw the Family Estates polygon
     const familyEstatesCoords = [

@@ -26,10 +26,10 @@
   <div class="sidebar">
     <h2>Staff Panel</h2>
     <ul>
-      <li><a href="/staff_dashboard">Dashboard</a></li>
-      <li><a href="/staff_viewbookings" class="active">View Bookings</a></li>
+      <li><a href="/staff_dashboard" class="active">Dashboard</a></li>
+      <li><a href="/staff_viewbookings">View Bookings</a></li>
       <li><a href="/staff_installments">Track Installments</a></li>
-      <li><a href="/logout">Logout</a></li>
+      <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
 
@@ -286,6 +286,61 @@ async function sendNotificationMessage() {
 document.addEventListener('DOMContentLoaded', () => {
   bookingManager = new BookingManager();
 });
+
+// ...existing code...
+
+async function updateStatus(bookingId, newStatus) {
+  try {
+    const endpoint = newStatus === 'approved' 
+      ? `/staff_viewbookings/approve/${bookingId}` 
+      : `/staff_viewbookings/reject/${bookingId}`;
+    const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' } });
+    const data = await res.json();
+    if (data.success) {
+      const idx = bookingManager.bookings.findIndex(a => (''+a.id) === (''+bookingId));
+      if (idx !== -1) {
+        bookingManager.bookings[idx].status = newStatus;
+        bookingManager.applyFilters();
+      } else {
+        location.reload();
+      }
+      showToast("User notified");
+    } else {
+      alert('Failed to update status');
+    }
+  } catch (err) {
+    console.error('Error updating status:', err);
+    alert('Server error');
+  }
+}
+
+// ================================
+// Toast notification
+// ================================
+function showToast(message) {
+  let toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '12px 20px';
+  toast.style.background = '#28a745';
+  toast.style.color = '#fff';
+  toast.style.borderRadius = '6px';
+  toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+  toast.style.zIndex = 9999;
+  toast.style.fontWeight = '600';
+  toast.style.opacity = '0';
+  toast.style.transition = 'opacity 0.3s ease';
+
+  document.body.appendChild(toast);
+  setTimeout(() => toast.style.opacity = '1', 50);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => document.body.removeChild(toast), 300);
+  }, 2500);
+}
+
 </script>
 </body>
 </html>
