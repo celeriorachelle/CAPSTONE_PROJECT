@@ -3,16 +3,33 @@
 <head>
   <title>Cemetery Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
   <style>
     .map-container { max-width: 1200px; margin: 0 auto; }
-    #map { height: 700px; width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+    #map { 
+      height: 700px; 
+      width: 100%; 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      background: white !important; 
+    }
     .info-box { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
+    /* Override Leaflet's background */
+    .leaflet-container {
+      background: white !important;
+    }
   </style>
 </head>
 <body>
   <div class="map-container">
     <h3>Cemetery Map (Click a Section)</h3>
+    <div class="search-container" style="margin-bottom: 15px;">
+      <form id="searchForm" onsubmit="handleSearch(event)" style="display: flex; gap: 10px;">
+        <input type="text" id="firstName" placeholder="First Name" style="padding: 5px;">
+        <input type="text" id="lastName" placeholder="Last Name" style="padding: 5px;">
+        <button type="submit" style="padding: 5px 15px;">Search</button>
+        <button type="button" onclick="clearSearch()" style="padding: 5px 15px;">Clear Search</button>
+      </form>
+    </div>
     <div id="map"></div>
     <div id="infoBox" class="info-box">
       <em>Click a section to view plots. You can also draw/edit polygons.</em>
@@ -20,32 +37,143 @@
   </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
   <script>
-   // ----- 1. Preloaded sections -----
-  const currentSections = {
-  "Family Estates": { "coords":[[{"lat":285.9296875,"lng":344.625},{"lat":326.9296875,"lng":473.625},{"lat":214.1796875,"lng":499.875},{"lat":172.1796875,"lng":372.625}]], "color":"#4A90E2" },
-  "Family Estates ": { "coords":[[{"lat":284.4296875,"lng":377.5},{"lat":290.4296875,"lng":397},{"lat":257.6796875,"lng":404.75},{"lat":250.6796875,"lng":384.5}]], "color":"#E24A90" },
-  "LEVEL 1": { "coords":[[{"lat":338.4296875,"lng":588.125},{"lat":344.1796875,"lng":603.625},{"lat":315.9296875,"lng":610.625},{"lat":311.1796875,"lng":595.125}]], "color":"#904AE2" },
-  "LEVEL 2": { "coords":[[{"lat":302.6796875,"lng":596.625},{"lat":308.1796875,"lng":613.125},{"lat":279.1796875,"lng":619.625},{"lat":274.6796875,"lng":602.625}]], "color":"#904AE2" },
-  "LEVEL 3": { "coords":[[{"lat":266.9296875,"lng":604.875},{"lat":271.9296875,"lng":620.875},{"lat":243.6796875,"lng":628.875},{"lat":239.4296875,"lng":612.375}]], "color":"#904AE2" },
-  "Heritage Garden A": { "coords":[[{"lat":433.58984375,"lng":636.1875},{"lat":453.08984375,"lng":636.1875},{"lat":453.08984375,"lng":663.0625},{"lat":433.58984375,"lng":663.0625}]], "color":"#E24A90" },
-  "Heritage Garden B": { "coords":[[{"lat":432.33984375,"lng":669.9375},{"lat":452.96484375,"lng":669.9375},{"lat":452.96484375,"lng":696.6875},{"lat":432.33984375,"lng":696.6875}]], "color":"#E2904A" },
-  "Veterans Memorial A": { "coords":[[{"lat":448.96484375,"lng":793.8125},{"lat":468.33984375,"lng":793.8125},{"lat":468.33984375,"lng":820.9375},{"lat":448.96484375,"lng":820.9375}]], "color":"#90E24A" },
-  "Veterans Memorial B": { "coords":[[{"lat":448.08984375,"lng":890.5625},{"lat":468.83984375,"lng":890.5625},{"lat":468.83984375,"lng":918.0625},{"lat":448.08984375,"lng":918.0625}]], "color":"#E24A90" },
-  "Serenity Columbarium A": { "coords":[[{"lat":194.1796875,"lng":795.375},{"lat":212.6796875,"lng":795.375},{"lat":212.6796875,"lng":821.375},{"lat":194.1796875,"lng":821.375}]], "color":"#4A90E2" },
-  "Serenity Columbarium B": { "coords":[[{"lat":193.9296875,"lng":888.875},{"lat":212.1796875,"lng":888.875},{"lat":212.1796875,"lng":916.125},{"lat":193.9296875,"lng":916.125}]], "color":"#904AE2" },
-  "OPEN SPACE": { "coords":[[{"lat":129.359375,"lng":538.75},{"lat":151.359375,"lng":759.25},{"lat":91.859375,"lng":762.25},{"lat":71.859375,"lng":543.75}]], "color":"#904AE2" },
-  "CHAPEL": { "coords":[[{"lat":91.58984375,"lng":283.9375},{"lat":98.21484375,"lng":343.9375},{"lat":45.4296875,"lng":349.875},{"lat":38.1796875,"lng":289.125}]], "color":"#E24A90" },
-  "OFFICE": { "coords":[[{"lat":101.9296875,"lng":362.375},{"lat":108.9296875,"lng":423.125},{"lat":57.1796875,"lng":427.875},{"lat":48.9296875,"lng":366.875}]], "color":"#90E24A" },
-  "CREMATORIUM": { "coords":[[{"lat":114.9296875,"lng":441.125},{"lat":122.6796875,"lng":518.375},{"lat":70.4296875,"lng":522.875},{"lat":62.6796875,"lng":445.875}]], "color":"#E2904A" },
-  "Memorial Chapel & Administration": { "coords":[[{"lat":317.9296875,"lng":498.875},{"lat":352.6796875,"lng":607.125},{"lat":238.6796875,"lng":635.375},{"lat":205.1796875,"lng":526.625}]], "color":"#E24A90" },
-  "Heritage Gardens": { "coords":[[{"lat":427.859375,"lng":631.25},{"lat":608.859375,"lng":631.25},{"lat":608.859375,"lng":701.75},{"lat":427.859375,"lng":701.75}]], "color":"#90E24A" },
-  "Veterans Memorial": { "coords":[[{"lat":444.359375,"lng":753.25},{"lat":624.359375,"lng":753.25},{"lat":624.359375,"lng":920.25},{"lat":444.359375,"lng":920.25}]], "color":"#E2904A" },
-  "Serenity Columbarium": { "coords":[[{"lat":186.359375,"lng":754.25},{"lat":368.859375,"lng":754.25},{"lat":368.859375,"lng":921.25},{"lat":186.359375,"lng":921.25}]], "color":"#904AE2" },
-  "ENTRANCE": { "coords":[[{"lat":145.359375,"lng":189.25},{"lat":172.359375,"lng":229.75},{"lat":110.859375,"lng":261.25},{"lat":87.859375,"lng":219.25}]], "color":"#4A90E2" }
-};
+  // ----- 1. Store all polygons and their original colors -----
+  const polygons = {
+    familyEstates: null,
+    memorialChapel: null,
+    heritageGardens: null,
+    veteransMemorial: null,
+    serenityColumbarium: null
+  };
+
+  const defaultPolygonStyle = {
+    color: '#808080',
+    fillColor: '#A9A9A9',
+    fillOpacity: 0.3,
+    weight: 2
+  };
+
+  const highlightPolygonStyle = {
+    color: 'black',
+    fillColor: 'black',
+    fillOpacity: 0.5,
+    weight: 3
+  };
+
+  // Function to reset all polygon colors
+  function resetPolygonColors() {
+    Object.values(polygons).forEach(polygon => {
+      if (polygon) {
+        polygon.setStyle(defaultPolygonStyle);
+      }
+    });
+  }
+
+  // ----- 2. Search functionality -----
+  let searchHighlightLayer = null;
+  
+  async function handleSearch(event) {
+    event.preventDefault();
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    
+    if (!firstName && !lastName) {
+      alert('Please enter at least a first name or last name');
+      return;
+    }
+    
+    // Reset all polygon colors and clear previous highlights
+    resetPolygonColors();
+    if (searchHighlightLayer) {
+      map.removeLayer(searchHighlightLayer);
+    }
+    
+    const infoBox = document.getElementById('infoBox');
+    infoBox.innerHTML = '<em>Searching...</em>';
+    
+    try {
+      const response = await fetch(`/plots/search?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}`);
+      const plots = await response.json();
+      
+      if (!plots || plots.length === 0) {
+        infoBox.innerHTML = '<em>No matching plots found.</em>';
+        return;
+      }
+      
+      // Display results and highlight plots
+      let html = `<strong>Found ${plots.length} matching plot(s):</strong><br><br>`;
+      const plotLayers = [];
+      
+      // Keep track of which sections contain matches
+      const matchingSections = new Set();
+      
+      plots.forEach(plot => {
+        // Track which section this plot belongs to
+        if (plot.location) {
+          if (plot.location.includes('Family Estates')) matchingSections.add('familyEstates');
+          if (plot.location.includes('Memorial Chapel')) matchingSections.add('memorialChapel');
+          if (plot.location.includes('Heritage Gardens')) matchingSections.add('heritageGardens');
+          if (plot.location.includes('Veterans Memorial')) matchingSections.add('veteransMemorial');
+          if (plot.location.includes('Serenity Columbarium')) matchingSections.add('serenityColumbarium');
+        }
+
+        if (plot.coord_x && plot.coord_y) {
+          const rectWidth = 20;
+          const rectHeight = 20;
+          const bounds = [
+            [plot.coord_y - rectHeight/2, plot.coord_x - rectWidth/2],
+            [plot.coord_y - rectHeight/2, plot.coord_x + rectWidth/2],
+            [plot.coord_y + rectHeight/2, plot.coord_x + rectWidth/2],
+            [plot.coord_y + rectHeight/2, plot.coord_x - rectWidth/2]
+          ];
+          
+          const rect = L.polygon(bounds, {
+            color: '#FF4500',
+            fillColor: '#FF4500',
+            fillOpacity: 0.6,
+            weight: 2
+          });
+          
+          plotLayers.push(rect);
+        }
+        
+        html += `
+          <div style="margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
+            <b>Plot #${plot.plot_number || ''}</b><br>
+            Location: ${plot.location || ''}<br>
+            Type: ${plot.type || ''}<br>
+            Deceased: ${plot.deceased_firstName || ''} ${plot.deceased_lastName || ''}<br>
+            Birth: ${plot.birth_date || 'N/A'}<br>
+            Death: ${plot.death_date || 'N/A'}
+          </div>
+        `;
+      });
+      
+      infoBox.innerHTML = html;
+      
+      // Highlight matching section polygons
+      matchingSections.forEach(section => {
+        if (polygons[section]) {
+          polygons[section].setStyle(highlightPolygonStyle);
+        }
+      });
+      
+      // Create a feature group for the highlighted plots
+      if (plotLayers.length > 0) {
+        searchHighlightLayer = L.featureGroup(plotLayers).addTo(map);
+        map.fitBounds(searchHighlightLayer.getBounds(), { padding: [50, 50] });
+      }
+      
+    } catch (error) {
+      console.error('Search error:', error);
+      infoBox.innerHTML = '<em>Error performing search. Please try again.</em>';
+    }
+  }
+  
+  // ----- 2. Preloaded sections (unchanged) -----
+  // (Coordinate helper and picker removed)
     // ----- 2. Initialize Map -----
     const map = L.map('map', {
       crs: L.CRS.Simple,
@@ -61,68 +189,165 @@
     L.imageOverlay('/images/newmap.png', bounds).addTo(map);
     map.fitBounds(bounds);
 
-    // ----- 3. Feature Group for polygons -----
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
+    // ----- 3. Render Family Estates polygon and plots -----
+    // 1. Draw the Family Estates polygon
+    const familyEstatesCoords = [
+      [984.4375, 1336.5],
+      [1119.4375, 1835.5],
+      [730.4375, 1940.5],
+      [593.4375, 1443.5]
+    ];
+    const familyEstatesPolygon = L.polygon(familyEstatesCoords, defaultPolygonStyle).addTo(map);
+    polygons.familyEstates = familyEstatesPolygon;
 
-    const drawControl = new L.Control.Draw({
-      edit: { featureGroup: drawnItems },
-      draw: { polygon: true, rectangle: true, circle: false, marker: false, polyline: false }
-    });
-    map.addControl(drawControl);
+    // Helper to render plots for a polygon and endpoint
+    // Add clear search function
+    function clearSearch() {
+      document.getElementById('firstName').value = '';
+      document.getElementById('lastName').value = '';
+      resetPolygonColors();
+      if (searchHighlightLayer) {
+        map.removeLayer(searchHighlightLayer);
+      }
+      document.getElementById('infoBox').innerHTML = '<em>Click a section to view plots. You can also draw/edit polygons.</em>';
+    }
 
-    // ----- 4. Render sections -----
-    Object.keys(currentSections).forEach(name => {
-      currentSections[name].coords.forEach(coordSet => {
-        const latlngs = coordSet.map(pt => [pt.lat, pt.lng]);
+    function handlePolygonClick(endpoint, label, rectsKey) {
+      return function() {
+        const infoBox = document.getElementById('infoBox');
+        infoBox.innerHTML = `<em>Fetching ${label} plots...</em>`;
 
-        const polygon = L.polygon(latlngs, {
-          color: currentSections[name].color,
-          fillColor: currentSections[name].color,
-          fillOpacity: 0.2,
-          weight: 2
-        }).addTo(drawnItems);
+        // Reset all polygon colors and highlight the clicked one
+        resetPolygonColors();
+        const clickedPolygon = Object.entries(polygons).find(([key, poly]) => 
+          poly._leaflet_id === this._leaflet_id
+        );
+        if (clickedPolygon) {
+          clickedPolygon[1].setStyle(highlightPolygonStyle);
+        }
 
-        // Hover effect
-        polygon.on('mouseover', () => polygon.setStyle({ fillOpacity: 0.5 }));
-        polygon.on('mouseout', () => polygon.setStyle({ fillOpacity: 0.2 }));
+        // Clear any search highlights
+        if (searchHighlightLayer) {
+          map.removeLayer(searchHighlightLayer);
+        }
 
-        // Click to show plots
-        polygon.on('click', async () => {
-          const bounds = polygon.getBounds();
-          const south = Math.min(bounds.getSouth(), bounds.getNorth());
-          const north = Math.max(bounds.getSouth(), bounds.getNorth());
-          const west  = Math.min(bounds.getWest(), bounds.getEast());
-          const east  = Math.max(bounds.getWest(), bounds.getEast());
+        // clear previous rectangles
+        if (window[rectsKey]) {
+          window[rectsKey].forEach(r => map.removeLayer(r));
+        }
+        window[rectsKey] = [];
 
-          try {
-            const res = await fetch(`/plots/in-bounds?latMin=${south}&latMax=${north}&lngMin=${west}&lngMax=${east}`);
-            const plots = await res.json();
-
-            let html = `<b>${name}</b>:<br>`;
-            if (!plots || plots.length === 0) html += "No plots in this section.";
-            else {
-              html += '<ul>';
-              plots.forEach(p => {
-                html += `<li>${p.plot_number} - ${p.deceased_firstName || ''} ${p.deceased_lastName || ''} (${p.type || ''})</li>`;
-              });
-              html += '</ul>';
+        fetch(endpoint)
+          .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok: ' + res.status);
+            return res.json();
+          })
+          .then(plots => {
+            if (!Array.isArray(plots)) {
+              infoBox.innerHTML = `<span style='color:red'>Unexpected response from server</span>`;
+              return;
             }
-            document.getElementById('infoBox').innerHTML = html;
-          } catch (err) {
-            console.error(err);
-            document.getElementById('infoBox').innerHTML = "Error fetching plots.";
-          }
-        });
-      });
-    });
+            const rendered = [];
+            const missing = [];
+            plots.forEach(plot => {
+              const x = parseFloat(plot.coord_x);
+              const y = parseFloat(plot.coord_y);
+              const detailsHtml = `
+                <b>Plot #${plot.plot_number || ''}</b><br>
+                Location: ${plot.location || ''}<br>
+                Type: ${plot.type || ''}<br>
+                Price: ${plot.price || ''}<br>
+                Status: ${plot.availability || ''}<br>
+                Deceased: ${plot.deceased_firstName || ''} ${plot.deceased_lastName || ''}<br>
+                Birth: ${plot.birth_date || ''}<br>
+                Death: ${plot.death_date || ''}
+              `;
+              if (isFinite(x) && isFinite(y)) {
+                const rectWidth = 20;
+                const rectHeight = 20;
+                const bounds = [
+                  [y - rectHeight/2, x - rectWidth/2],
+                  [y - rectHeight/2, x + rectWidth/2],
+                  [y + rectHeight/2, x + rectWidth/2],
+                  [y + rectHeight/2, x - rectWidth/2]
+                ];
+                const color = (plot.availability || '').toLowerCase() === 'available' ? '#4A90E2' : '#E24A90';
+                const rect = L.polygon(bounds, {
+                  color,
+                  fillColor: color,
+                  fillOpacity: 0.8,
+                  weight: 1
+                }).addTo(map);
+                window[rectsKey].push(rect);
+                rendered.push(detailsHtml);
+                rect.bindPopup(detailsHtml);
+              } else {
+                missing.push(detailsHtml);
+              }
+            });
+            let html = `<b>${label}</b><br>`;
+            html += `<div><strong>Rendered plots:</strong> ${rendered.length}</div>`;
+            if (rendered.length > 0) html += `<div style="margin-top:6px;max-height:180px;overflow:auto;"><ul>` + rendered.map(p => `<li style='margin-bottom:8px;'>${p}</li>`).join('') + `</ul></div>`;
+            html += `<div style="margin-top:8px;"><strong>Missing coordinates:</strong> ${missing.length}</div>`;
+            if (missing.length > 0) html += `<div style="max-height:180px;overflow:auto"><ul>` + missing.map(p => `<li style='margin-bottom:8px;'>${p}</li>`).join('') + `</ul></div>`;
+            infoBox.innerHTML = html;
+            if (window[rectsKey].length > 0) {
+              const group = L.featureGroup(window[rectsKey]);
+              map.fitBounds(group.getBounds(), { padding: [30, 30] });
+            }
+          })
+          .catch(err => {
+            infoBox.innerHTML = `<span style='color:red'>Error fetching ${label} plots: ${err.message}</span>`;
+          });
+      };
+    }
 
-    // ----- 5. Handle newly drawn polygons -----
-    map.on(L.Draw.Event.CREATED, function (e) {
-      const layer = e.layer;
-      drawnItems.addLayer(layer);
-      console.log("✅ New polygon added:", layer.getLatLngs());
-    });
+    // Family Estates polygon and handler
+    familyEstatesPolygon.on('click', handlePolygonClick('/plots/family-estates', 'Family Estates', 'familyEstatesRects'));
+
+    // Memorial Chapel polygon
+    const memorialChapelCoords = [
+      [1092.4375, 1931.5],
+      [1209.4375, 2357.5],
+      [825.4375, 2467.5],
+      [702.4375, 2040.5]
+    ];
+    const memorialChapelPolygon = L.polygon(memorialChapelCoords, defaultPolygonStyle).addTo(map);
+    polygons.memorialChapel = memorialChapelPolygon;
+    memorialChapelPolygon.on('click', handlePolygonClick('/plots/memorial-chapel', 'Memorial Chapel and Administration', 'memorialChapelRects'));
+
+    // Heritage Gardens polygon
+    const heritageGardensCoords = [
+      [1469.4375, 2446.5],
+      [2086.4375, 2446.5],
+      [2086.4375, 2721.5],
+      [1469.4375, 2721.5]
+    ];
+    const heritageGardensPolygon = L.polygon(heritageGardensCoords, defaultPolygonStyle).addTo(map);
+    polygons.heritageGardens = heritageGardensPolygon;
+    heritageGardensPolygon.on('click', handlePolygonClick('/plots/heritage-gardens', 'Heritage Gardens', 'heritageGardensRects'));
+
+    // Veterans Memorial polygon
+    const veteransMemorialCoords = [
+      [1518.875, 2927.5],
+      [2145.4375, 2927.5],
+      [2145.4375, 3577],
+      [1518.875, 3577]
+    ];
+    const veteransMemorialPolygon = L.polygon(veteransMemorialCoords, defaultPolygonStyle).addTo(map);
+    polygons.veteransMemorial = veteransMemorialPolygon;
+    veteransMemorialPolygon.on('click', handlePolygonClick('/plots/veterans-memorial', 'Veterans Memorial', 'veteransMemorialRects'));
+
+    // Serenity Columbarium polygon
+    const serenityColumbariumCoords = [
+      [1262.875, 2927],
+      [1264.875, 3577],
+      [644.875, 3577],
+      [642.875, 2927]
+    ];
+    const serenityColumbariumPolygon = L.polygon(serenityColumbariumCoords, defaultPolygonStyle).addTo(map);
+    polygons.serenityColumbarium = serenityColumbariumPolygon;
+  serenityColumbariumPolygon.on('click', handlePolygonClick('/plots/serenity-columbarium', 'Serenity Columbarium', 'serenityColumbariumRects'));
 
   </script>
 </body>

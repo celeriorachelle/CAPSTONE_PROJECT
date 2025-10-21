@@ -40,7 +40,7 @@ router.get('/', requireLogin, async (req, res) => {
 });
 
 // Render booking form for a given plot id
-router.get('/:plotId', requireLogin, async (req, res) => {
+router.get('/:plotId(\\d+)', requireLogin, async (req, res) => {
   const plotId = req.params.plotId;
   try {
     const [rows] = await db.query('SELECT * FROM plot_map_tbl WHERE plot_id = ?', [plotId]);

@@ -1,7 +1,37 @@
-// routes/plots.js
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+
+// GET plots for Family Estates polygon
+router.get("/family-estates", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        plot_id,
+        plot_number,
+        location,
+        type,
+        price,
+        deceased_firstName,
+        deceased_lastName,
+        birth_date,
+        death_date,
+        item_id,
+        availability,
+        user_id,
+        coord_x,
+        coord_y
+      FROM plot_map_tbl
+      WHERE location LIKE '%Family Estates%'
+        AND coord_x IS NOT NULL AND coord_y IS NOT NULL
+    `);
+    // Always return an array, even if empty
+    res.json(rows);
+  } catch (error) {
+    console.error("❌ Error fetching Family Estates plots:", error);
+    res.status(500).json({ error: "Database error while fetching Family Estates plots." });
+  }
+});
 
 // ✅ GET all plots (for rendering the map)
 router.get("/", async (req, res) => {

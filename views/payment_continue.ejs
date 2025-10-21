@@ -18,7 +18,10 @@
         <p><strong>Location:</strong> <%= booking.location %></p>
         <p><strong>Total Price:</strong> ₱<%= booking.total_price.toLocaleString() %></p>
         <p><strong>Payment Type:</strong> <%= booking.payment_type %></p>
-        <p><strong>Amount to Pay (Monthly):</strong> ₱<%= booking.monthly_amount.toLocaleString() %></p>
+        <p><strong>Amount to Pay (Monthly):</strong> ₱
+  <%= booking.monthly_amount != null ? booking.monthly_amount.toLocaleString() : '0.00' %>
+</p>
+
         <p><strong>User Email:</strong> <%= booking.user_email %></p>
       </div>
 
