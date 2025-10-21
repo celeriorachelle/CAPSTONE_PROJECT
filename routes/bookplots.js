@@ -279,7 +279,7 @@ router.get('/success', async (req, res) => {
       await db.query(
         `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
          VALUES (?, ?, ?, 0, NOW(), ?)`,
-        [userId, bookingId, 'Your plot booking has been submitted and is pending approval.', plot.plot_id]
+        [userId, bookingId, 'Your plot booking has been submitted and approved.', plot.plot_id]
       );
       // Clear booking and plot session data
       req.session.bookingData = null;

@@ -38,9 +38,16 @@ router.post('/', async (req, res) => {
     return res.render('register', { error, formData });
   }
 
-  // 5. Password confirmation
+  // 5. Password confirmation and strength
   if (password !== confirm_password) {
     error = 'Passwords do not match.';
+    return res.render('register', { error, formData });
+  }
+
+  // Enforce strong password: at least 8 chars, one uppercase, one lowercase, one digit, one special char
+  const strongPwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}\[\]|;:'",.<>/?`~]).{8,}$/;
+  if (!strongPwRegex.test(password)) {
+    error = 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.';
     return res.render('register', { error, formData });
   }
 
@@ -52,16 +59,16 @@ router.post('/', async (req, res) => {
       return res.render('register', { error, formData });
     }
 
-    // 7. Hash the password
-    const password_hash = await bcrypt.hash(password, 10);
-    
+    // 7. Hash the password using a sufficient work factor
+    const password_hash = await bcrypt.hash(password, 12);
+
     // 8. Insert user into DB (with address)
     const sql = `
       INSERT INTO user_tbl (firstName, lastName, email, contact_number, address, password_hash, role)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     await db.query(sql, [firstname, lastname, email, phone, address, password_hash, role]);
-    
+
     // 9. Redirect to login or success page
     res.redirect('/login');
   } catch (e) {

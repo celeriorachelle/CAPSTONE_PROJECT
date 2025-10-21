@@ -38,7 +38,7 @@
 
       <% types.forEach(type => { %>
         <section class="section-card" data-type="<%= type %>">
-          <h3 class="section-title"><%= type.replace('-', ' ') %> Bookings</h3>
+          <h3 class="section-title"><%= type.replace('-', ' ') %></h3>
 
         <% if (bookingsGrouped[type] && bookingsGrouped[type].length > 0) { %>
           <table class="booking-table">

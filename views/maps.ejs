@@ -8,6 +8,28 @@
     .map-container { max-width: 1200px; margin: 0 auto; }
     #map { height: 700px; width: 100%; border: 1px solid #ddd; border-radius: 8px; }
     .info-box { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
+
+    /* Small square markers for plots */
+    .plot-marker {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.5);
+      background: #888;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
+    }
+    .plot-available { background: #2ecc71; }
+    .plot-occupied  { background: #e74c3c; }
+    .plot-reserved  { background: #f1c40f; }
+
+    .leaflet-tooltip.plot-tooltip {
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #333;
+      padding: 6px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -61,6 +83,26 @@
     L.imageOverlay('/images/newmap.png', bounds).addTo(map);
     map.fitBounds(bounds);
 
+    // Utility: build HTML for plot tooltip/popup
+    function plotHtml(p) {
+      const fullName = [p.deceased_firstName, p.deceased_middleName, p.deceased_lastName].filter(Boolean).join(' ');
+      const born = p.birth_date ? new Date(p.birth_date).toLocaleDateString() : '—';
+      const died = p.death_date ? new Date(p.death_date).toLocaleDateString() : '—';
+      return `
+        <div>
+          <div><b>Plot:</b> ${p.plot_number || 'N/A'}</div>
+          <div><b>Location:</b> ${p.location || 'N/A'}</div>
+          <div><b>Type:</b> ${p.type || 'N/A'}</div>
+          <div><b>Status:</b> ${p.availability || 'N/A'}</div>
+          <hr style="margin:6px 0;"/>
+          <div><b>Name:</b> ${fullName || 'N/A'}</div>
+          <div><b>Born:</b> ${born}</div>
+          <div><b>Died:</b> ${died}</div>
+          <div><b>X,Y:</b> ${p.coord_x}, ${p.coord_y}</div>
+        </div>
+      `;
+    }
+
     // ----- 3. Feature Group for polygons -----
     const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
@@ -70,6 +112,10 @@
       draw: { polygon: true, rectangle: true, circle: false, marker: false, polyline: false }
     });
     map.addControl(drawControl);
+
+    // Feature group to hold plot markers
+    const plotLayer = new L.FeatureGroup();
+    map.addLayer(plotLayer);
 
     // ----- 4. Render sections -----
     Object.keys(currentSections).forEach(name => {
@@ -87,7 +133,7 @@
         polygon.on('mouseover', () => polygon.setStyle({ fillOpacity: 0.5 }));
         polygon.on('mouseout', () => polygon.setStyle({ fillOpacity: 0.2 }));
 
-        // Click to show plots
+        // Click to show plots and highlight markers in this section
         polygon.on('click', async () => {
           const bounds = polygon.getBounds();
           const south = Math.min(bounds.getSouth(), bounds.getNorth());
@@ -104,7 +150,7 @@
             else {
               html += '<ul>';
               plots.forEach(p => {
-                html += `<li>${p.plot_number} - ${p.deceased_firstName || ''} ${p.deceased_lastName || ''} (${p.type || ''})</li>`;
+                html += `<li>${p.plot_number} - ${(p.deceased_firstName||'')} ${(p.deceased_lastName||'')} (${p.type || ''})</li>`;
               });
               html += '</ul>';
             }
@@ -116,6 +162,44 @@
         });
       });
     });
+
+    // ----- 4b. Render all plot markers with hover/click popups -----
+    (async function loadPlots() {
+      try {
+        const res = await fetch('/plots');
+        const plots = await res.json();
+        plotLayer.clearLayers();
+
+        plots.forEach(p => {
+          // coord_y = latitude, coord_x = longitude in this simple CRS
+          const latlng = [Number(p.coord_y), Number(p.coord_x)];
+
+          // Choose color class by availability (normalize string)
+          const avail = (p.availability || '').toString().toLowerCase();
+          let cls = 'plot-marker';
+          if (avail.includes('available')) cls += ' plot-available';
+          else if (avail.includes('occupied')) cls += ' plot-occupied';
+          else if (avail.includes('reserved')) cls += ' plot-reserved';
+
+          const icon = L.divIcon({
+            className: cls,
+            iconSize: [10,10]
+          });
+
+          const marker = L.marker(latlng, { icon }).addTo(plotLayer);
+
+          const html = plotHtml(p);
+
+          // Tooltip on hover
+          marker.bindTooltip(html, { direction: 'top', offset: [0,-4], className: 'plot-tooltip', sticky: true});
+
+          // Popup on click
+          marker.bindPopup(html);
+        });
+      } catch (err) {
+        console.error('Error loading plots:', err);
+      }
+    })();
 
     // ----- 5. Handle newly drawn polygons -----
     map.on(L.Draw.Event.CREATED, function (e) {
