@@ -150,10 +150,10 @@ router.get('/family-estates', async (req, res) => {
   try {
     // Fetch only the specified fields, grouped by plot_number
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability
+      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Family Estates%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability
+      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/family-estates] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {

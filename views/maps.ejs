@@ -3,29 +3,19 @@
 <head>
   <title>Cemetery Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    .map-container { max-width: 1200px; margin: 0 auto; }
-    #map { 
-      height: 700px; 
-      width: 100%; 
-      border: 1px solid #ddd; 
-      border-radius: 8px; 
-      background: white !important; 
-    }
-    .info-box { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
-    /* Override Leaflet's background */
-    .leaflet-container {
-      background: white !important;
-    }
-  </style>
+  <link rel="stylesheet" href="/stylesheets/mapleaflet.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="map-container">
-    <h3>Cemetery Map (Click a Section)</h3>
+    <h1 style="color: white; font-family: 'Poppins', sans-serif;">Cemetery Map (Click a Section)</h1>
+    <div><a class="back-btn" href="/">← Back to Home</a></div>
     <div class="search-container" style="margin-bottom: 15px;">
-      <form id="searchForm" onsubmit="handleSearch(event)" style="display: flex; gap: 10px;">
+      <form id="searchForm" onsubmit="handleSearch(event)" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <input type="text" id="firstName" placeholder="First Name" style="padding: 5px;">
         <input type="text" id="lastName" placeholder="Last Name" style="padding: 5px;">
+        <input type="number" id="yearBorn" placeholder="Year Born" style="padding: 5px; width:110px;" min="1800" max="2100">
+        <input type="number" id="yearDied" placeholder="Year Died" style="padding: 5px; width:110px;" min="1800" max="2100">
         <button type="submit" style="padding: 5px 15px;">Search</button>
         <button type="button" onclick="clearSearch()" style="padding: 5px 15px;">Clear Search</button>
       </form>
@@ -45,7 +35,11 @@
     memorialChapel: null,
     heritageGardens: null,
     veteransMemorial: null,
-    serenityColumbarium: null
+    serenityColumbarium: null,
+    customA: null,
+    customB: null,
+    customC: null,
+    customD: null
   };
 
   const defaultPolygonStyle = {
@@ -75,102 +69,106 @@
   let searchHighlightLayer = null;
   
   async function handleSearch(event) {
-    event.preventDefault();
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    
-    if (!firstName && !lastName) {
-      alert('Please enter at least a first name or last name');
-      return;
-    }
-    
-    // Reset all polygon colors and clear previous highlights
-    resetPolygonColors();
-    if (searchHighlightLayer) {
-      map.removeLayer(searchHighlightLayer);
-    }
-    
-    const infoBox = document.getElementById('infoBox');
-    infoBox.innerHTML = '<em>Searching...</em>';
-    
-    try {
-      const response = await fetch(`/plots/search?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}`);
-      const plots = await response.json();
-      
-      if (!plots || plots.length === 0) {
-        infoBox.innerHTML = '<em>No matching plots found.</em>';
+      event.preventDefault();
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const yearBorn = document.getElementById('yearBorn') ? document.getElementById('yearBorn').value.trim() : '';
+      const yearDied = document.getElementById('yearDied') ? document.getElementById('yearDied').value.trim() : '';
+
+      if (!firstName && !lastName && !yearBorn && !yearDied) {
+        alert('Please enter at least a first name, last name, or a year');
         return;
       }
-      
-      // Display results and highlight plots
-      let html = `<strong>Found ${plots.length} matching plot(s):</strong><br><br>`;
-      const plotLayers = [];
-      
-      // Keep track of which sections contain matches
-      const matchingSections = new Set();
-      
-      plots.forEach(plot => {
-        // Track which section this plot belongs to
-        if (plot.location) {
-          if (plot.location.includes('Family Estates')) matchingSections.add('familyEstates');
-          if (plot.location.includes('Memorial Chapel')) matchingSections.add('memorialChapel');
-          if (plot.location.includes('Heritage Gardens')) matchingSections.add('heritageGardens');
-          if (plot.location.includes('Veterans Memorial')) matchingSections.add('veteransMemorial');
-          if (plot.location.includes('Serenity Columbarium')) matchingSections.add('serenityColumbarium');
-        }
 
-        if (plot.coord_x && plot.coord_y) {
-          const rectWidth = 20;
-          const rectHeight = 20;
-          const bounds = [
-            [plot.coord_y - rectHeight/2, plot.coord_x - rectWidth/2],
-            [plot.coord_y - rectHeight/2, plot.coord_x + rectWidth/2],
-            [plot.coord_y + rectHeight/2, plot.coord_x + rectWidth/2],
-            [plot.coord_y + rectHeight/2, plot.coord_x - rectWidth/2]
-          ];
-          
-          const rect = L.polygon(bounds, {
-            color: '#FF4500',
-            fillColor: '#FF4500',
-            fillOpacity: 0.6,
-            weight: 2
-          });
-          
-          plotLayers.push(rect);
-        }
-        
-        html += `
-          <div style="margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
-            <b>Plot #${plot.plot_number || ''}</b><br>
-            Location: ${plot.location || ''}<br>
-            Type: ${plot.type || ''}<br>
-            Deceased: ${plot.deceased_firstName || ''} ${plot.deceased_lastName || ''}<br>
-            Birth: ${plot.birth_date || 'N/A'}<br>
-            Death: ${plot.death_date || 'N/A'}
-          </div>
-        `;
-      });
-      
-      infoBox.innerHTML = html;
-      
-      // Highlight matching section polygons
-      matchingSections.forEach(section => {
-        if (polygons[section]) {
-          polygons[section].setStyle(highlightPolygonStyle);
-        }
-      });
-      
-      // Create a feature group for the highlighted plots
-      if (plotLayers.length > 0) {
-        searchHighlightLayer = L.featureGroup(plotLayers).addTo(map);
-        map.fitBounds(searchHighlightLayer.getBounds(), { padding: [50, 50] });
+      // Reset all polygon colors and clear previous highlights
+      resetPolygonColors();
+      if (searchHighlightLayer) {
+        map.removeLayer(searchHighlightLayer);
       }
       
-    } catch (error) {
-      console.error('Search error:', error);
-      infoBox.innerHTML = '<em>Error performing search. Please try again.</em>';
+      const infoBox = document.getElementById('infoBox');
+      infoBox.innerHTML = '<em>Searching...</em>';
+      
+      try {
+        const response = await fetch(`/plots/search?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&yearBorn=${encodeURIComponent(yearBorn)}&yearDied=${encodeURIComponent(yearDied)}`);
+        const plots = await response.json();
+        
+        if (!plots || plots.length === 0) {
+          infoBox.innerHTML = '<em>No matching plots found.</em>';
+          return;
+        }
+        
+        // Display results and highlight plots
+        let html = `<strong>Found ${plots.length} matching plot(s):</strong><br><br>`;
+        const plotLayers = [];
+        
+        // Keep track of which sections contain matches
+        const matchingSections = new Set();
+        
+        plots.forEach(plot => {
+           // Track which section this plot belongs to
+           if (plot.location) {
+             if (plot.location.includes('Family Estates')) matchingSections.add('familyEstates');
+             if (plot.location.includes('Memorial Chapel')) matchingSections.add('memorialChapel');
+             if (plot.location.includes('Heritage Gardens')) matchingSections.add('heritageGardens');
+             if (plot.location.includes('Veterans Memorial')) matchingSections.add('veteransMemorial');
+             if (plot.location.includes('Serenity Columbarium')) matchingSections.add('serenityColumbarium');
+           }
+
+           if (plot.coord_x && plot.coord_y) {
+             const rectWidth = 20;
+             const rectHeight = 20;
+             const bounds = [
+               [plot.coord_y - rectHeight/2, plot.coord_x - rectWidth/2],
+               [plot.coord_y - rectHeight/2, plot.coord_x + rectWidth/2],
+               [plot.coord_y + rectHeight/2, plot.coord_x + rectWidth/2],
+               [plot.coord_y + rectHeight/2, plot.coord_x - rectWidth/2]
+             ];
+             
+             const rect = L.polygon(bounds, {
+               color: '#FF4500',
+               fillColor: '#FF4500',
+               fillOpacity: 0.6,
+               weight: 2
+             });
+             
+             plotLayers.push(rect);
+           }
+          
+          const birthStr = formatDate(plot.birth_date);
+          const deathStr = formatDate(plot.death_date);
+          html += `
+            <div style="margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
+              <b>Plot #${plot.plot_number || ''}</b><br>
+              Location: ${plot.location || ''}<br>
+              Type: ${plot.type || ''}<br>
+              Deceased: ${plot.deceased_firstName || ''} ${plot.deceased_lastName || ''}<br>
+              Birth: ${birthStr}<br>
+              Death: ${deathStr}
+            </div>
+          `;
+        });
+        
+        infoBox.innerHTML = html;
+        
+        // Highlight matching section polygons
+        matchingSections.forEach(section => {
+          if (polygons[section]) {
+            polygons[section].setStyle(highlightPolygonStyle);
+          }
+        });
+        
+        // Create a feature group for the highlighted plots
+        if (plotLayers.length > 0) {
+          searchHighlightLayer = L.featureGroup(plotLayers).addTo(map);
+          map.fitBounds(searchHighlightLayer.getBounds(), { padding: [50, 50] });
+        }
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        infoBox.innerHTML = '<em>Error performing search. Please try again.</em>';
+      }
     }
-  }
   
   // ----- 2. Preloaded sections (unchanged) -----
   // (Coordinate helper and picker removed)
@@ -189,24 +187,161 @@
     L.imageOverlay('/images/newmap.png', bounds).addTo(map);
     map.fitBounds(bounds);
 
+    // Utility: format date strings into locale date (remove time portion)
+    function formatDate(d) {
+      if (!d) return 'N/A';
+      try {
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return d.toString();
+        return dt.toLocaleDateString();
+      } catch (e) {
+        return d.toString();
+      }
+    }
+
     // Utility: build HTML for plot tooltip/popup
     function plotHtml(p) {
       const fullName = [p.deceased_firstName, p.deceased_middleName, p.deceased_lastName].filter(Boolean).join(' ');
-      const born = p.birth_date ? new Date(p.birth_date).toLocaleDateString() : '—';
-      const died = p.death_date ? new Date(p.death_date).toLocaleDateString() : '—';
+      const born = formatDate(p.birth_date);
+      const died = formatDate(p.death_date);
       return `
-        <div>
-          <div><b>Plot:</b> ${p.plot_number || 'N/A'}</div>
-          <div><b>Location:</b> ${p.location || 'N/A'}</div>
-          <div><b>Type:</b> ${p.type || 'N/A'}</div>
-          <div><b>Status:</b> ${p.availability || 'N/A'}</div>
-          <hr style="margin:6px 0;"/>
-          <div><b>Name:</b> ${fullName || 'N/A'}</div>
-          <div><b>Born:</b> ${born}</div>
-          <div><b>Died:</b> ${died}</div>
-          <div><b>X,Y:</b> ${p.coord_x}, ${p.coord_y}</div>
+        <div class="plot-box" title="${p.plot_number || ''}">
+          <div class="plot-header">${p.plot_number || 'N/A'}</div>
+          <div class="plot-details">
+            <div><strong>Location:</strong> ${p.location || 'N/A'}</div>
+            <div><strong>Type:</strong> ${p.type || 'N/A'}</div>
+            <div><strong>Status:</strong> ${p.availability || 'N/A'}</div>
+            <div style="margin-top:6px;"><strong>Name:</strong> ${fullName || 'N/A'}</div>
+            <div><strong>Born:</strong> ${born}</div>
+            <div><strong>Died:</strong> ${died}</div>
+          </div>
         </div>
       `;
+    }
+
+    // Create or reuse the bubble popup element
+    let bubbleEl = null;
+    function showBubbleAtPoint(point, title, plots) {
+      // point is a LatLng point in map coordinates (y,x)
+      const container = document.getElementById('map');
+      if (!bubbleEl) {
+        bubbleEl = document.createElement('div');
+        bubbleEl.className = 'bubble-popup';
+        bubbleEl.innerHTML = `<div class="bubble-content"><button class="bubble-close" title="Close">×</button><div class="bubble-title">${title}</div><div class="bubble-plots"></div></div>`;
+        container.appendChild(bubbleEl);
+        // wire up close button
+        const closeBtn = bubbleEl.querySelector('.bubble-close');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function(evt) {
+            evt.stopPropagation();
+            hideBubble();
+          });
+        }
+        // prevent clicks inside bubble from propagating to the map
+        bubbleEl.addEventListener('click', function(evt) { evt.stopPropagation(); });
+      }
+      // always update title (in case bubble already existed)
+      const titleEl = bubbleEl.querySelector('.bubble-title');
+      if (titleEl) titleEl.textContent = title;
+      const plotsContainer = bubbleEl.querySelector('.bubble-plots');
+      plotsContainer.innerHTML = plots.map(p => plotHtml(p)).join('');
+
+      // Convert map point to container pixel position
+      const latlng = L.latLng(point[0], point[1]);
+      const px = map.latLngToContainerPoint(latlng);
+
+      // show temporarily to measure size
+      bubbleEl.style.display = 'block';
+      bubbleEl.style.left = px.x + 'px';
+      bubbleEl.style.top = px.y + 'px';
+
+      // measure and adjust to keep within container bounds
+      const containerRect = container.getBoundingClientRect();
+      const bubbleRect = bubbleEl.getBoundingClientRect();
+
+      // container-relative coordinates (bubbleRect is in viewport coords)
+      const offsetLeft = bubbleRect.left - containerRect.left;
+      const offsetTop  = bubbleRect.top  - containerRect.top;
+
+      let desiredLeft = px.x; // centered by translateX(-50%)
+      // default place bubble above the point; if not enough space, place below
+      let desiredTop = px.y - bubbleRect.height - 12; // 12px gap
+      if (desiredTop < 8) {
+        // not enough space above, place below
+        desiredTop = px.y + 12;
+      }
+
+      // clamp horizontally
+      const bubbleWidth = bubbleRect.width;
+      const minLeft = 8 + bubbleWidth/2;
+      const maxLeft = container.clientWidth - 8 - bubbleWidth/2;
+      if (desiredLeft < minLeft) desiredLeft = minLeft;
+      if (desiredLeft > maxLeft) desiredLeft = maxLeft;
+
+      // clamp vertically
+      const minTop = 8;
+      const maxTop = container.clientHeight - bubbleRect.height - 8;
+      if (desiredTop < minTop) desiredTop = minTop;
+      if (desiredTop > maxTop) desiredTop = maxTop;
+
+      bubbleEl.style.left = desiredLeft + 'px';
+      bubbleEl.style.top = desiredTop + 'px';
+      bubbleEl.style.display = 'block';
+    }
+    
+    function hideBubble() {
+      if (bubbleEl) bubbleEl.style.display = 'none';
+    }
+
+    // Show arbitrary HTML content inside the bubble (used by custom polygons)
+    function showBubbleHtmlAtPoint(point, title, htmlContent) {
+      const container = document.getElementById('map');
+      if (!bubbleEl) {
+        bubbleEl = document.createElement('div');
+        bubbleEl.className = 'bubble-popup';
+        bubbleEl.innerHTML = `<div class="bubble-content"><button class="bubble-close" title="Close">×</button><div class="bubble-title">${title}</div><div class="bubble-plots"></div></div>`;
+        container.appendChild(bubbleEl);
+        const closeBtn = bubbleEl.querySelector('.bubble-close');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function(evt) { evt.stopPropagation(); hideBubble(); });
+        }
+        bubbleEl.addEventListener('click', function(evt) { evt.stopPropagation(); });
+      }
+
+      const titleEl = bubbleEl.querySelector('.bubble-title');
+      if (titleEl) titleEl.textContent = title;
+      const plotsContainer = bubbleEl.querySelector('.bubble-plots');
+      plotsContainer.innerHTML = htmlContent || '';
+
+      // Position the bubble similarly to showBubbleAtPoint
+      const latlng = L.latLng(point[0], point[1]);
+      const px = map.latLngToContainerPoint(latlng);
+
+      bubbleEl.style.display = 'block';
+      bubbleEl.style.left = px.x + 'px';
+      bubbleEl.style.top = px.y + 'px';
+
+      const containerRect = container.getBoundingClientRect();
+      const bubbleRect = bubbleEl.getBoundingClientRect();
+
+      let desiredLeft = px.x;
+      let desiredTop = px.y - bubbleRect.height - 12;
+      if (desiredTop < 8) desiredTop = px.y + 12;
+
+      const bubbleWidth = bubbleRect.width;
+      const minLeft = 8 + bubbleWidth/2;
+      const maxLeft = container.clientWidth - 8 - bubbleWidth/2;
+      if (desiredLeft < minLeft) desiredLeft = minLeft;
+      if (desiredLeft > maxLeft) desiredLeft = maxLeft;
+
+      const minTop = 8;
+      const maxTop = container.clientHeight - bubbleRect.height - 8;
+      if (desiredTop < minTop) desiredTop = minTop;
+      if (desiredTop > maxTop) desiredTop = maxTop;
+
+      bubbleEl.style.left = desiredLeft + 'px';
+      bubbleEl.style.top = desiredTop + 'px';
+      bubbleEl.style.display = 'block';
     }
 
     // ----- 3. Render Family Estates polygon and plots -----
@@ -225,12 +360,15 @@
     function clearSearch() {
       document.getElementById('firstName').value = '';
       document.getElementById('lastName').value = '';
-      resetPolygonColors();
-      if (searchHighlightLayer) {
-        map.removeLayer(searchHighlightLayer);
-      }
-      document.getElementById('infoBox').innerHTML = '<em>Click a section to view plots. You can also draw/edit polygons.</em>';
-    }
+      if (document.getElementById('yearBorn')) document.getElementById('yearBorn').value = '';
+      if (document.getElementById('yearDied')) document.getElementById('yearDied').value = '';
+       resetPolygonColors();
+       if (searchHighlightLayer) {
+         map.removeLayer(searchHighlightLayer);
+       }
+       document.getElementById('infoBox').innerHTML = '<em>Click a section to view plots. You can also draw/edit polygons.</em>';
+       hideBubble();
+     }
 
     function handlePolygonClick(endpoint, label, rectsKey) {
       return function() {
@@ -256,6 +394,7 @@
           window[rectsKey].forEach(r => map.removeLayer(r));
         }
         window[rectsKey] = [];
+        hideBubble();
 
         fetch(endpoint)
           .then(res => {
@@ -267,54 +406,27 @@
               infoBox.innerHTML = `<span style='color:red'>Unexpected response from server</span>`;
               return;
             }
-            const rendered = [];
-            const missing = [];
-            plots.forEach(plot => {
-              const x = parseFloat(plot.coord_x);
-              const y = parseFloat(plot.coord_y);
-              const detailsHtml = `
-                <b>Plot #${plot.plot_number || ''}</b><br>
-                Location: ${plot.location || ''}<br>
-                Type: ${plot.type || ''}<br>
-                Price: ${plot.price || ''}<br>
-                Status: ${plot.availability || ''}<br>
-                Deceased: ${plot.deceased_firstName || ''} ${plot.deceased_lastName || ''}<br>
-                Birth: ${plot.birth_date || ''}<br>
-                Death: ${plot.death_date || ''}
-              `;
-              if (isFinite(x) && isFinite(y)) {
-                const rectWidth = 20;
-                const rectHeight = 20;
-                const bounds = [
-                  [y - rectHeight/2, x - rectWidth/2],
-                  [y - rectHeight/2, x + rectWidth/2],
-                  [y + rectHeight/2, x + rectWidth/2],
-                  [y + rectHeight/2, x - rectWidth/2]
-                ];
-                const color = (plot.availability || '').toLowerCase() === 'available' ? '#4A90E2' : '#E24A90';
-                const rect = L.polygon(bounds, {
-                  color,
-                  fillColor: color,
-                  fillOpacity: 0.8,
-                  weight: 1
-                }).addTo(map);
-                window[rectsKey].push(rect);
-                rendered.push(detailsHtml);
-                rect.bindPopup(detailsHtml);
-              } else {
-                missing.push(detailsHtml);
-              }
+
+            // Sort plots by plot_number (natural sort)
+            const sorted = plots.slice().sort((a,b) => {
+              const an = (a.plot_number || '').toString();
+              const bn = (b.plot_number || '').toString();
+              return an.localeCompare(bn, undefined, { numeric: true, sensitivity: 'base' });
             });
-            let html = `<b>${label}</b><br>`;
-            html += `<div><strong>Rendered plots:</strong> ${rendered.length}</div>`;
-            if (rendered.length > 0) html += `<div style="margin-top:6px;max-height:180px;overflow:auto;"><ul>` + rendered.map(p => `<li style='margin-bottom:8px;'>${p}</li>`).join('') + `</ul></div>`;
-            html += `<div style="margin-top:8px;"><strong>Missing coordinates:</strong> ${missing.length}</div>`;
-            if (missing.length > 0) html += `<div style="max-height:180px;overflow:auto"><ul>` + missing.map(p => `<li style='margin-bottom:8px;'>${p}</li>`).join('') + `</ul></div>`;
-            infoBox.innerHTML = html;
-            if (window[rectsKey].length > 0) {
-              const group = L.featureGroup(window[rectsKey]);
-              map.fitBounds(group.getBounds(), { padding: [30, 30] });
+
+            // Determine centroid of the clicked polygon to position the bubble
+            let centerLatLng;
+            try {
+              const poly = clickedPolygon ? clickedPolygon[1] : this;
+              centerLatLng = poly.getBounds().getCenter();
+            } catch (e) {
+              centerLatLng = map.getCenter();
             }
+
+            // Show bubble with ALL plots (no need to rely on individual coord_x/coord_y)
+            showBubbleAtPoint([centerLatLng.lat, centerLatLng.lng], label, sorted);
+
+            infoBox.innerHTML = `<div><b>${label}</b> — showing ${sorted.length} items</div>`;
           })
           .catch(err => {
             infoBox.innerHTML = `<span style='color:red'>Error fetching ${label} plots: ${err.message}</span>`;
@@ -369,6 +481,86 @@
     polygons.serenityColumbarium = serenityColumbariumPolygon;
   serenityColumbariumPolygon.on('click', handlePolygonClick('/plots/serenity-columbarium', 'Serenity Columbarium', 'serenityColumbariumRects'));
 
+    // --- Custom polygon group A ---
+    const customACoords = [
+      [502.4375, 730.5],
+      [594.4375, 889.5],
+      [389.4375, 1009.5],
+      [299.4375, 850.5]
+    ];
+    const customAPolygon = L.polygon(customACoords, defaultPolygonStyle).addTo(map);
+    polygons.customA = customAPolygon;
+    customAPolygon.on('click', function() {
+      // Reset and highlight
+      resetPolygonColors();
+      this.setStyle(highlightPolygonStyle);
+      if (searchHighlightLayer) { map.removeLayer(searchHighlightLayer); }
+      hideBubble();
+      const center = this.getBounds().getCenter();
+      const html = `<div class="bubble-image"><img src="/images/entrance.png" alt="Entrance"></div>`;
+      showBubbleHtmlAtPoint([center.lat, center.lng], 'Entrance', html);
+    });
+
+    // --- Custom polygon group B ---
+    const customBCoords = [
+      [396.875, 1715],
+      [420.875, 2007],
+      [244.875, 2029],
+      [216.875, 1725]
+    ];
+    const customBPolygon = L.polygon(customBCoords, defaultPolygonStyle).addTo(map);
+    polygons.customB = customBPolygon;
+    customBPolygon.on('click', function() {
+      resetPolygonColors();
+      this.setStyle(highlightPolygonStyle);
+      if (searchHighlightLayer) { map.removeLayer(searchHighlightLayer); }
+      hideBubble();
+      const center = this.getBounds().getCenter();
+      const html = `<div class="bubble-image"><img src="/images/crematorium.png" alt="Crematorium"></div>`;
+      showBubbleHtmlAtPoint([center.lat, center.lng], 'Crematorium', html);
+    });
+
+    // --- Custom polygon group C ---
+    const customCCoords = [
+      [352.875, 1407],
+      [374.875, 1643],
+      [202.875, 1661],
+      [170.875, 1423]
+    ];
+    const customCPolygon = L.polygon(customCCoords, defaultPolygonStyle).addTo(map);
+    polygons.customC = customCPolygon;
+    customCPolygon.on('click', function() {
+      resetPolygonColors();
+      this.setStyle(highlightPolygonStyle);
+      if (searchHighlightLayer) { map.removeLayer(searchHighlightLayer); }
+      hideBubble();
+      const center = this.getBounds().getCenter();
+      const html = `<div class="bubble-image"><img src="/images/10.png" alt="Custom Area C"></div>`;
+      showBubbleHtmlAtPoint([center.lat, center.lng], 'Custom Area C', html);
+    });
+
+    // --- Custom polygon group D ---
+    const customDCoords = [
+      [314.875, 1107],
+      [338.875, 1337],
+      [162.875, 1355],
+      [134.875, 1119]
+    ];
+    const customDPolygon = L.polygon(customDCoords, defaultPolygonStyle).addTo(map);
+    polygons.customD = customDPolygon;
+    customDPolygon.on('click', function() {
+      resetPolygonColors();
+      this.setStyle(highlightPolygonStyle);
+      if (searchHighlightLayer) { map.removeLayer(searchHighlightLayer); }
+      hideBubble();
+      const center = this.getBounds().getCenter();
+      const html = `<div class="bubble-image"><img src="/images/chapel.jpg" alt="Chapel"></div>`;
+      showBubbleHtmlAtPoint([center.lat, center.lng], 'Chapel', html);
+    });
+
   </script>
+      <footer class="footer" style="margin-top:3%;">
+      <%- include('partials/footer') %>
+    </footer>
 </body>
 </html>

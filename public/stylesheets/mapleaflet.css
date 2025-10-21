@@ -1,0 +1,176 @@
+    /* Index-like theme: use Open Sans and dark accent */
+    body { 
+      font-family: 'Open Sans', Arial, sans-serif; 
+      color: #101b0d;       
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.267)),url("/images/10.png");
+      background-size: cover; 
+    margin: 0;
+    padding: 0;
+    }
+    
+    .back-btn {
+      display: inline-block;
+      padding: 0.45rem 0.9rem;
+      background: #24421b;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 6px 16px rgba(16,27,13,0.12);
+      margin-bottom: 8px;
+    }
+    .back-btn:hover { background: #2f2c20; }
+    .bubble-title { font-size: 1rem; font-weight: 700; color: #101b0d; margin-bottom: 8px; }
+    .bubble-content { border-color: rgba(16,27,13,0.08); }
+    .bubble-close { color: #444; }
+
+    .map-container { max-width: 1200px; margin: 0 auto; }
+    #map { 
+      height: 700px; 
+      width: 100%; 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      background: rgb(255, 255, 255) !important; 
+      position: relative; /* allow absolute positioning of the bubble inside the map */
+    }
+    .info-box { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
+    /* Override Leaflet's background */
+    .leaflet-container {
+      background: white !important;
+    }
+    /* Speech bubble popup */
+    .bubble-popup {
+      position: absolute;
+      transform: translateX(-50%); /* center horizontally, we'll control vertical placement in JS */
+      pointer-events: auto;
+      max-width: 920px; /* allow wider bubble to fit 5 columns */
+      min-width: 900px;
+      width: auto;
+      z-index: 10000;
+    }
+    .bubble-content {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      border: 1px solid #ddd;
+      width: min(900px, 95%);
+      box-sizing: border-box;
+      max-height: 70vh; /* allow scrolling when many plots */
+      overflow: auto; /* scroll vertically when necessary */
+      position: relative; /* allow close button positioned inside */
+    }
+    .bubble-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+    .bubble-close:hover { background: #f0f0f0; }
+    .bubble-plots {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* five boxes per row */
+      gap: 8px;
+      align-items: start;
+    }
+    /* Plot box: collapsed by default, expands on hover to reveal details */
+    .bubble-content .plot-box {
+      border: 1px solid #e6e6e6;
+      padding: 8px;
+      border-radius: 8px;
+      background: linear-gradient(180deg,#fff,#fafafa);
+      box-sizing: border-box;
+      overflow: hidden;
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.2;
+      /* collapsed size */
+      max-height: 44px; /* only header visible */
+      transition: max-height 220ms ease, box-shadow 200ms ease, transform 200ms ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .plot-header {
+      font-weight:700;
+      color: #333;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .plot-details {
+      margin-top: 8px;
+      color: #555;
+      font-size: 12px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 200ms ease, max-height 2000ms ease;
+    }
+    .bubble-content .plot-box:hover {
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+      max-height: 260px; /* expanded to show details */
+    }
+    .bubble-content .plot-box:hover .plot-details {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
+        .bubble-arrow { display: visible; }
+    .bubble-content {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      border: 1px solid #ddd;
+      width: min(1000px, 95%);
+      box-sizing: border-box;
+      max-height: 70vh; /* allow scrolling when many plots */
+      overflow: auto; /* scroll vertically when necessary */
+      position: relative; /* allow close button positioned inside */
+    }
+    .bubble-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f8f8;
+      color: #777;
+      border-radius: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+      overflow: visible;
+    }
+    .bubble-image img {
+      display: block;
+      min-width: 500px;
+      max-width: 800px; /* larger display */
+      width: 100%;
+      height: auto; /* preserve aspect ratio */
+      max-height: 80vh; /* avoid overly tall images */
+      object-fit: contain;
+    }
+
+    /* Responsive: reduce columns on narrow screens */
+    @media (max-width: 1000px) {
+      .bubble-plots { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 800px) {
+      .bubble-plots { grid-template-columns: repeat(3, 1fr); }
+      .bubble-content { width: min(700px, 95%); }
+    }
+    @media (max-width: 560px) {
+      .bubble-plots { grid-template-columns: repeat(2, 1fr); }
+      .bubble-content { width: 95%; }
+    }
+   
+    /* ----- 2. Search functionality ----- */
+    /* No changes to search styles */
