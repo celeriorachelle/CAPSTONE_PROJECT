@@ -77,12 +77,28 @@ router.get('/', requireLogin, async (req, res) => {
       detailUrl: `/book/${r.plot_id || r.plotId || r.plotNumber || ''}`
     }));
 
+    // Fetch pending bookings for current user
+    const [pendingRows] = await db.query(
+      `SELECT booking_id, service_type, booking_date, status
+       FROM booking_tbl
+       WHERE user_id = ? AND status = 'pending'`,
+      [userId]
+    );
+
+    // Fetch active installments (payments) for current user
+    const [activePayments] = await db.query(
+      `SELECT payment_id, booking_id, amount, due_date, status
+       FROM payment_tbl
+       WHERE user_id = ? AND status = 'active'`,
+      [userId]
+    );
+
     console.log('✅ Final dashboard recommendations mix:', recommendations?.map(r => `${r.location} | ${r.type}`));
 
     res.render('userdashboard', {
       user: req.session.user,
-      pendingBookings: [],
-      reminders: [],
+      pendingBookings: pendingRows || [],
+      reminders: activePayments || [],
       recommendations: recommendationsWithLinks || [],
       showSurvey: !hasPreferences && !hasHistory,
       alert: req.query.alert

@@ -72,12 +72,15 @@
           <% if (reminders && reminders.length > 0) { %>
             <ul class="reminder-list">
               <% reminders.forEach(r => { %>
-                <li>
+                <li style="font-size: 20px;">
                   <strong>₱<%= r.amount %></strong> due on 
                   <%= new Date(r.due_date).toDateString() %>
                 </li>
               <% }) %>
             </ul>
+            <div style="margin-top:12px;">
+              <button class="btn-pay" onclick="window.location.href='/payment_history'" style="max-width: 200px; background-color: #101b0d;">View Details</button>
+            </div>
           <% } else { %>
             <p>No upcoming installments within the next 7 days.</p>
           <% } %>

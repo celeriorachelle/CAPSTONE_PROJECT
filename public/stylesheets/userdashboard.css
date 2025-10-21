@@ -283,18 +283,20 @@ footer {
 
 /* Buttons */
 .btn-pay {
-  background: #28a745;
+  background-color: #101b0d;
   color: #fff;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .btn-pay:hover {
-  background: #218838;
+  background-color: #218838 !important;
+  transform: translateY(-2px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .btn-paid {

@@ -6,6 +6,19 @@ const { addLog } = require('./log_helper');
 
 // Login page
 router.get('/', (req, res) => {
+  // If user already logged in, send them to the appropriate dashboard instead of showing login page
+  if (req.session && req.session.user) {
+    const role = req.session.user.role;
+    if (role === 'admin') return res.redirect('/admin');
+    if (role === 'staff') return res.redirect('/staff_dashboard');
+    return res.redirect('/userdashboard');
+  }
+
+  // Prevent browsers from caching the login page so Back button won't show a usable cached form
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+
   res.render('login', { success: req.query.success || null, error: null });
 });
 
