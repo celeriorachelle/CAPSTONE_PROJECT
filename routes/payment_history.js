@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
 
     const userId = req.session.user.user_id;
 
-    // 1. Fetch all payments with plot info
+    // 1. Fetch all payments with plot info (exclude defaulted)
     const [payments] = await db.query(
       `SELECT p.*, pm.plot_number, pm.location
        FROM payment_tbl p
@@ -30,8 +30,9 @@ router.get("/", async (req, res) => {
               MIN(CASE WHEN p.status = 'active' THEN p.due_date END) AS next_due_date
        FROM booking_tbl b
        JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
-       LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id
+       LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id AND p.status != 'defaulted'
        WHERE b.user_id = ?
+         AND NOT EXISTS (SELECT 1 FROM payment_tbl p2 WHERE p2.booking_id = b.booking_id AND p2.status = 'defaulted')
        GROUP BY b.booking_id
        HAVING total_paid < pm.price
        ORDER BY b.booking_id DESC
@@ -47,9 +48,9 @@ router.get("/", async (req, res) => {
       installmentProgress = Math.round(
         (currentInstallment.total_paid / currentInstallment.total_price) * 100
       );
-      // Fetch latest due_date from payment_tbl for this booking and plot
+      // Fetch latest due_date from payment_tbl for this booking and plot (exclude defaulted)
       const [latestDueRows] = await db.query(
-        `SELECT due_date FROM payment_tbl WHERE booking_id = ? AND plot_id = (SELECT plot_id FROM booking_tbl WHERE booking_id = ?) ORDER BY paid_at DESC LIMIT 1`,
+        `SELECT due_date FROM payment_tbl WHERE booking_id = ? AND plot_id = (SELECT plot_id FROM booking_tbl WHERE booking_id = ?) AND status != 'defaulted' ORDER BY paid_at DESC LIMIT 1`,
         [currentInstallment.booking_id, currentInstallment.booking_id]
       );
       currentInstallment.latest_due_date = latestDueRows.length ? latestDueRows[0].due_date : null;

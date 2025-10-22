@@ -259,6 +259,210 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+  <!-- serialized installment warnings to avoid EJS-in-JS syntax issues -->
+  <script id="installment-warnings-data" type="application/json"><%- JSON.stringify(installmentWarnings || []) %></script>
+
+  <!-- Installment Warnings Modal (replaces alert popups) -->
+  <style>
+    /* Simple modal styles */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .modal-box { background: #fff; padding: 22px; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .modal-title { font-weight: 700; margin-bottom: 12px; font-size: 20px; color: #222; text-align: center; }
+    .modal-body { margin: 0 6px 18px; color: #333; white-space: pre-wrap; font-size: 15px; line-height: 1.45; text-align: center; max-width: 420px; }
+    .modal-actions { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; width: 100%; max-width: 420px; }
+    .modal-actions button { padding: 10px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; min-width: 120px; flex: 1 1 auto; margin: 4px; box-sizing: border-box; }
+    .modal-actions button.btn-view { background: #28a745; color: #fff; }
+    .modal-actions button.btn-close { background: #f1f1f1; color: #333; }
+    .modal-actions button.btn-next { background: #0a74ff; color: #fff; }
+    .modal-actions button.btn-remind { background: #ffb703; color: #111; }
+    .hidden { display: none !important; }
+    .modal-actions button {
+      transition: transform .18s cubic-bezier(.2,.9,.3,1), box-shadow .18s ease, background-color .12s ease, filter .12s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      will-change: transform, box-shadow;
+    }
+
+    .modal-actions button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+      cursor: pointer;
+    }
+
+    .modal-actions button:active {
+      transform: translateY(-2px) scale(.996);
+    }
+
+    .modal-actions button:focus {
+      outline: none;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12), 0 0 0 4px rgba(10,116,255,0.08);
+      border-radius: 8px;
+    }
+
+    .modal-actions button.btn-view:hover { filter: brightness(.96); }
+    .modal-actions button.btn-close:hover { filter: brightness(.98); background: #575757; }
+    .modal-actions button.btn-next:hover { filter: brightness(.94); }
+    .modal-actions button.btn-remind:hover { filter: brightness(.96); }
+
+    /* Make buttons full-width stacked on narrow screens */
+    @media (max-width: 480px) {
+      .modal-actions { flex-direction: column; }
+      .modal-actions button { width: 100%; min-width: 0; margin: 6px 0; }
+      .modal-box { padding: 18px; }
+    }
+  </style>
+
+  <div id="installmentModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="installmentModalTitle">
+      <div class="modal-title" id="installmentModalTitle">Installment Notice</div>
+      <div class="modal-body" id="installmentModalBody">...</div>
+      <div class="modal-actions">
+        <button id="modalNextBtn" class="btn-next hidden">Next</button>
+        <button id="modalRemindBtn" class="btn-remind">Remind me Later</button>
+        <button id="modalViewBtn" class="btn-view">View Details</button>
+        <button id="modalCloseBtn" class="btn-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const warningsEl = document.getElementById('installment-warnings-data');
+    let warnings = [];
+    try {
+      warnings = warningsEl && warningsEl.textContent ? JSON.parse(warningsEl.textContent) : [];
+    } catch (e) {
+      console.error('Failed to parse installment warnings JSON:', e);
+      warnings = [];
+    }
+
+    if (!warnings || warnings.length === 0) return;
+
+    const modal = document.getElementById('installmentModal');
+    const titleEl = modal.querySelector('.modal-title');
+    const bodyEl = modal.querySelector('.modal-body');
+    const viewBtn = document.getElementById('modalViewBtn');
+    const closeBtn = document.getElementById('modalCloseBtn');
+    const nextBtn = document.getElementById('modalNextBtn');
+    const remindBtn = document.getElementById('modalRemindBtn');
+
+    // suppression storage key: maps payment_id -> timestamp (ms) until which modal is suppressed
+    const STORAGE_KEY = 'installmentRemindLater';
+    function loadSuppressed() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { return {}; }
+    }
+    function saveSuppressed(obj) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch (e) {} }
+
+    // filter out warnings that are suppressed until a future timestamp
+    const suppressed = loadSuppressed();
+    const nowMs = Date.now();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const unsuppressed = warnings.filter(w => {
+      const id = w.payment_id || ('__noid__' + (w.booking_id || '')); // fallback key
+      const until = suppressed[id];
+      // if no suppression, show
+      if (!until || Number(until) <= nowMs) return true;
+
+      // suppression active; but check if due date milestones reached (1,3,7 days overdue) — if so, ignore suppression
+      let daysOverdue = null;
+      if (typeof w.daysOverdue === 'number') {
+        daysOverdue = w.daysOverdue;
+      } else if (w.due_date) {
+        try {
+          // parse due_date similarly to server (YYYY-MM-DD or ISO)
+          const m = (w.due_date + '').match(/(\d{4})-(\d{2})-(\d{2})/);
+          let dueStart = null;
+          if (m) dueStart = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          else {
+            const parsed = new Date(w.due_date);
+            if (!isNaN(parsed)) dueStart = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+          }
+          if (dueStart) {
+            const nowStart = new Date((new Date()).getFullYear(), (new Date()).getMonth(), (new Date()).getDate());
+            daysOverdue = Math.floor((nowStart - dueStart) / msPerDay);
+            if (daysOverdue < 0) daysOverdue = null; // not overdue
+          }
+        } catch (e) { daysOverdue = null; }
+      }
+
+      // if daysOverdue matches milestone 1,3,7 — lift suppression and show
+      if (daysOverdue === 1 || daysOverdue === 3 || daysOverdue === 7) return true;
+
+      // otherwise keep suppressed
+      return false;
+    });
+
+    if (!unsuppressed || unsuppressed.length === 0) return; // nothing to show now
+
+    warnings = unsuppressed; // show only unsuppressed warnings
+
+    let idx = 0;
+
+    function formatWarningText(w) {
+      if (w.type === 'dueSoon') {
+        const due = w.due_date ? new Date(w.due_date).toDateString() : 'N/A';
+        return `Payment due soon:\nAmount: ₱${w.amount}\nDue date: ${due}\nPlease settle this installment to keep your reservation.`;
+      }
+      if (w.type === 'overdue3') {
+        return `Payment overdue:\nAmount: ₱${w.amount}\nDays overdue: ${w.daysOverdue}\nPlease pay immediately to avoid reservation release.`;
+      }
+      if (w.type === 'released') {
+        return `Payment defaulted and reservation released:\nAmount: ₱${w.amount}\nDays overdue: ${w.daysOverdue}\nThe plot has been released and your payment marked as defaulted.`;
+      }
+      return `Payment notice:\nAmount: ₱${w.amount}`;
+    }
+
+    function showIndex(i) {
+      const w = warnings[i];
+      if (!w) return hideModal();
+      // set title
+      if (w.type === 'dueSoon') titleEl.textContent = 'Payment Due Soon';
+      else if (w.type === 'overdue3') titleEl.textContent = 'Payment Overdue';
+      else if (w.type === 'released') titleEl.textContent = 'Reservation Released';
+      else titleEl.textContent = 'Installment Notice';
+
+      bodyEl.textContent = formatWarningText(w);
+
+      // show/hide next button
+      if (i < warnings.length - 1) {
+        nextBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideModal() {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    viewBtn.addEventListener('click', () => { window.location.href = '/payment_history'; });
+    closeBtn.addEventListener('click', hideModal);
+    nextBtn.addEventListener('click', () => {
+      idx++;
+      if (idx >= warnings.length) hideModal(); else showIndex(idx);
+    });
+
+    remindBtn.addEventListener('click', () => {
+      // suppress current warning for 24 hours
+      const w = warnings[idx];
+      if (!w) return hideModal();
+      const id = w.payment_id || ('__noid__' + (w.booking_id || ''));
+      const suppressedNow = loadSuppressed();
+      const expireMs = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+      suppressedNow[id] = expireMs;
+      saveSuppressed(suppressedNow);
+      // move to next warning or hide
+      idx++;
+      if (idx >= warnings.length) hideModal(); else showIndex(idx);
+    });
+
+    // show first warning
+    showIndex(0);
+  });
+  </script>
 
 </body>
 </html>

@@ -5,6 +5,8 @@ const cache = require('./redis'); // Redis wrapper
 const { getAIRecommendations } = require('./ai');
 const { v4: uuidv4 } = require('uuid');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const fs = require('fs');
+const path = require('path');
 
 // Middleware: require login
 function requireLogin(req, res, next) {
@@ -291,6 +293,9 @@ router.get('/success', async (req, res) => {
   await db.query(`DELETE FROM ai_recommendation_cache_tbl WHERE user_id = ?`, [userId]);
 
     // 3️⃣ Insert payment record linked to booking
+    let transactionId = null;
+    let paidAt = null;
+    let finalAmount = normalizedPaymentData ? normalizedPaymentData.amount : null;
     if (bookingId && paymentData) {
       const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
       const paymentStatus = paymentMethod === 'downpayment' ? 'active' : 'paid';
@@ -320,6 +325,18 @@ router.get('/success', async (req, res) => {
          VALUES (?, ?, ?, ?, 0, NOW(), ?)`,
         [userId, bookingId, paymentId, 'Your payment has been received successfully.', plot.plot_id]
       );
+
+      // Capture transaction id and paid_at from the inserted payment row
+      transactionId = session.payment_intent || null;
+      try {
+        const [paidRows] = await db.query('SELECT paid_at FROM payment_tbl WHERE payment_id = ?', [paymentId]);
+        if (Array.isArray(paidRows) && paidRows.length > 0) {
+          paidAt = paidRows[0].paid_at;
+        }
+      } catch (e) {
+        console.warn('Could not retrieve paid_at:', e);
+      }
+
       // Clear payment session data
       req.session.paymentData = null;
       // Mark plot owner as current user (on successful payment)
@@ -360,10 +377,14 @@ router.get('/success', async (req, res) => {
           ? 'reserved'
           : (plot.availability || 'available');
       await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', [availability, userId, plot.plot_id]);
+
+      // Fallback transaction/time values when no payment row was inserted
+      if (!transactionId) transactionId = session.payment_intent || null;
+      if (!paidAt) paidAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
     }
 
     // 5️⃣ Render success page
-    res.render('payment_success', { bookingId, amount: normalizedPaymentData ? normalizedPaymentData.amount : null });
+    res.render('payment_success', { bookingId, amount: finalAmount, transaction_id: transactionId, paid_at: paidAt });
 
   } catch (error) {
     console.error('Payment success error:', error);
@@ -442,6 +463,31 @@ router.get('/ai-recommendations', requireLogin, async (req, res) => {
   } catch (err) {
     console.error('AI rec JSON endpoint error:', err);
     res.json({ recommendations: [] });
+  }
+});
+
+// Endpoint to save receipt image (base64) to public/images/receipts
+router.post('/save-receipt', async (req, res) => {
+  try {
+    const { imageData, filename } = req.body || {};
+    if (!imageData || typeof imageData !== 'string') return res.status(400).json({ error: 'No image data provided' });
+
+    const receiptsDir = path.join(__dirname, '..', 'public', 'images', 'receipts');
+    fs.mkdirSync(receiptsDir, { recursive: true });
+
+    const base64 = imageData.split(',')[1] || imageData;
+    const buffer = Buffer.from(base64, 'base64');
+    const safeName = (filename && String(filename).replace(/[^a-zA-Z0-9-_\.]/g, '_')) || `receipt_${Date.now()}`;
+    const filePath = path.join(receiptsDir, `${safeName}.png`);
+
+    fs.writeFileSync(filePath, buffer);
+
+    // Return public path
+    const publicPath = `/images/receipts/${safeName}.png`;
+    res.json({ success: true, path: publicPath });
+  } catch (err) {
+    console.error('Failed to save receipt:', err);
+    res.status(500).json({ error: 'Failed to save receipt' });
   }
 });
 

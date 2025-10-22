@@ -93,6 +93,86 @@ router.get('/', requireLogin, async (req, res) => {
       [userId]
     );
 
+    // Build installment warnings and take actions for overdue >7 days
+    const installmentWarnings = [];
+    if (activePayments && activePayments.length > 0) {
+      const now = new Date();
+      // helper: convert date-string or Date to a local-midnight Date
+      function toLocalDateStart(d) {
+        if (!d) return null;
+        if (typeof d === 'string') {
+          // try YYYY-MM-DD first
+          const m = d.match(/(\d{4})-(\d{2})-(\d{2})/);
+          if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          const parsed = new Date(d);
+          if (!isNaN(parsed)) return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+          return null;
+        }
+        if (d instanceof Date) return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        return null;
+      }
+
+      for (const p of activePayments) {
+        const dueStart = toLocalDateStart(p.due_date);
+        if (!dueStart) continue;
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const nowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const daysUntil = Math.floor((dueStart - nowStart) / msPerDay); // integer days until due
+
+        if (daysUntil === 1) {
+          installmentWarnings.push({
+            type: 'dueSoon',
+            payment_id: p.payment_id,
+            booking_id: p.booking_id,
+            amount: p.amount,
+            due_date: dueStart.toISOString()
+          });
+        } else if (daysUntil < 0) {
+          const daysOverdue = Math.floor((nowStart - dueStart) / msPerDay);
+          if (daysOverdue >= 3 && daysOverdue < 7) {
+            installmentWarnings.push({
+              type: 'overdue3',
+              payment_id: p.payment_id,
+              booking_id: p.booking_id,
+              amount: p.amount,
+              daysOverdue
+            });
+          } else if (daysOverdue >= 7) {
+            // release reservation: remove user ownership from booking_tbl and set status to available
+            try {
+              if (p.booking_id) {
+                await db.query(`UPDATE booking_tbl SET user_id=NULL, status='available' WHERE booking_id=? AND status='reserved'`, [p.booking_id]);
+              }
+              // mark payment as defaulted/inactive
+              await db.query(`UPDATE payment_tbl SET status='defaulted' WHERE payment_id=?`, [p.payment_id]);
+
+              // fetch plot_id from payment_tbl (if present) and release it in plot_map_tbl
+              try {
+                const [payRows] = await db.query(`SELECT plot_id FROM payment_tbl WHERE payment_id=? LIMIT 1`, [p.payment_id]);
+                const plotRow = payRows && payRows[0];
+                const plotId = plotRow ? plotRow.plot_id : null;
+                if (plotId) {
+                  await db.query(`UPDATE plot_map_tbl SET availability='available', user_id=NULL WHERE plot_id=?`, [plotId]);
+                }
+              } catch (plotErr) {
+                console.error('Error releasing plot in plot_map_tbl for overdue payment:', plotErr);
+              }
+
+              installmentWarnings.push({
+                type: 'released',
+                payment_id: p.payment_id,
+                booking_id: p.booking_id,
+                amount: p.amount,
+                daysOverdue
+              });
+            } catch (releaseErr) {
+              console.error('Error releasing reservation for overdue payment:', releaseErr);
+            }
+          }
+        }
+      }
+    }
+
     console.log('✅ Final dashboard recommendations mix:', recommendations?.map(r => `${r.location} | ${r.type}`));
 
     res.render('userdashboard', {
@@ -101,7 +181,8 @@ router.get('/', requireLogin, async (req, res) => {
       reminders: activePayments || [],
       recommendations: recommendationsWithLinks || [],
       showSurvey: !hasPreferences && !hasHistory,
-      alert: req.query.alert
+      alert: req.query.alert,
+      installmentWarnings
     });
   } catch (err) {
     console.error('Dashboard recommendation error:', err);
