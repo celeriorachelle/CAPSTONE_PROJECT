@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Appointments | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/stylesheets/admin.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
   <style>
     /* Minimal styles for the notify modal (if you want extra styling add to your CSS file) */
@@ -89,25 +90,25 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon">📊</div>
-          <div class="stat-number" id="totalAppointments">0</div>
-          <div class="stat-label">Total Appointments</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-number" id="pendingCount">0</div>
-          <div class="stat-label">Pending</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-number" id="approvedCount">0</div>
-          <div class="stat-label">Approved</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🔄</div>
-          <div class="stat-number" id="ongoingCount">0</div>
-          <div class="stat-label">Ongoing</div>
-        </div>
+            <div class="stat-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></div>
+            <div class="stat-number" id="totalAppointments">0</div>
+            <div class="stat-label">Total Appointments</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-hourglass-half" aria-hidden="true"></i></div>
+            <div class="stat-number" id="pendingCount">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></div>
+            <div class="stat-number" id="approvedCount">0</div>
+            <div class="stat-label">Approved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-sync-alt" aria-hidden="true"></i></div>
+            <div class="stat-number" id="ongoingCount">0</div>
+            <div class="stat-label">Ongoing</div>
+          </div>
       </div>
 
       <div class="appointments-container">

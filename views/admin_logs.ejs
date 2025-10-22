@@ -58,7 +58,7 @@
       background: #f4f8f2;
     }
 
-    /* ✅ Filter Form Styling */
+  /* Filter Form Styling */
     .filter-form {
       display: flex;
       gap: 1rem;
@@ -132,7 +132,7 @@
           <h1>Activity Logs</h1>
         </div>
 
-        <!-- ✅ Filter Form -->
+  <!-- Filter Form -->
         <form method="get" class="filter-form">
           <label>Role:</label>
           <select name="role">
@@ -182,6 +182,25 @@
               <% } %>
             </tbody>
           </table>
+            <!-- Pagination controls -->
+            <div class="pagination-controls" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+              <div>
+                <label for="pageSize">Rows per page:</label>
+                <select id="pageSize" style="padding:6px;border-radius:6px;border:1px solid #ccc;">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+              <div>
+                <button id="firstPage" class="btn" style="margin-right:6px;padding:6px 10px;border-radius:6px;background:#eef7ed;border:1px solid #cfe6c9;">First</button>
+                <button id="prevPage" class="btn" style="margin-right:6px;padding:6px 10px;border-radius:6px;background:#eef7ed;border:1px solid #cfe6c9;">Prev</button>
+                <span id="pageInfo" style="font-weight:600;margin:0 8px;">Page 1 of 1</span>
+                <button id="nextPage" class="btn" style="margin-right:6px;padding:6px 10px;border-radius:6px;background:#eef7ed;border:1px solid #cfe6c9;">Next</button>
+                <button id="lastPage" class="btn" style="padding:6px 10px;border-radius:6px;background:#eef7ed;border:1px solid #cfe6c9;">Last</button>
+              </div>
+            </div>
         </div>
       </div>
     </section>
@@ -193,12 +212,12 @@
       document.getElementById("currentDateTime").textContent = new Date().toLocaleString();
     }, 1000);
 
-    // ✅ Reset filters
+  // Reset filters
     document.getElementById("resetFilters").addEventListener("click", () => {
       window.location.href = "/admin_logs";
     });
 
-    // ✅ Clear logs
+  // Clear logs
     document.getElementById("clearLogs").addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear all logs?")) {
         const res = await fetch("/admin_logs/clear", { method: "POST" });
@@ -207,6 +226,40 @@
         else alert("Failed to clear logs");
       }
     });
+
+  // Client-side pagination for logs table
+  (function(){
+    const tbody = document.querySelector('table tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    let pageSize = parseInt(document.getElementById('pageSize')?.value || 10, 10);
+    let currentPage = 1;
+
+    function render() {
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      rows.forEach((r, i) => r.style.display = (i >= start && i < end) ? '' : 'none');
+      document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('firstPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages;
+      document.getElementById('lastPage').disabled = currentPage === totalPages;
+    }
+
+    document.getElementById('pageSize').addEventListener('change', (e) => {
+      pageSize = parseInt(e.target.value, 10);
+      currentPage = 1;
+      render();
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
+    document.getElementById('nextPage').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(rows.length / pageSize)); if (currentPage < totalPages) { currentPage++; render(); } });
+    document.getElementById('firstPage').addEventListener('click', () => { currentPage = 1; render(); });
+    document.getElementById('lastPage').addEventListener('click', () => { currentPage = Math.max(1, Math.ceil(rows.length / pageSize)); render(); });
+
+    // initialize
+    render();
+  })();
   </script>
 </body>
 </html>

@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard | Everlasting Peace Memorial Park</title>
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
   <style>
-    /* 🛎️ Notification Dropdown (Updated Design) */
+    /* =====================================
+       Notification Dropdown (Refined Style)
+    ====================================== */
     .notification-dropdown {
       position: absolute;
       top: 55px;
@@ -15,11 +18,12 @@
       background: #ffffff;
       border-radius: 12px;
       width: 330px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       display: none;
-      animation: fadeIn 0.2s ease-in-out;
+      animation: fadeIn 0.25s ease-in-out;
       z-index: 1000;
+      font-family: 'Poppins', sans-serif;
     }
 
     @keyframes fadeIn {
@@ -47,6 +51,7 @@
     .notification-dropdown ul::-webkit-scrollbar {
       width: 6px;
     }
+
     .notification-dropdown ul::-webkit-scrollbar-thumb {
       background: #cfcfcf;
       border-radius: 3px;
@@ -75,45 +80,17 @@
       margin-top: 3px;
     }
 
-    .notification-badge {
-      background: #e63946;
-      color: white;
-      border-radius: 50%;
-      font-size: 0.75rem;
-      padding: 4px 7px;
-      position: relative;
-      top: -10px;
-      right: 10px;
-      display: none;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
+    /* notification-badge moved into the button; styling is centralized in admin.css */
 
-    .icons {
-      position: relative;
-    }
-
-    /* 🔔 Bell Bounce Animation */
-    @keyframes bellBounce {
-      0%, 100% { transform: rotate(0); }
-      25% { transform: rotate(-15deg); }
-      50% { transform: rotate(15deg); }
-      75% { transform: rotate(-10deg); }
-    }
-
-    .bell-animate {
-      animation: bellBounce 0.6s ease;
-    }
-
-    /* 🔔 Side Toast Notification */
+  /* Side Toast Notification (Polished) */
     .side-toast {
       position: fixed;
-      top: 80px;
+      top: 90px;
       right: -350px;
-      background: #2e7d32;
+      background: #2d4a24;
       color: white;
       padding: 15px 20px;
-      border-radius: 8px;
+      border-radius: 10px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.2);
       font-weight: 500;
       z-index: 2000;
@@ -129,38 +106,64 @@
       opacity: 1;
     }
 
-    .side-toast i {
-      font-size: 1.2rem;
+    /* Remove icon padding leftover */
+    .icons {
+      position: relative;
+    }
+
+    .notification-btn {
+      background: linear-gradient(135deg, #8aac7c, #6d9360);
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .notification-btn:hover {
+      background: linear-gradient(135deg, #6d9360, #8aac7c);
+      transform: translateY(-2px);
     }
   </style>
 </head>
 <body>
   <!-- Header -->
   <header class="admin-header">
-    <h1>Admin Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button id="sidebarToggle" aria-label="Toggle menu" style="background:transparent;border:none;color:var(--white);font-size:1.2rem;cursor:pointer;padding:6px 8px;border-radius:6px;">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1>Admin Dashboard</h1>
+    </div>
     <nav>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        <li><a href="/admin" class="active">Home</a></li>
+        <li><a href="/adminviewapp">Appointments</a></li>
+        <li><a href="/adminviewbookings">Bookings</a></li>
+        <li><a href="/reports">Reports</a></li>
+        <li><a href="/login/logout">Logout</a></li>
       </ul>
     </nav>
   </header>
 
   <main class="admin-main">
     <aside class="sidebar">
-      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <h3>Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
+        <li><a href="/admin" class="active">Dashboard Home</a></li>
+        <li><a href="/admincreateb">Create Appointment</a></li>
+        <li><a href="/adminviewapp">View Appointments</a></li>
+        <li><a href="/burialrecord">Burial Records</a></li>
+        <li><a href="/maps">Cemetery Map</a></li>
+        <li><a href="/adminviewbookings">Client Transactions</a></li>
+        <li><a href="/admin_inventory">Inventory</a></li>
+        <li><a href="/admin_logs">Logs</a></li>
       </ul>
     </aside>
 
@@ -171,99 +174,64 @@
           <div class="date-time" id="currentDateTime"></div>
         </div>
         <div class="icons">
-          <i class="fas fa-bell" id="notificationBtn">
+          <button class="notification-btn" id="notificationBtn"><i class="fas fa-bell"></i>
             <span class="notification-badge" id="notificationCount">0</span>
-          </i>
+          </button>
 
-          <!-- 🔔 Updated Notification Dropdown -->
+          <!-- Notification Dropdown -->
           <div class="notification-dropdown" id="notificationDropdown">
             <header>Notifications</header>
             <ul id="notificationList">
               <li>Loading notifications...</li>
             </ul>
           </div>
-
-          <i class="fas fa-user-circle" id="profileBtn"></i>
         </div>
       </header>
 
       <section class="dashboard-welcome">
         <div class="welcome-content">
-          <h1>Welcome back, <%= user ? user.firstName : "Admin" %> 👋</h1>
+          <h1>Welcome back, <%= user ? user.firstName : "Admin" %></h1>
           <p>Here's what's happening at Everlasting Peace Memorial Park today</p>
         </div>
       </section>
 
-      <!-- Stats Grid -->
       <section class="stats-grid">
         <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
-            <div class="stat-change positive">+12%</div>
-          </div>
           <div class="stat-number"><%= todayAppointments %></div>
           <div class="stat-label">Today's Appointments</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-            <div class="stat-change positive">+5%</div>
-          </div>
           <div class="stat-number"><%= pendingRequests %></div>
           <div class="stat-label">Pending Requests</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
-            <div class="stat-change negative">-2%</div>
-          </div>
           <div class="stat-number"><%= availablePlots %></div>
           <div class="stat-label">Available Plots</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-users"></i></div>
-            <div class="stat-change positive">+8%</div>
-          </div>
           <div class="stat-number"><%= registeredFamilies %></div>
           <div class="stat-label">Registered Families</div>
         </div>
       </section>
 
       <section class="quick-actions">
-        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <h3>Quick Actions</h3>
         <div class="actions-grid">
-          <div class="action-btn" onclick="window.location.href='/admincreateb'">
-            <i class="fas fa-calendar-plus"></i>
-            <span>New Appointment</span>
-          </div>
-          <div class="action-btn" onclick="window.location.href='/burialrecord'">
-            <i class="fas fa-search"></i>
-            <span>Search Records</span>
-          </div>
-          <div class="action-btn" onclick="window.location.href='/maps'">
-            <i class="fas fa-map"></i>
-            <span>Cemetery Map</span>
-          </div>
-          <div class="action-btn" onclick="window.location.href='/reports'">
-            <i class="fas fa-chart-bar"></i>
-            <span>Generate Report</span>
-          </div>
+          <div class="action-btn" onclick="window.location.href='/admincreateb'">New Appointment</div>
+          <div class="action-btn" onclick="window.location.href='/burialrecord'">Search Records</div>
+          <div class="action-btn" onclick="window.location.href='/maps'">Cemetery Map</div>
+          <div class="action-btn" onclick="window.location.href='/reports'">Generate Report</div>
         </div>
       </section>
     </section>
   </main>
 
-  <!-- 🔔 Side Toast -->
+  <!-- Side Toast -->
   <div class="side-toast" id="sideToast">
-    <i class="fas fa-bell"></i>
-    <span>New booking received! 🎉</span>
+    <span>New booking received!</span>
   </div>
 
-  <!-- ✅ Updated Script -->
+  <!-- Scripts -->
   <script>
     function updateDateTime() {
       const now = new Date();
@@ -278,7 +246,7 @@
       const toast = document.getElementById('sideToast');
       toast.querySelector('span').textContent = message;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4000); // hide after 4s
+      setTimeout(() => toast.classList.remove('show'), 4000);
     }
 
     function getReadNotifications() {
@@ -312,10 +280,7 @@
         badge.style.display = unread > 0 ? 'inline' : 'none';
 
         if (unread > lastUnreadCount) {
-          const bell = document.getElementById('notificationBtn');
-          bell.classList.add('bell-animate');
-          showSideToast("New booking received! 🎉"); // show side toast
-          setTimeout(() => bell.classList.remove('bell-animate'), 600);
+          showSideToast("New booking received!");
         }
         lastUnreadCount = unread;
       } catch (err) {
@@ -365,6 +330,13 @@
 
     const notifBtn = document.getElementById('notificationBtn');
     const notifDropdown = document.getElementById('notificationDropdown');
+
+    // Sidebar toggle (hamburger)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const adminMain = document.querySelector('.admin-main');
+    sidebarToggle.addEventListener('click', () => {
+      adminMain.classList.toggle('collapsed');
+    });
 
     notifBtn.addEventListener('click', () => {
       notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';

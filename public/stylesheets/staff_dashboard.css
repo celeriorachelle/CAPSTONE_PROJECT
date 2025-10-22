@@ -1,62 +1,6 @@
-body {
-  margin: 0;
-  display: flex;
-  height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
-      min-height: 100vh;
-      color: #333;
-}
+@import url('/stylesheets/admin.css');
 
-/* Sidebar */
-.sidebar {
-  width: 250px;
-  background: linear-gradient(180deg, #8aac7c 0%, #7a9c6c 100%);
-  color: #1d1d1d;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-}
-
-.sidebar h2 {
-  color: #2d4a24;
-      margin-bottom: 1rem;
-      font-size: 1.3rem;
-      padding: 1rem;
-      background: rgba(255,255,255,0.15);
-      border-radius: 12px;
-      text-align: center;
-      backdrop-filter: blur(10px);
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 15px 0;
-}
-
-.sidebar a {
-    color: #1d1d1d;
-      text-decoration: none;
-      padding: 1rem;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      background: rgba(255,255,255,0.1);
-}
-
-.sidebar a:hover, .sidebar a.active {
-   background: rgba(255,255,255,0.25);
-      transform: translateX(5px);
-      color: #2d4a24;
-}
+/* Use shared admin.css for base layout (body, header, sidebar) */
 
 /* Main */
 .main {

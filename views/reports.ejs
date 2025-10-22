@@ -11,385 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
-      color: #1e293b;
-      line-height: 1.6;
-      padding: 0;
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* Navbar */
-    .navbar {
-      background: linear-gradient(135deg, #2d4a24 0%, #1a2f16 100%);
-      padding: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .navbar-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar h1 {
-      color: white;
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .navbar-icon {
-      font-size: 1.5rem;
-    }
-
-    .navbar a {
-      text-decoration: none;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      padding: 8px 16px;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .navbar a:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
-    }
-
-    /* Header Section */
-    .header-section {
-      padding: 28px 0 24px;
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .header-title {
-      flex: 1;
-    }
-
-    .header-title h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 6px;
-      letter-spacing: -0.025em;
-    }
-
-    .header-subtitle {
-      color: #64748b;
-      font-size: 0.875rem;
-    }
-
-    /* Export Buttons */
-    .export-btns {
-      display: flex;
-      gap: 10px;
-    }
-
-    .export-btns button {
-      padding: 9px 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .pdf-btn {
-      background: #ef4444;
-      color: white;
-    }
-
-    .excel-btn {
-      background: #10b981;
-      color: white;
-    }
-
-    .pdf-btn:hover {
-      background: #dc2626;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    .excel-btn:hover {
-      background: #059669;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-
-    /* KPI Cards */
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .kpi {
-      background: white;
-      padding: 20px 18px;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .kpi:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-      border-color: #cbd5e1;
-    }
-
-    .kpi:hover::before {
-      transform: scaleX(1);
-    }
-
-    .kpi-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .kpi-icon {
-      font-size: 1.5rem;
-      opacity: 0.9;
-    }
-
-    .kpi-label {
-      color: #64748b;
-      font-size: 0.75rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .kpi-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1;
-      margin-bottom: 6px;
-      letter-spacing: -0.025em;
-    }
-
-    .kpi-description {
-      color: #64748b;
-      font-size: 0.8125rem;
-      font-weight: 500;
-    }
-
-    /* Charts Section */
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-      gap: 20px;
-      margin-bottom: 28px;
-    }
-
-    .chart-container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      transition: all 0.3s ease;
-    }
-
-    .chart-container:hover {
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .chart-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #0f172a;
-      margin-bottom: 16px;
-      letter-spacing: -0.025em;
-    }
-
-    /* Table Section */
-    .table-section {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      overflow: hidden;
-      margin-bottom: 28px;
-    }
-
-    .table-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .table-header h3 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      letter-spacing: -0.025em;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 14px 20px;
-      text-align: left;
-      font-size: 0.875rem;
-    }
-
-    th {
-      background: #f8fafc;
-      color: #475569;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.75rem;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    td {
-      color: #1e293b;
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tbody tr {
-      transition: background-color 0.15s ease;
-    }
-
-    tbody tr:hover {
-      background: #f8fafc;
-    }
-
-    .amount {
-      font-weight: 600;
-      color: #10b981;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .charts {
-        grid-template-columns: 1fr;
-      }
-
-      .kpis {
-        grid-template-columns: 1fr;
-      }
-
-      .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .export-btns {
-        width: 100%;
-      }
-
-      .export-btns button {
-        flex: 1;
-      }
-
-      th, td {
-        padding: 12px 16px;
-      }
-    }
-
-    /* Loading Animation */
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .kpi, .chart-container, .table-section {
-      animation: fadeIn 0.5s ease forwards;
-    }
-
-    .kpi:nth-child(1) { animation-delay: 0.05s; }
-    .kpi:nth-child(2) { animation-delay: 0.1s; }
-    .kpi:nth-child(3) { animation-delay: 0.15s; }
-    .kpi:nth-child(4) { animation-delay: 0.2s; }
-    .kpi:nth-child(5) { animation-delay: 0.25s; }
-  </style>
+  <link rel="stylesheet" href="/stylesheets/admin.css" />
+  <link rel="stylesheet" href="/stylesheets/admin_reports.css">
 </head>
 <body>
   <!-- Navbar -->
   <div class="navbar">
     <div class="navbar-content">
-      <h1><span class="navbar-icon">📊</span> Admin Reports</h1>
-      <a href="/admin"><span>🏠</span> Dashboard</a>
+      <h1><span class="navbar-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></span> Admin Reports</h1>
+      <a href="/admin"><span><i class="fas fa-home" aria-hidden="true"></i></span> Dashboard</a>
     </div>
   </div>
 
@@ -416,7 +46,7 @@
     <div class="kpis">
       <div class="kpi">
         <div class="kpi-header">
-          <span class="kpi-icon">📅</span>
+          <span class="kpi-icon"><i class="fas fa-calendar-alt" aria-hidden="true"></i></span>
         </div>
         <div class="kpi-value"><%= totalBookingsThisMonth || 0 %></div>
         <div class="kpi-description">Total Bookings This Month</div>
@@ -424,7 +54,7 @@
 
       <div class="kpi">
         <div class="kpi-header">
-          <span class="kpi-icon">💰</span>
+          <span class="kpi-icon"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></span>
         </div>
         <div class="kpi-value">₱<%= (totalPaymentsThisMonth ? Number(totalPaymentsThisMonth).toFixed(2) : "0.00") %></div>
         <div class="kpi-description">Total Payments This Month</div>
@@ -432,7 +62,7 @@
 
       <div class="kpi">
         <div class="kpi-header">
-          <span class="kpi-icon">⏳</span>
+          <span class="kpi-icon"><i class="fas fa-hourglass-half" aria-hidden="true"></i></span>
         </div>
         <div class="kpi-value"><%= outstandingBalances || 0 %></div>
         <div class="kpi-description">Pending Installments</div>
@@ -440,7 +70,7 @@
 
       <div class="kpi">
         <div class="kpi-header">
-          <span class="kpi-icon">📈</span>
+          <span class="kpi-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span>
         </div>
         <div class="kpi-value">₱<%= (avgPayment ? Number(avgPayment).toFixed(2) : "0.00") %></div>
         <div class="kpi-description">Average Payment</div>
