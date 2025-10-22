@@ -1,81 +1,410 @@
-<div id="surveyModal" class="modal">
+<!-- _survey.ejs partial -->
+<style>
+  /* Survey Modal Styles */
+  #surveyModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  #surveyModal .modal-content {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: fit-content;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #surveyModal .modal-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #093614 0%, #155724  100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    position: relative;
+  }
+
+  #surveyModal .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    padding-right: 40px;
+  }
+
+  #surveyModal .close {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 26px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  #surveyModal .close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  #surveyModal .modal-body {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #surveyModal .form-content {
+    width: 100%;
+    max-width: 580px;
+  }
+
+  #surveyModal .grids-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  #surveyModal .grid-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  #surveyModal .grid-column > label:first-child {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  #surveyModal .checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  #surveyModal .checkbox-grid label {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin: 0;
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  #surveyModal .checkbox-grid label:hover {
+    background-color: #e9ecef;
+  }
+
+  #surveyModal .checkbox-grid input[type="checkbox"] {
+    margin-right: 8px;
+    margin-left: 0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #155724 ;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  #surveyModal .price-range-section {
+    margin-bottom: 0;
+  }
+
+  #surveyModal .price-range-section > label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  #surveyModal #priceDisplay {
+    color: #155724 ;
+    font-weight: 700;
+    margin-left: 8px;
+    font-size: 15px;
+  }
+
+  #surveyModal .range-slider {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #f8f9fa;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  #surveyModal .range-slider input[type="range"] {
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background: #d3d3d3;
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  #surveyModal .range-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #155724 ;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  #surveyModal .range-slider input[type="range"]::-webkit-slider-thumb:hover {
+    background: #093614 ;
+    transform: scale(1.15);
+  }
+
+  #surveyModal .range-slider input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #155724;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  #surveyModal .range-slider input[type="range"]::-moz-range-thumb:hover {
+    background: #093614;
+    transform: scale(1.15);
+  }
+
+  #surveyModal .modal-footer {
+    padding: 16px 24px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  #surveyModal .survey-save-btn {
+    background: linear-gradient(135deg, #093614 0%, #155724  100%);
+    color: white;
+    border: none;
+    padding: 11px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 180px;
+  }
+
+  #surveyModal .survey-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  #surveyModal .survey-save-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Ensure SweetAlert2 overlays the survey modal */
+  .swal2-container {
+    z-index: 20000 !important;
+  }
+  .swal2-popup {
+    z-index: 20001 !important;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    #surveyModal .modal-content {
+      width: 95%;
+      max-height: 90vh;
+    }
+
+    #surveyModal .grids-row {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    #surveyModal .modal-header {
+      padding: 16px 20px;
+    }
+
+    #surveyModal .modal-header h2 {
+      font-size: 18px;
+    }
+
+    #surveyModal .modal-body {
+      padding: 20px;
+    }
+
+    #surveyModal .modal-footer {
+      padding: 14px 20px;
+    }
+
+    #surveyModal .survey-save-btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+</style>
+
+<div id="surveyModal" class="modal" data-show="<%= showSurvey ? '1' : '0' %>">
   <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Tell us your preferences</h2>
+    <div class="modal-header" style="width: 100%;">
+      <span class="close">&times;</span>
+      <h2>Tell us your preferences</h2>
+    </div>
+    
     <form id="surveyForm" method="POST" action="/userdashboard/save-preferences">
-
       <div class="modal-body">
-        <!-- Preferred Locations (checkboxes, multi-select) -->
-        <label>Preferred Locations:</label>
-        <div class="checkbox-grid">
-          <label><input type="checkbox" name="locations[]" value="Memorial Chapel & Administration"> Memorial Chapel & Administration </label>
-          <label><input type="checkbox" name="locations[]" value="Veterans Memorial"> Veterans Memorial</label>
-          <label><input type="checkbox" name="locations[]" value="Serenity Columbarium"> Serenity Columbarium</label>
-          <label><input type="checkbox" name="locations[]" value="Heritage Gardens"> Heritage Gardens</label>
-          <label><input type="checkbox" name="locations[]" value="Family Estates"> Family Estates</label>
-        </div>
+        <!-- Preferred Locations + Plot Types (side-by-side) -->
+        <div class="grids-row">
+          <div class="grid-column">
+            <label>Preferred Locations:</label>
+            <div class="checkbox-grid">
+              <label><input type="checkbox" name="locations[]" value="Memorial Chapel & Administration"> Memorial Chapel & Administration</label>
+              <label><input type="checkbox" name="locations[]" value="Veterans Memorial"> Veterans Memorial</label>
+              <label><input type="checkbox" name="locations[]" value="Serenity Columbarium"> Serenity Columbarium</label>
+              <label><input type="checkbox" name="locations[]" value="Heritage Gardens"> Heritage Gardens</label>
+              <label><input type="checkbox" name="locations[]" value="Family Estates"> Family Estates</label>
+            </div>
+          </div>
 
-        <!-- Plot Types (checkboxes, multi-select) -->
-        <label>Plot Types:</label>
-        <div class="checkbox-grid">
-          <label><input type="checkbox" name="types[]" value="Plot"> Plot</label>
-          <label><input type="checkbox" name="types[]" value="Apartment"> Apartment</label>
-          <label><input type="checkbox" name="types[]" value="Vault"> Vault</label>
-          <label><input type="checkbox" name="types[]" value="Tomb"> Tomb</label>
-          <label><input type="checkbox" name="types[]" value="Ossuary"> Ossuary</label>
+          <div class="grid-column">
+            <label>Plot Types:</label>
+            <div class="checkbox-grid">
+              <label><input type="checkbox" name="types[]" value="Plot"> Plot</label>
+              <label><input type="checkbox" name="types[]" value="Apartment"> Apartment</label>
+              <label><input type="checkbox" name="types[]" value="Vault"> Vault</label>
+              <label><input type="checkbox" name="types[]" value="Tomb"> Tomb</label>
+              <label><input type="checkbox" name="types[]" value="Ossuary"> Ossuary</label>
+            </div>
+          </div>
         </div>
 
         <!-- Price Range -->
-        <label>Price Range: <span id="priceDisplay">₱10,000 - ₱100,000</span></label>
-        <div class="range-slider">
-          <input type="range" name="minPrice" id="minPrice" min="10000" max="100000" step="5000" value="10000">
-          <input type="range" name="maxPrice" id="maxPrice" min="10000" max="100000" step="5000" value="100000">
+        <div class="price-range-section">
+          <label>Price Range: <span id="priceDisplay">₱10,000 - ₱100,000</span></label>
+          <div class="range-slider">
+            <input type="range" name="minPrice" id="minPrice" min="10000" max="100000" step="5000" value="10000">
+            <input type="range" name="maxPrice" id="maxPrice" min="10000" max="100000" step="5000" value="100000">
+          </div>
         </div>
       </div>
 
-      <!-- Fixed submit button -->
+      <!-- Submit button in footer -->
       <div class="modal-footer">
-        <button type="submit">Save Preferences</button>
+        <button type="submit" class="survey-save-btn" style="width: 100%;">Save Preferences</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-const modal = document.getElementById('surveyModal');
-const close = modal.querySelector('.close');
-const minPrice = document.getElementById('minPrice');
-const maxPrice = document.getElementById('maxPrice');
-const priceDisplay = document.getElementById('priceDisplay');
+(function() {
+  const modal = document.getElementById('surveyModal');
+  if (!modal) return;
+  
+  const closeBtn = modal.querySelector('.close');
+  const minPrice = document.getElementById('minPrice');
+  const maxPrice = document.getElementById('maxPrice');
+  const priceDisplay = document.getElementById('priceDisplay');
 
-// Close modal on click
-close.onclick = () => modal.style.display = 'none';
-window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+  // Close modal on click
+  if (closeBtn) {
+    closeBtn.onclick = () => modal.style.display = 'none';
+  }
+  
+  window.onclick = (e) => { 
+    if (e.target == modal) modal.style.display = 'none'; 
+  };
 
-// Show modal only for new users
-<% if (showSurvey) { %>
-modal.style.display = 'block';
-<% } %>
+  // Show modal based on data attribute - use flex to center
+  try {
+    if (modal && modal.dataset && modal.dataset.show === '1') {
+      modal.style.display = 'flex';
+    }
+  } catch (e) { 
+    console.error('Error showing modal:', e);
+  }
 
-// Initialize price display on load
-updatePriceDisplay();
+  // Update price display dynamically
+  function updatePriceDisplay() {
+    if (!minPrice || !maxPrice || !priceDisplay) return;
+    
+    let minVal = parseInt(minPrice.value);
+    let maxVal = parseInt(maxPrice.value);
+    if (isNaN(minVal)) minVal = 10000;
+    if (isNaN(maxVal)) maxVal = 100000;
+    if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
 
-// Update price display dynamically
-function updatePriceDisplay() {
-  let minVal = parseInt(minPrice.value);
-  let maxVal = parseInt(maxPrice.value);
-  if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
+    const formatter = new Intl.NumberFormat('en-PH');
+    priceDisplay.textContent = `₱${formatter.format(minVal)} - ₱${formatter.format(maxVal)}`;
+  }
 
-  // Format with Peso symbol and thousands separator
-  const formatter = new Intl.NumberFormat('en-PH');
-  priceDisplay.textContent = `₱${formatter.format(minVal)} - ₱${formatter.format(maxVal)}`;
-}
+  // Initialize price display on load
+  if (minPrice && maxPrice) {
+    updatePriceDisplay();
+    minPrice.addEventListener('input', updatePriceDisplay);
+    maxPrice.addEventListener('input', updatePriceDisplay);
+  }
 
-minPrice.addEventListener('input', updatePriceDisplay);
-maxPrice.addEventListener('input', updatePriceDisplay);
+  // Ensure SweetAlert2 is available; load from CDN if needed
+  async function ensureSwal() {
+    if (window.Swal) return;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+      script.async = true;
+      script.onload = () => (window.Swal ? resolve() : reject(new Error('Swal not available after load')));
+      script.onerror = () => reject(new Error('Failed to load Swal script'));
+      document.head.appendChild(script);
+    });
+  }
 
-// ✅ Attach AJAX handler for survey form
-document.addEventListener('DOMContentLoaded', () => {
+  // Attach AJAX handler for survey form
   const surveyForm = document.querySelector('#surveyForm');
   if (!surveyForm) return;
 
@@ -83,13 +412,12 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     // Collect values
-    const locations = Array.from(document.querySelectorAll('input[name="locations[]"]:checked')).map(cb => cb.value);
-    const types = Array.from(document.querySelectorAll('input[name="types[]"]:checked')).map(cb => cb.value);
-    const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-    const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Number.MAX_SAFE_INTEGER;
+    const locations = Array.from(document.querySelectorAll('#surveyModal input[name="locations[]"]:checked')).map(cb => cb.value);
+    const types = Array.from(document.querySelectorAll('#surveyModal input[name="types[]"]:checked')).map(cb => cb.value);
+    const minP = parseFloat(document.getElementById('minPrice').value) || 10000;
+    const maxP = parseFloat(document.getElementById('maxPrice').value) || 100000;
 
-    const preferences = { locations, types, minPrice, maxPrice };
-    console.log('🟢 Sending preferences:', preferences);
+    const preferences = { locations, types, minPrice: minP, maxPrice: maxP };
 
     try {
       const res = await fetch('/userdashboard/save-preferences', {
@@ -99,35 +427,51 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (res.ok) {
-        alert('✅ Preferences saved successfully!');
-        window.location.href = '/userdashboard'; // Redirect to reload recommendations
+        // Try to load and use SweetAlert; fallback to alert if loading fails
+        try {
+          await ensureSwal();
+          await Swal.fire({
+            icon: 'success',
+            title: 'Preferences saved',
+            text: 'Your preferences have been saved successfully.',
+            confirmButtonText: 'Continue',
+            confirmButtonColor: '#155724'
+          });
+        } catch (swalErr) {
+          console.warn('SweetAlert unavailable, falling back to native alert:', swalErr);
+          alert('Preferences saved successfully!');
+        }
+        window.location.href = '/userdashboard';
       } else {
         const msg = await res.text();
-        console.error('❌ Failed:', msg);
-        alert('Failed to save preferences. Please try again.');
+        console.error('Failed to save preferences:', msg);
+        try {
+          await ensureSwal();
+          await Swal.fire({
+            icon: 'error',
+            title: 'Failed to save preferences',
+            text: 'Please try again.',
+            confirmButtonColor: '#155724'
+          });
+        } catch (swalErr) {
+          console.warn('SweetAlert unavailable, falling back to native alert:', swalErr);
+          alert('Failed to save preferences. Please try again.');
+        }
       }
     } catch (err) {
-      console.error('❌ Error saving preferences:', err);
-      alert('An unexpected error occurred.');
+      console.error('Error saving preferences:', err);
+      try {
+        await ensureSwal();
+        await Swal.fire({
+          icon: 'error',
+          title: 'An unexpected error occurred',
+          confirmButtonColor: '#155724'
+        });
+      } catch (swalErr) {
+        console.warn('SweetAlert unavailable, falling back to native alert:', swalErr);
+        alert('An unexpected error occurred.');
+      }
     }
   });
-});
-
+})();
 </script>
-
-<style>
-.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); overflow-y:auto; }
-.modal-content { background:#fff; margin:5% auto; padding:0; width:90%; max-width:500px; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh; }
-.close { float:right; cursor:pointer; font-size:20px; padding:10px; }
-.modal-body { padding:20px; overflow-y:auto; flex:1; }
-.modal-footer { padding:10px 20px; border-top:1px solid #ddd; position:sticky; bottom:0; background:#fff; }
-label { font-weight:600; display:block; margin-top:15px; }
-.checkbox-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px; }
-.checkbox-grid label { font-weight:normal; background:#f0f0f0; padding:8px; border-radius:5px; cursor:pointer; transition:0.2s; }
-.checkbox-grid input[type="checkbox"] { margin-right:5px; }
-.checkbox-grid label:hover { background:#e0e0e0; }
-.range-slider { display:flex; justify-content:space-between; margin-top:10px; }
-.range-slider input[type="range"] { width:48%; }
-button { width:100%; padding:10px; background:#4CAF50; color:#fff; border:none; border-radius:5px; cursor:pointer; font-size:16px; }
-button:hover { background:#45a049; }
-</style>

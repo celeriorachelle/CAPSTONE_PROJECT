@@ -46,17 +46,9 @@
     }
 
     @keyframes scaleIn {
-      0% {
-        transform: scale(0);
-        opacity: 0;
-      }
-      50% {
-        transform: scale(1.1);
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     h1 {
@@ -73,10 +65,8 @@
       line-height: 1.5;
     }
 
-    .btn-dashboard {
+    .btn-dashboard, .btn-save {
       display: inline-block;
-      background: #4caf50;
-      color: white;
       padding: 12px 32px;
       border-radius: 8px;
       text-decoration: none;
@@ -84,6 +74,12 @@
       transition: 0.3s;
       border: none;
       cursor: pointer;
+      margin: 6px;
+    }
+
+    .btn-dashboard {
+      background: #4caf50;
+      color: white;
     }
 
     .btn-dashboard:hover {
@@ -92,32 +88,106 @@
       box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
     }
 
+    .btn-save {
+      background: #2196f3;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background: #1976d2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+
     @media (max-width: 600px) {
-      .success-card {
-        padding: 2rem 1.5rem;
-      }
-      
-      h1 {
-        font-size: 1.5rem;
-      }
-      
-      .success-icon {
-        width: 70px;
-        height: 70px;
-      }
-      
-      .success-icon::before {
-        font-size: 40px;
-      }
+      .success-card { padding: 2rem 1.5rem; }
+      h1 { font-size: 1.5rem; }
+      .success-icon { width: 70px; height: 70px; }
+      .success-icon::before { font-size: 40px; }
     }
   </style>
 </head>
 <body>
-  <div class="success-card">
+  <div class="success-card" id="receiptCard">
     <div class="success-icon"></div>
     <h1>Payment Successful!</h1>
     <p>Your payment has been processed successfully. Thank you for your purchase.</p>
+
+    <div style="margin-bottom:1.25rem;text-align:center;">
+      <p style="margin:6px 0;font-weight:600;">Transaction Details</p>
+      <p style="margin:4px 0;color:#333;">Transaction ID: <span style="font-weight:700;"><%= transaction_id || 'N/A' %></span></p>
+      <p style="margin:4px 0;color:#333;">Amount: 
+        <span style="font-weight:700;color:#155724;">
+          ₱<%= (typeof amount === 'number') 
+              ? amount.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) 
+              : (amount || 'N/A') %>
+        </span>
+      </p>
+      <p style="margin:4px 0;color:#333;">Paid at: <span style="font-weight:700;"><%= paid_at || 'N/A' %></span></p>
+    </div>
+
     <a href="/userdashboard" class="btn-dashboard">Back to Dashboard</a>
+    <button class="btn-save" id="saveReceiptBtn">Save Receipt</button>
   </div>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- html2canvas script -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    document.getElementById('saveReceiptBtn').addEventListener('click', async () => {
+      const card = document.getElementById('receiptCard');
+      const btn = document.getElementById('saveReceiptBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        // Capture the card as an image
+        const canvas = await html2canvas(card);
+        const imageData = canvas.toDataURL('image/png');
+
+        const filename = 'receipt_<%= transaction_id ? transaction_id : Date.now() %>';
+
+        const response = await fetch('/bookplots/save-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageData, filename })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Receipt Saved!',
+            text: 'Your receipt has been saved successfully.',
+            confirmButtonColor: '#4caf50',
+            confirmButtonText: 'Great!'
+          });
+          console.log('Saved at:', result.path);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Save Failed',
+            text: 'Failed to save receipt. Please try again.',
+            confirmButtonColor: '#f44336',
+            confirmButtonText: 'OK'
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while saving the receipt.',
+          confirmButtonColor: '#f44336',
+          confirmButtonText: 'OK'
+        });
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Receipt';
+      }
+    });
+  </script>
 </body>
 </html>
