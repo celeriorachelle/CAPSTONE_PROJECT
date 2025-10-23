@@ -31,7 +31,6 @@
     }
 
     .admin-header h1::before {
-      content: '🏛️';
       font-size: 1.5rem;
     }
 
@@ -182,7 +181,6 @@
     }
 
     .content h2::before {
-      content: '📝';
       font-size: 1.5rem;
     }
 

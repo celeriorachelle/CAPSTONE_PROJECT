@@ -15,14 +15,14 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// ---------------------------
-// Nodemailer Transporter
-// ---------------------------
+// ================================
+// Nodemailer setup
+// ================================
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: 'rheachellegutierrez17@gmail.com', // replace with your email
+    pass: 'cpflmrprhngxnsxo' // Gmail App Password (not your real password)
   }
 });
 
@@ -71,7 +71,6 @@ router.post('/send-reminder/:id', requireAdmin, async (req, res) => {
     const bookingId = req.params.id;
     const { message } = req.body;
 
-    // Get client info
     const [rows] = await db.query(`
       SELECT
         COALESCE(u.email, b.email) AS email,
@@ -89,7 +88,6 @@ router.post('/send-reminder/:id', requireAdmin, async (req, res) => {
 
     const client = rows[0];
 
-    // Send email
     await transporter.sendMail({
       from: `"Everlasting Peace Memorial Park" <${process.env.EMAIL_USER}>`,
       to: client.email,
@@ -97,7 +95,6 @@ router.post('/send-reminder/:id', requireAdmin, async (req, res) => {
       text: message || `Dear ${client.firstName}, this is a friendly reminder from Everlasting Peace Memorial Park.`
     });
 
-    // Add notification to notification_tbl
     if (client.user_id) {
       await db.query(`
         INSERT INTO notification_tbl (user_id, booking_id, message)
@@ -105,13 +102,63 @@ router.post('/send-reminder/:id', requireAdmin, async (req, res) => {
       `, [client.user_id, bookingId, message || `Dear ${client.firstName}, this is a friendly reminder regarding your booking.`]);
     }
 
-    // Log the action
     await addLog(req.session.user.user_id, `Sent reminder email and notification to ${client.email} for booking #${bookingId}`);
 
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Error sending reminder:', err);
     res.json({ success: false, message: 'Failed to send email.' });
+  }
+});
+
+// ---------------------------
+// POST /adminviewbookings/send-auto-reminder/:id
+// ---------------------------
+router.post('/send-auto-reminder/:id', requireAdmin, async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+
+    const [rows] = await db.query(`
+      SELECT 
+        COALESCE(u.email, b.email) AS email,
+        COALESCE(u.firstName, b.firstname) AS firstName,
+        COALESCE(u.lastName, b.lastname) AS lastName,
+        p.due_date,
+        b.user_id
+      FROM booking_tbl b
+      LEFT JOIN user_tbl u ON b.user_id = u.user_id
+      LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id
+      WHERE b.booking_id = ?
+    `, [bookingId]);
+
+    if (rows.length === 0) {
+      return res.json({ success: false, message: 'Booking not found' });
+    }
+
+    const client = rows[0];
+    const dueDate = client.due_date ? new Date(client.due_date).toLocaleDateString() : 'Unknown';
+    const message = `Dear ${client.firstName} ${client.lastName},\n\nThis is an reminder that your payment for your booking is due on ${dueDate}. Please make sure to complete your payment before the due date.\n\nJust Log in to our website and go to Payment History then click the "Pay Here" button to pay your due amount.\n\nThank you,\nEverlasting Peace Memorial Park.`;
+
+    await transporter.sendMail({
+      from: `"Everlasting Peace Memorial Park" <${process.env.EMAIL_USER}>`,
+      to: client.email,
+      subject: "Payment Due Reminder",
+      text: message
+    });
+
+    if (client.user_id) {
+      await db.query(`
+        INSERT INTO notification_tbl (user_id, booking_id, message)
+        VALUES (?, ?, ?)
+      `, [client.user_id, bookingId, message]);
+    }
+
+    await addLog(req.session.user.user_id, `Sent automatic due date reminder to ${client.email} for booking #${bookingId}`);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Error sending automatic reminder:', err);
+    res.json({ success: false, message: 'Failed to send automatic reminder.' });
   }
 });
 

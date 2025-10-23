@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
 
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
+
   <style>
     /* --- Burial Records Table Design --- */
     .records-table {
@@ -111,12 +115,12 @@
 <body>
   <!-- Header -->
   <header class="admin-header">
-    <h1>Burial Records</h1>
+    <h1>Admin Dashboard</h1>
     <nav>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+       <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -128,12 +132,12 @@
     <aside class="sidebar">
       <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+           <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
+        <li><a href="/adminviewbookings" class="active"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -141,35 +145,50 @@
 
     <!-- Content Section -->
     <section class="content">
-     <header class="topbar">
+      <header class="topbar">
         <div class="topbar-left">
           <h2>Burial Records</h2>
           <div class="date-time" id="currentDateTime"></div>
         </div>
       </header>
 
-
       <!-- Table Section -->
       <section class="records-table">
         <h3><i class="fas fa-table"></i> Burial Records Table</h3>
         <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Deceased Name</th>
-                <th>Booking ID</th>
-                <th>Date of Death</th>
-                <th>Plot No.</th>
-                <th>Booking Date</th>
-                <th>Status</th>
-                <th>Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="7">No records available</td>
-              </tr>
-            </tbody>
+          <table id="burialTable">
+      <thead>
+  <tr>
+    <th>Plot No.</th>
+    <th>Deceased Name</th>
+    <th>Birth Date</th>
+    <th>Death Date</th>
+    <th>Location</th>
+    <th>Plot Type</th>
+    <th>Booked By</th>
+   
+  </tr>
+</thead>
+<tbody>
+  <% if (burialRecords && burialRecords.length > 0) { %>
+    <% burialRecords.forEach(record => { %>
+      <tr>
+        <td><%= record.plot_number %></td>
+        <td><%= record.deceased_firstName %> <%= record.deceased_lastName %></td>
+        <td><%= record.birth_date || 'N/A' %></td>
+        <td><%= record.death_date || 'N/A' %></td>
+        <td><%= record.location %></td>
+        <td><%= record.item_name || record.plot_type %></td>
+        <td><%= record.booked_by || 'N/A' %></td>
+        
+      </tr>
+    <% }) %>
+  <% } else { %>
+    <tr>
+      <td colspan="8">No burial records available</td>
+    </tr>
+  <% } %>
+</tbody>
           </table>
         </div>
       </section>
@@ -177,18 +196,34 @@
   </main>
 
   <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
   <script>
-     // Live date/time
-    setInterval(() => {
-      document.getElementById("currentDateTime").textContent =
-        new Date().toLocaleString();
-    }, 1000);
+    // Live date/time
     function updateDateTime() {
       const now = new Date();
       document.getElementById("currentDateTime").textContent = now.toLocaleString();
     }
     updateDateTime();
-    setInterval(updateDateTime, 60000);
+    setInterval(updateDateTime, 1000);
+
+    // Initialize DataTable with search and export
+    $(document).ready(function() {
+      $('#burialTable').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 10,
+        buttons: [
+          'copy', 'csv', 'excel', 'print'
+        ]
+      });
+    });
   </script>
 </body>
 </html>

@@ -158,6 +158,7 @@
     <ul>
       <li><a href="/staff_dashboard">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
+      <li><a href="/maps"></i> Cemetery Map</a></li>
       <li><a href="/staff_installments" class="active">Track Installments</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
@@ -269,10 +270,11 @@
           const dueDate = new Date(client.due_date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
           const formattedAmount = (Number(client.amount || 0)).toLocaleString();
 
-          const defaultSubject = `Payment Reminder – Payment ID ${client.payment_id} due ${dueDate}`;
+          const defaultSubject = `Payment Due Reminder – Payment ID ${client.payment_id} due ${dueDate}`;
           const defaultBody = `<p>Dear ${client.name},</p>
           <p>This is a friendly reminder that your <strong>${client.payment_type}</strong> of <strong>₱${formattedAmount}</strong> is due on <strong>${dueDate}</strong>.</p>
           <p>Please settle your payment on or before the due date to avoid penalties.</p>
+           <p>Just Log in to our website and go to Payment History then click the "Pay Here" button to pay your due amount.</p>
           <p>Thank you,<br>Everlasting Peace Memorial Park</p>`;
 
           document.getElementById('emailSubject').value = defaultSubject;

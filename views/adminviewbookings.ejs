@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
   <style>
-    body {
+        body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
       background-color: #f4f6f8;
@@ -168,13 +168,14 @@
 </head>
 
 <body>
+  <!-- existing header and sidebar remain the same -->
   <header class="admin-header">
     <h1>Admin Dashboard</h1>
     <nav>
       <ul>
         <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -186,8 +187,8 @@
       <h3><i class="fas fa-book"></i> Bookings & Payments</h3>
       <ul>
         <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
         <li><a href="/adminviewbookings" class="active"><i class="fas fa-list"></i> Client Transactions</a></li>
@@ -210,6 +211,9 @@
             <option value="downpayment">Downpayment</option>
             <option value="fullpayment">Full Payment</option>
           </select>
+
+          <!-- ✅ Added Date Filter -->
+          <input type="date" id="dateFilter" class="filter-select">
         </div>
       </div>
 
@@ -262,8 +266,15 @@
                       <button onclick="openViewModal('<%= b.plotNumber %>', '<%= b.location %>', '<%= b.plotType %>', '<%= b.firstName %>', '<%= b.lastName %>', '<%= b.paymentType %>')" class="btn-action btn-view">
                         <i class="fas fa-eye"></i> View
                       </button>
+
+                      <!-- ✅ Added AUTO EMAIL button -->
+                      <button onclick="sendAutoReminder(<%= b.id %>)" class="btn-action btn-view" style="background:#9b59b6;">
+                        <i class="fas fa-robot"></i> Auto Email
+                      </button>
+
+                      <!-- existing manual email button -->
                       <button onclick="openEmailModal(<%= b.id %>, '<%= b.email %>')" class="btn-action btn-edit">
-                        <i class="fas fa-envelope"></i> Email
+                        <i class="fas fa-envelope"></i> Manual Email
                       </button>
                     </td>
                   </tr>
@@ -338,30 +349,46 @@
       .catch(() => alert('Error sending email.'));
     }
 
-    // ✅ FIXED SEARCH AND FILTER FUNCTION
+    // ✅ NEW FUNCTION for Automatic Email
+    function sendAutoReminder(bookingId) {
+      if (!confirm('Send automatic due date reminder?')) return;
+      fetch(`/adminviewbookings/send-auto-reminder/${bookingId}`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.success ? 'Automatic reminder sent successfully!' : 'Failed to send automatic reminder.');
+      })
+      .catch(() => alert('Error sending automatic reminder.'));
+    }
+
+    // ✅ FIXED SEARCH, FILTER, DATE FILTER
     const searchInput = document.getElementById('searchInput');
     const paymentFilter = document.getElementById('paymentFilter');
+    const dateFilter = document.getElementById('dateFilter');
 
     function filterTable() {
       const searchTerm = searchInput.value.toLowerCase();
       const selectedPayment = paymentFilter.value.toLowerCase();
+      const selectedDate = dateFilter.value;
 
       document.querySelectorAll('.appointments-table tbody tr').forEach(row => {
-        // skip empty state
         if (row.classList.contains('empty-state') || row.querySelector('.empty-state')) return;
-
         const rowText = row.textContent.toLowerCase();
         const paymentType = row.children[7]?.textContent.toLowerCase() || '';
+        const bookingDate = row.children[5]?.textContent.trim();
 
         const matchesSearch = rowText.includes(searchTerm);
         const matchesPayment = !selectedPayment || paymentType.includes(selectedPayment);
+        const matchesDate = !selectedDate || (bookingDate && new Date(bookingDate).toLocaleDateString() === new Date(selectedDate).toLocaleDateString());
 
-        row.style.display = matchesSearch && matchesPayment ? '' : 'none';
+        row.style.display = matchesSearch && matchesPayment && matchesDate ? '' : 'none';
       });
     }
 
     searchInput.addEventListener('keyup', filterTable);
     paymentFilter.addEventListener('change', filterTable);
+    dateFilter.addEventListener('change', filterTable);
   </script>
 </body>
 </html>

@@ -1,117 +1,294 @@
-body {
+/* ===============================
+   Global Reset and Base
+=============================== */
+* {
   margin: 0;
-  display: flex;
-  height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
-      min-height: 100vh;
-      color: #333;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Sidebar */
+body {
+  display: flex;
+  height: 100vh;
+  font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
+  background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
+  color: #333;
+  overflow: hidden;
+}
+
+/* ===============================
+   Sidebar (same layout as admin)
+=============================== */
+/* ===============================
+   SIDEBAR
+   =============================== */
 .sidebar {
-  width: 250px;
+  width: 280px;
   background: linear-gradient(180deg, #8aac7c 0%, #7a9c6c 100%);
   color: #1d1d1d;
-  padding: 20px;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 .sidebar h2 {
   color: #2d4a24;
-      margin-bottom: 1rem;
-      font-size: 1.3rem;
-      padding: 1rem;
-      background: rgba(255,255,255,0.15);
-      border-radius: 12px;
-      text-align: center;
-      backdrop-filter: blur(10px);
+  font-size: 1.4rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .sidebar ul {
   list-style: none;
-  padding: 0;
 }
 
-.sidebar li {
-  margin: 15px 0;
+.sidebar ul li {
+  margin-bottom: 0.8rem;
 }
 
-.sidebar a {
-    color: #1d1d1d;
-      text-decoration: none;
-      padding: 1rem;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      background: rgba(255,255,255,0.1);
+.sidebar ul li a {
+  color: #1d1d1d;
+  text-decoration: none;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.sidebar a:hover, .sidebar a.active {
-   background: rgba(255,255,255,0.25);
-      transform: translateX(5px);
-      color: #2d4a24;
+.sidebar ul li a:hover,
+.sidebar ul li a.active {
+  background: rgba(255,255,255,0.25);
+  transform: translateX(5px);
+  color: #2d4a24;
 }
-/* Main */
+
+.sidebar ul li a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.sidebar ul li a:hover::before {
+  left: 100%;
+}
+
+/* ===============================
+   Main Section
+=============================== */
 .main {
   flex: 1;
-  padding: 30px;
+  padding: 40px;
+  overflow-y: auto;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 25px;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  color: #2d4a24;
+  letter-spacing: 0.5px;
 }
 
 header input {
   padding: 10px 15px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  width: 250px;
+  width: 270px;
+  outline: none;
+  transition: 0.3s;
 }
 
-/* Table */
+header input:focus {
+  border-color: #4a6b46;
+  box-shadow: 0 0 6px rgba(74, 107, 70, 0.4);
+}
+
+/* ===============================
+   Table Section
+=============================== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 25px;
+  margin-top: 20px;
   background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  animation: fadeUp 0.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 thead {
-  background-color: #4a6b46;
+  background: linear-gradient(90deg, #4a6b46, #618c5c);
   color: white;
 }
 
 th, td {
-  padding: 15px;
+  padding: 15px 18px;
   text-align: left;
   border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
 }
 
-.status.pending { color: orange; }
-.status.approved { color: green; }
-.status.cancelled { color: red; }
+tbody tr:hover {
+  background: #f3f9f1;
+  transition: 0.3s ease;
+}
 
+/* ===============================
+   Status Colors
+=============================== */
+.status.pending {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.status.approved {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.status.cancelled {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+/* ===============================
+   Buttons
+=============================== */
 .btn-confirm {
-  background-color: #28a745;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
   color: white;
   border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm:hover {
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+}
+
+/* ===============================
+   Modal Styling (same style)
+=============================== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btn-close {
+  background: #ccc;
+  border: none;
+  border-radius: 8px;
   padding: 8px 12px;
-  border-radius: 6px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.btn-confirm:hover {
-  background-color: #218838;
+.btn-close:hover {
+  background: #bbb;
+}
+
+/* ===============================
+   Responsive Design
+=============================== */
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    border-radius: 0;
+  }
+
+  .main {
+    padding: 25px;
+  }
+
+  table, th, td {
+    font-size: 0.85rem;
+  }
+
+  header input {
+    width: 100%;
+  }
 }

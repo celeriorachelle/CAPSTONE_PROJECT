@@ -4,41 +4,134 @@
   <meta charset="UTF-8">
   <title>Staff Dashboard</title>
   <link rel="stylesheet" href="/stylesheets/staff_dashboard.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* ===============================
+       🔔 Notification Bell + Dropdown
+       =============================== */
+    .notification-wrapper { position: relative; display: inline-block; }
+
+    .fa-bell {
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, #8aac7c, #7a9c6c);
+      color: white; border-radius: 50%;
+      padding: 0.9rem; cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .fa-bell:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(138,172,124,0.3); }
+
+    .notification-badge {
+      position: absolute; top: 6px; right: 6px;
+      background: #e63946; color: white; border-radius: 50%;
+      font-size: 0.7rem; font-weight: 700;
+      padding: 3px 6px; line-height: 1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .notification-dropdown {
+      position: absolute; top: 55px; right: 0;
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      width: 320px; display: none; overflow: hidden;
+      z-index: 1000; animation: fadeIn 0.3s ease;
+    }
+
+    .notification-dropdown header {
+      background: linear-gradient(135deg, #8aac7c, #7a9c6c);
+      color: white; padding: 0.8rem 1rem;
+      font-weight: 600; text-align: center;
+    }
+
+    .notification-dropdown ul {
+      list-style: none; max-height: 300px;
+      overflow-y: auto; padding: 0; margin: 0;
+    }
+
+    .notification-dropdown li {
+      padding: 0.8rem 1rem; border-bottom: 1px solid #eee;
+      cursor: pointer; transition: background 0.2s ease;
+    }
+
+    .notification-dropdown li:hover { background: #f5f8f2; }
+
+    .notification-dropdown small {
+      display: block; font-size: 0.75rem;
+      color: #888; margin-top: 3px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bell Animation */
+    .bell-animate { animation: shake 0.5s ease; }
+
+    @keyframes shake {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-15deg); }
+      50% { transform: rotate(15deg); }
+      75% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* ✅ Toast Notification */
+    .toast {
+      position: fixed; bottom: 30px; right: 30px;
+      background: linear-gradient(135deg, #8aac7c, #7a9c6c);
+      color: white; padding: 15px 20px;
+      border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      font-weight: 500; z-index: 2000;
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0; transform: translateX(120%);
+      transition: all 0.5s ease;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast i { font-size: 1.2rem; }
+  </style>
 </head>
+
 <body>
   <div class="sidebar">
     <h2>Staff Panel</h2>
     <ul>
       <li><a href="/staff_dashboard" class="active">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
+      <li><a href="/maps">Cemetery Map</a></li>
       <li><a href="/staff_installments">Track Installments</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
 
   <div class="main">
-    <header>
-      <h1>Welcome, <%= user.name %> </h1>
-      <p>Your Staff Control Center</p>
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Dashboard Overview</h2>
+        <div class="date-time" id="currentDateTime"></div>
+      </div>
+
+      <div class="icons">
+        <div class="notification-wrapper">
+          <i class="fas fa-bell" id="notificationBtn"></i>
+          <span class="notification-badge" id="notificationCount">0</span>
+          <div class="notification-dropdown" id="notificationDropdown">
+            <header>Notifications</header>
+            <ul id="notificationList"><li>Loading notifications...</li></ul>
+          </div>
+        </div>
+      </div>
     </header>
 
     <section class="stats">
-      <div class="card">
-        <h3>Total Bookings</h3>
-        <p><%= stats.totalBookings %></p>
-      </div>
-      <div class="card">
-        <h3>Pending Payments</h3>
-        <p><%= stats.pendingPayments %></p>
-      </div>
-      <div class="card">
-        <h3>Upcoming Due Payments</h3>
-        <p><%= stats.upcomingDue %></p>
-      </div>
-      <div class="card">
-        <h3>Staff Actions Logged</h3>
-        <p><%= stats.totalLogs %></p>
-      </div>
+      <div class="card"><h3>Total Bookings</h3><p><%= stats.totalBookings %></p></div>
+      <div class="card"><h3>Pending Payments</h3><p><%= stats.pendingPayments %></p></div>
+      <div class="card"><h3>Upcoming Due Payments</h3><p><%= stats.upcomingDue %></p></div>
+      <div class="card"><h3>Staff Actions Logged</h3><p><%= stats.totalLogs %></p></div>
     </section>
 
     <section class="quick-actions">
@@ -46,9 +139,87 @@
       <div class="actions-grid">
         <a href="/staff_viewbookings" class="action-btn">Manage Client Bookings</a>
         <a href="/staff_installments" class="action-btn">Track Installments</a>
-        <a href="/staff_logs" class="action-btn">🗂 View Logs</a>
       </div>
     </section>
   </div>
+
+  <!-- ✅ Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="fas fa-bell"></i>
+    <span id="toastMessage"></span>
+  </div>
+
+  <script>
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notificationDropdown');
+    const notifList = document.getElementById('notificationList');
+    const notifCount = document.getElementById('notificationCount');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    let lastLatestMessage = null;
+
+    // 🔔 Toggle dropdown
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifDropdown.style.display =
+        notifDropdown.style.display === 'block' ? 'none' : 'block';
+      notifCount.style.display = 'none';
+    });
+
+    // ✅ Hide when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target))
+        notifDropdown.style.display = 'none';
+    });
+
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ✅ Fetch staff notifications (from staff_dashboard.js route)
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/staff_dashboard/notifications/json');
+        const data = await res.json();
+
+        notifList.innerHTML = '';
+        if (!data || data.length === 0) {
+          notifList.innerHTML = '<li>No notifications yet.</li>';
+          notifCount.style.display = 'none';
+          return;
+        }
+
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <strong>${item.message}</strong>
+            <small>${new Date(item.datestamp).toLocaleString()}</small>
+          `;
+          li.addEventListener('click', () => {
+            window.location.href = '/staff_viewbookings';
+          });
+          notifList.appendChild(li);
+        });
+
+        notifCount.textContent = data.length;
+        notifCount.style.display = 'flex';
+
+        if (lastLatestMessage && data[0] && data[0].message !== lastLatestMessage) {
+          showToast('🆕 ' + data[0].message);
+          notifBtn.classList.add('bell-animate');
+          setTimeout(() => notifBtn.classList.remove('bell-animate'), 1000);
+        }
+
+        if (data[0]) lastLatestMessage = data[0].message;
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    }
+
+    setInterval(fetchNotifications, 10000);
+    fetchNotifications();
+  </script>
 </body>
 </html>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db'); // your db connection (mysql2/promise)
 const nodemailer = require('nodemailer');
+const { addLog } = require('./log_helper'); // <-- Import the log helper
 
 // ================================
 // Nodemailer setup
@@ -57,6 +58,7 @@ router.get('/', requireAdmin, async (req, res) => {
 // ================================
 router.post('/approve/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
+  const adminUser = req.session.user; // admin info for logging
   try {
     // 1️⃣ Update booking status
     await db.query(`UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`, [bookingId]);
@@ -76,6 +78,7 @@ router.post('/approve/:id', requireAdmin, async (req, res) => {
     if (bookingRows.length > 0) {
       const bk = bookingRows[0];
       const userId = bk.user_id;
+      const clientName = `${bk.firstname} ${bk.lastname}`;
       const email = bk.email;
       const service = bk.service_type || 'appointment';
       const date = bk.booking_date ? new Date(bk.booking_date).toLocaleDateString() : '';
@@ -102,6 +105,14 @@ router.post('/approve/:id', requireAdmin, async (req, res) => {
           console.error('Error sending approval email:', mailErr);
         }
       }
+
+      // ✅ Log the admin action with client name
+      await addLog({
+        user_id: adminUser.user_id,
+        user_role: adminUser.role,
+        action: 'Approved booking',
+        details: `Booking ID ${bookingId} approved by admin (Client: ${clientName})`
+      });
     }
 
     res.json({ success: true });
@@ -116,6 +127,7 @@ router.post('/approve/:id', requireAdmin, async (req, res) => {
 // ================================
 router.post('/reject/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
+  const adminUser = req.session.user; // admin info for logging
   try {
     // 1️⃣ Update booking status
     await db.query(`UPDATE booking_tbl SET status = 'cancelled' WHERE booking_id = ?`, [bookingId]);
@@ -129,6 +141,7 @@ router.post('/reject/:id', requireAdmin, async (req, res) => {
     if (bookingRows.length > 0) {
       const bk = bookingRows[0];
       const userId = bk.user_id;
+      const clientName = `${bk.firstname} ${bk.lastname}`;
       const email = bk.email;
       const service = bk.service_type || 'appointment';
       const date = bk.booking_date ? new Date(bk.booking_date).toLocaleDateString() : '';
@@ -160,6 +173,14 @@ router.post('/reject/:id', requireAdmin, async (req, res) => {
           console.error('Error sending rejection email:', mailErr);
         }
       }
+
+      // ✅ Log the admin action with client name
+      await addLog({
+        user_id: adminUser.user_id,
+        user_role: adminUser.role,
+        action: 'Rejected booking',
+        details: `Admin ${adminUser.firstname} ${adminUser.lastname} rejected booking ID ${bookingId} for client ${clientName}`
+      });
     }
 
     res.json({ success: true });
@@ -175,6 +196,7 @@ router.post('/reject/:id', requireAdmin, async (req, res) => {
 router.post('/notify/:id', requireAdmin, async (req, res) => {
   const bookingId = req.params.id;
   const { message } = req.body || {};
+  const adminUser = req.session.user; // admin info for logging
 
   if (!message || !message.trim()) {
     return res.status(400).json({ success: false, error: 'Message required' });
@@ -192,6 +214,7 @@ router.post('/notify/:id', requireAdmin, async (req, res) => {
 
     const bk = bookingRows[0];
     const userId = bk.user_id;
+    const clientName = `${bk.firstname} ${bk.lastname}`;
     const email = bk.email;
 
     // Insert notification
@@ -213,6 +236,14 @@ router.post('/notify/:id', requireAdmin, async (req, res) => {
         console.error('Error sending notify email:', mailErr);
       }
     }
+
+    // ✅ Log the admin action with client name
+    await addLog({
+      user_id: adminUser.user_id,
+      user_role: adminUser.role,
+      action: 'Sent notification',
+      details: `Admin sent notification for booking ID ${bookingId} to client ${clientName}: "${message}"`
+    });
 
     res.json({ success: true });
   } catch (err) {

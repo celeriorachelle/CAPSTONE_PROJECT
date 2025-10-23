@@ -141,8 +141,8 @@
     <nav>
       <ul>
         <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -153,12 +153,12 @@
     <aside class="sidebar">
       <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
+        <li><a href="/adminviewbookings" class="active"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -189,7 +189,7 @@
 
       <section class="dashboard-welcome">
         <div class="welcome-content">
-          <h1>Welcome back, <%= user ? user.firstName : "Admin" %> 👋</h1>
+          <h1>Welcome back, <%= user ? user.firstName : "Admin" %></h1>
           <p>Here's what's happening at Everlasting Peace Memorial Park today</p>
         </div>
       </section>
@@ -202,7 +202,7 @@
             <div class="stat-change positive">+12%</div>
           </div>
           <div class="stat-number"><%= todayAppointments %></div>
-          <div class="stat-label">Today's Appointments</div>
+          <div class="stat-label">Today's Services</div>
         </div>
 
         <div class="stat-card">
@@ -234,11 +234,11 @@
       </section>
 
       <section class="quick-actions">
-        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <h3></i> Quick Actions</h3>
         <div class="actions-grid">
           <div class="action-btn" onclick="window.location.href='/admincreateb'">
             <i class="fas fa-calendar-plus"></i>
-            <span>New Appointment</span>
+            <span>New Booking</span>
           </div>
           <div class="action-btn" onclick="window.location.href='/burialrecord'">
             <i class="fas fa-search"></i>
@@ -323,46 +323,59 @@
       }
     }
 
-    async function fetchNotificationList() {
-      try {
-        const res = await fetch('/admin/notification/list');
-        const list = await res.json();
-        localStorage.setItem('latestNotifications', JSON.stringify(list));
+ async function fetchNotificationList() {
+    try {
+      const res = await fetch('/admin/notification/list');
+      const list = await res.json();
+      localStorage.setItem('latestNotifications', JSON.stringify(list));
 
-        const read = getReadNotifications();
-        const container = document.getElementById('notificationList');
+      const read = getReadNotifications();
+      const container = document.getElementById('notificationList');
 
-        if (list.length === 0) {
-          container.innerHTML = '<li>No recent bookings</li>';
-        } else {
-          container.innerHTML = list.map(item => {
-            const isRead = read.includes(item.booking_id);
+      if (list.length === 0) {
+        container.innerHTML = '<li>No recent activity</li>';
+      } else {
+        container.innerHTML = list.map(item => {
+          const isRead = read.includes(item.id);
+          if (item.type === 'booking') {
             return `
-              <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.booking_id})">
-                <strong>${item.full_name}</strong> (ID: ${item.booking_id})
-                <small>Service: ${item.service_type || 'N/A'}</small>
+              <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.id})">
+                <strong>${item.full_name}</strong> booked a ${item.service_type || 'service'}
                 <small>Status: ${item.status}</small>
-                <small>Payment: ${item.payment_status || 'No Payment Record'}</small>
                 <small>Booking Date: ${new Date(item.booking_date).toLocaleDateString()}</small>
-                <small>Submitted: ${new Date(item.generated_at).toLocaleString()}</small>
+                <small>Submitted: ${new Date(item.created_at).toLocaleString()}</small>
               </li>`;
-          }).join('');
-        }
-
-        fetchNotifications();
-      } catch (err) {
-        console.error('Error fetching notification list:', err);
+          } else if (item.type === 'downpayment') {
+            return `
+              <li class="${isRead ? '' : 'unread'}" onclick="openDownpayment(${item.id})">
+                <strong>${item.full_name}</strong> made a <b>downpayment</b>
+                <small>Amount: ₱${item.amount}</small>
+                <small>Status: ${item.status}</small>
+                <small>Paid: ${new Date(item.created_at).toLocaleString()}</small>
+              </li>`;
+          }
+        }).join('');
       }
+
+      fetchNotifications();
+    } catch (err) {
+      console.error('Error fetching notification list:', err);
     }
+  }
 
-    function openBooking(id) {
-      markAsRead(id);
-      window.location.href = '/adminviewapp';
-    }
+  function openBooking(id) {
+    markAsRead(id);
+    window.location.href = '/adminviewapp';
+  }
 
-    fetchNotificationList();
-    setInterval(fetchNotificationList, 10000);
+  function openDownpayment(id) {
+    markAsRead(id);
+    window.location.href = '/adminviewbookings';
+  }
 
+  fetchNotificationList();
+  setInterval(fetchNotificationList, 10000);
+  
     const notifBtn = document.getElementById('notificationBtn');
     const notifDropdown = document.getElementById('notificationDropdown');
 

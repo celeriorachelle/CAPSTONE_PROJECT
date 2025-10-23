@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Create Appointment | Everlasting Peace Memorial Park</title>
+  <title>Create Booking | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admincreateb.css">
   </head>
@@ -14,8 +14,8 @@
     <nav>
       <ul>
        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -27,12 +27,12 @@
     <aside class="sidebar">
       <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
+        <li><a href="/adminviewbookings" class="active"><i class="fas fa-list"></i> Client Transactions</a></li>
         <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
         <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
       </ul>
@@ -69,10 +69,10 @@
 
     <!-- Enhanced Main Content -->
     <section class="content">
-      <h2><i class="fas fa-calendar-plus"></i> Create New Appointment</h2>
+      <h2> Create New Booking</h2>
       
       <div class="appointment-form">
-        <h1><i class="fas fa-calendar-plus"></i> Schedule Appointment</h1>
+        <h1><i class="fas fa-calendar-plus"></i> Schedule Booking</h1>
         <p class="form-subtitle">Please fill in the details below to book your appointment</p>
         
         <div class="success-message" id="successMessage">

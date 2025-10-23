@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Reports Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -122,6 +122,7 @@
     .export-btns {
       display: flex;
       gap: 10px;
+      align-items: center;
     }
 
     .export-btns button {
@@ -333,6 +334,48 @@
       color: #10b981;
     }
 
+    /* Filter form styling */
+    .filter-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-left: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-form input[type="date"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+      background: white;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-ghost {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .charts {
@@ -401,13 +444,36 @@
           <h2>Analytics Overview</h2>
           <p class="header-subtitle">Comprehensive insights and performance metrics</p>
         </div>
-        <div class="export-btns">
-          <button class="pdf-btn" onclick="exportPDF()">
-            <span>📄</span> Export PDF
-          </button>
-          <button class="excel-btn" onclick="exportExcel()">
-            <span>📊</span> Export Excel
-          </button>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <!-- Filter form: submits to same page using GET -->
+          <form class="filter-form" id="dateFilterForm" method="get" action="">
+            <label style="color:#64748b; font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
+              <span>From</span>
+              <input type="date" id="startDate" name="startDate" value="<%= startDate || '' %>">
+            </label>
+
+            <label style="color:#64748b; font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
+              <span>To</span>
+              <input type="date" id="endDate" name="endDate" value="<%= endDate || '' %>">
+            </label>
+
+            <div class="filter-actions">
+              <button type="submit" class="btn-primary">Apply</button>
+              <button type="button" class="btn-ghost" id="btnToday">Today</button>
+              <button type="button" class="btn-ghost" id="btnThisMonth">This Month</button>
+              <button type="button" class="btn-ghost" id="btnClear">Clear</button>
+            </div>
+          </form>
+
+          <div class="export-btns" style="margin-left:12px;">
+            <button class="pdf-btn" onclick="exportPDF()">
+              <span>📄</span> Export PDF
+            </button>
+            <button class="excel-btn" onclick="exportExcel()">
+              <span>📊</span> Export Excel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -419,7 +485,7 @@
           <span class="kpi-icon">📅</span>
         </div>
         <div class="kpi-value"><%= totalBookingsThisMonth || 0 %></div>
-        <div class="kpi-description">Total Bookings This Month</div>
+        <div class="kpi-description">Total Bookings (filtered)</div>
       </div>
 
       <div class="kpi">
@@ -427,7 +493,7 @@
           <span class="kpi-icon">💰</span>
         </div>
         <div class="kpi-value">₱<%= (totalPaymentsThisMonth ? Number(totalPaymentsThisMonth).toFixed(2) : "0.00") %></div>
-        <div class="kpi-description">Total Payments This Month</div>
+        <div class="kpi-description">Total Payments (filtered)</div>
       </div>
 
       <div class="kpi">
@@ -443,7 +509,7 @@
           <span class="kpi-icon">📈</span>
         </div>
         <div class="kpi-value">₱<%= (avgPayment ? Number(avgPayment).toFixed(2) : "0.00") %></div>
-        <div class="kpi-description">Average Payment</div>
+        <div class="kpi-description">Average Payment (filtered)</div>
       </div>
 
       <div class="kpi">
@@ -499,6 +565,9 @@
       <div class="table-section">
         <div class="table-header">
           <h3>🏆 Top Paying Clients</h3>
+          <% if (startDate && endDate) { %>
+            <div style="color:#64748b; font-size:0.9rem; margin-top:6px;">Showing from <strong><%= startDate %></strong> to <strong><%= endDate %></strong></div>
+          <% } %>
         </div>
         <table id="clientsTable">
           <thead>
@@ -527,6 +596,7 @@
   </div>
 
   <script>
+    // server-provided arrays
     const bookings = <%- JSON.stringify(bookings || []) %>;
     const payments = <%- JSON.stringify(payments || []) %>;
     const statusCounts = <%- JSON.stringify(statusCounts || []) %>;
@@ -833,8 +903,56 @@
         XLSX.utils.book_append_sheet(wb, ws3, "Payments");
       }
 
+      // Add metadata sheet with filter info
+      const meta = [
+        ["Filter Start Date", "<%= startDate || '' %>"],
+        ["Filter End Date", "<%= endDate || '' %>"]
+      ];
+      const wsMeta = XLSX.utils.aoa_to_sheet(meta);
+      XLSX.utils.book_append_sheet(wb, wsMeta, "Metadata");
+
       XLSX.writeFile(wb, "AdminReports.xlsx");
     }
+
+    // Quick filter buttons behavior
+    (function initFilterButtons() {
+      const btnToday = document.getElementById('btnToday');
+      const btnThisMonth = document.getElementById('btnThisMonth');
+      const btnClear = document.getElementById('btnClear');
+      const startInput = document.getElementById('startDate');
+      const endInput = document.getElementById('endDate');
+      const form = document.getElementById('dateFilterForm');
+
+      btnToday.addEventListener('click', () => {
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const iso = `${y}-${m}-${d}`;
+        startInput.value = iso;
+        endInput.value = iso;
+        form.submit();
+      });
+
+      btnThisMonth.addEventListener('click', () => {
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const first = `${y}-${m}-01`;
+        // compute last day of month
+        const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
+        const last = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+        startInput.value = first;
+        endInput.value = last;
+        form.submit();
+      });
+
+      btnClear.addEventListener('click', () => {
+        startInput.value = '';
+        endInput.value = '';
+        form.submit();
+      });
+    })();
   </script>
 </body>
 </html>

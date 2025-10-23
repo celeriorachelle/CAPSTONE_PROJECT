@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const nodemailer = require("nodemailer");
+const { addLog } = require("./log_helper"); // <-- import log helper
 
 // Middleware — Only staff can access
 function requireStaff(req, res, next) {
@@ -69,10 +70,20 @@ router.post("/confirm/:id", requireStaff, async (req, res) => {
       [bookingId]
     );
 
+    // Get client name
+    const [rows] = await db.query(`
+      SELECT COALESCE(u.firstname, b.firstname) AS firstname,
+             COALESCE(u.lastname, b.lastname) AS lastname
+      FROM booking_tbl b
+      LEFT JOIN user_tbl u ON b.user_id = u.user_id
+      WHERE b.booking_id = ?
+    `, [bookingId]);
+    const clientName = rows.length > 0 ? `${rows[0].firstname || ''} ${rows[0].lastname || ''}`.trim() : 'Client';
+
     await db.query(
       `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
-       VALUES (?, 'staff', 'Confirm Payment', CONCAT('Payment confirmed for booking ID: ', ?), NOW())`,
-      [staffId, bookingId]
+       VALUES (?, 'staff', 'Confirm Payment', CONCAT('Payment confirmed for booking ID: ', ?, ' (Client: ', ?, ')'), NOW())`,
+      [staffId, bookingId, clientName]
     );
 
     res.json({ success: true });
@@ -83,11 +94,14 @@ router.post("/confirm/:id", requireStaff, async (req, res) => {
 });
 
 // ================================
-// POST /staff_viewbookings/approve/:id - Approve a booking + notify user
+// POST /staff_viewbookings/approve/:id - Approve a booking + notify user + log
 // ================================
 router.post("/approve/:id", requireStaff, async (req, res) => {
   const bookingId = req.params.id;
+  const staffId = req.session.user.id;
+
   try {
+    // Update booking status
     await db.query(
       `UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`,
       [bookingId]
@@ -104,8 +118,11 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
       WHERE b.booking_id = ?
     `, [bookingId]);
 
+    let clientName = 'Client';
     if (rows.length > 0) {
       const client = rows[0];
+      clientName = `${client.firstname || ''} ${client.lastname || ''}`.trim();
+
       const message = `Hello ${client.firstname || 'Client'}, your booking #${bookingId} has been approved.`;
 
       // Send notification to DB
@@ -127,6 +144,14 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
       }
     }
 
+    // Add log for staff action with client name
+    await addLog({
+      user_id: staffId,
+      user_role: 'staff',
+      action: 'Approved Booking',
+      details: `Booking ID ${bookingId} approved by staff (Client: ${clientName})`
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error("Error approving booking:", err);
@@ -135,11 +160,14 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
 });
 
 // ================================
-// POST /staff_viewbookings/reject/:id - Reject a booking + notify user
+// POST /staff_viewbookings/reject/:id - Reject a booking + notify user + log
 // ================================
 router.post("/reject/:id", requireStaff, async (req, res) => {
   const bookingId = req.params.id;
+  const staffId = req.session.user.id;
+
   try {
+    // Update booking status
     await db.query(
       `UPDATE booking_tbl SET status = 'cancelled' WHERE booking_id = ?`,
       [bookingId]
@@ -156,8 +184,11 @@ router.post("/reject/:id", requireStaff, async (req, res) => {
       WHERE b.booking_id = ?
     `, [bookingId]);
 
+    let clientName = 'Client';
     if (rows.length > 0) {
       const client = rows[0];
+      clientName = `${client.firstname || ''} ${client.lastname || ''}`.trim();
+
       const message = `Hello ${client.firstname || 'Client'}, your booking #${bookingId} has been rejected.`;
 
       // Send notification to DB
@@ -178,6 +209,14 @@ router.post("/reject/:id", requireStaff, async (req, res) => {
         });
       }
     }
+
+    // Add log for staff action with client name
+    await addLog({
+      user_id: staffId,
+      user_role: 'staff',
+      action: 'Rejected Booking',
+      details: `Booking ID ${bookingId} rejected by staff (Client: ${clientName})`
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -210,6 +249,7 @@ router.post("/notify/:id", requireStaff, async (req, res) => {
       return res.json({ success: false, message: 'Booking not found' });
     }
     const client = rows[0];
+    const clientName = `${client.firstname || ''} ${client.lastname || ''}`.trim() || 'Client';
 
     if (client.user_id) {
       await db.query(`
@@ -226,6 +266,14 @@ router.post("/notify/:id", requireStaff, async (req, res) => {
         text: message
       });
     }
+
+    // Log staff notification with client name
+    await addLog({
+      user_id: req.session.user.id,
+      user_role: 'staff',
+      action: 'Sent Notification',
+      details: `Notification sent for booking ID ${bookingId} to client (${clientName}): "${message}"`
+    });
 
     res.json({ success: true });
   } catch (err) {

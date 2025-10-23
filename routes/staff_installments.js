@@ -88,6 +88,7 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
       html: html || `
         <p>Dear ${client.name},</p>
         <p>This is a reminder that your <strong>${client.payment_type}</strong> of ₱${Number(client.amount).toLocaleString()} is due on ${dueDate}.</p>
+        <p>Just Log in to our website and go to Payment History then click the "Pay Here" button to pay your due amount.</p>
         <p>Please make your payment promptly.</p>
         <p>Thank you,<br>Everlasting Peace Memorial Park</p>
       `,

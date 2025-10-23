@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="/stylesheets/staff_viewbookings.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* ==============================
+       EXISTING STYLES (KEEP)
+    ============================== */
     .modal { display: none; position: fixed; z-index: 999; left:0; top:0; width:100%; height:100%; overflow:auto; background: rgba(0,0,0,0.4); }
     .modal-content { background:#fff; margin:8% auto; padding:20px; border-radius:8px; width:90%; max-width:520px; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
     .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -20,6 +23,139 @@
     .status-pending { background:#f0ad4e; }
     .status-approved { background:#28a745; }
     .status-cancelled { background:#6c757d; }
+
+    /* ==============================
+       🔹 IMPROVED FILTER BUTTON DESIGN
+    ============================== */
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filters button {
+      background: #f8f9fa;
+      border: 2px solid #ddd;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .filters button:hover {
+      background: #e9ecef;
+      border-color: #bbb;
+      transform: translateY(-2px);
+    }
+
+    .filters button.active {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      border-color: #0056b3;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    /* ==============================
+       🔹 PAGINATION BUTTONS
+    ============================== */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 25px 0;
+    }
+
+    .pagination button {
+      background: #f8f9fa;
+      border: 2px solid #ddd;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #333;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #007bff;
+      color: #fff;
+      border-color: #007bff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,123,255,0.25);
+    }
+
+    .pagination button:disabled {
+      background: #f1f1f1;
+      color: #aaa;
+      border-color: #ddd;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #pageInfo {
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ==============================
+       🔹 SEARCH INPUT DESIGN
+    ============================== */
+    #searchInput {
+      padding: 10px 16px;
+      border-radius: 25px;
+      border: 2px solid #ddd;
+      width: 280px;
+      font-size: 14px;
+      margin-top: 10px;
+      transition: all 0.25s ease;
+    }
+
+    #searchInput:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 6px rgba(0,123,255,0.3);
+    }
+
+    /* ==============================
+       🔹 TABLE POLISH
+    ============================== */
+ 
+    /* ==============================
+       🔹 HEADER STYLING
+    ============================== */
+    header h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    /* ==============================
+       🔹 EMPTY STATE
+    ============================== */
+    #emptyState {
+      text-align: center;
+      font-weight: 500;
+      color: #666;
+      margin-top: 30px;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
@@ -28,6 +164,7 @@
     <ul>
       <li><a href="/staff_dashboard" class="active">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
+      <li><a href="/maps"></i> Cemetery Map</a></li>
       <li><a href="/staff_installments">Track Installments</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
