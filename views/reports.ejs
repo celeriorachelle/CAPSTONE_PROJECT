@@ -15,15 +15,13 @@
   <link rel="stylesheet" href="/stylesheets/admin_reports.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <div class="navbar-content">
-      <h1><span class="navbar-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></span> Admin Reports</h1>
-      <a href="/admin"><span><i class="fas fa-home" aria-hidden="true"></i></span> Dashboard</a>
-    </div>
-  </div>
+  <%- include('partials/admin/topbar', { title: 'Admin Reports' }) %>
 
-  <div class="container">
+  <main class="admin-main">
+    <%- include('partials/admin/sidebar') %>
+
+    <section class="content">
+      <div class="container">
     <!-- Header Section -->
     <div class="header-section">
       <div class="header-content">
@@ -154,7 +152,9 @@
         </table>
       </div>
     </div>
-  </div>
+      </div>
+    </section>
+  </main>
 
   <script>
     const bookings = <%- JSON.stringify(bookings || []) %>;

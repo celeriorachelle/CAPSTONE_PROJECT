@@ -1,0 +1,102 @@
+<aside class="sidebar">
+  <style>
+    /* ==========================
+       SIDEBAR STYLES
+    =========================== */
+    .sidebar {
+      background: #fff;
+      width: 270px;
+      min-height: 100vh;
+      border-right: 1px solid #dee2e6;
+      padding: 20px 15px;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.05);
+      overflow-y: auto;
+      transition: left 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999;
+    }
+
+    .sidebar h3 {
+      font-size: 1rem;
+      color: #203040;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 5px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+
+    .sidebar ul li {
+      margin: 8px 0;
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: #333;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .sidebar ul li a:hover {
+      background: #203040;
+      color: #fff;
+    }
+
+    .sidebar ul li a.active {
+      background: #203040;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* === RESPONSIVE SIDEBAR === */
+    @media (max-width: 992px) {
+      .sidebar {
+        left: -270px;
+      }
+      .sidebar.active {
+        left: 0;
+      }
+    }
+  </style>
+
+  <h3><i class="fa-solid fa-cross"></i> Dashboard Menu</h3>
+  <ul>
+    <li><a href="/admin" class="<%= activePage === 'dashboard' ? 'active' : '' %>"><i class="fa-solid fa-house"></i> Dashboard Home</a></li>
+    <li><a href="/admincreateb" class="<%= activePage === 'createAppointment' ? 'active' : '' %>"><i class="fa-solid fa-calendar-plus"></i> Create Appointment</a></li>
+    <li><a href="/adminviewapp" class="<%= activePage === 'viewAppointments' ? 'active' : '' %>"><i class="fa-solid fa-eye"></i> View Appointments</a></li>
+    <li><a href="/burialrecord" class="<%= activePage === 'burialRecord' ? 'active' : '' %>"><i class="fa-solid fa-book"></i> Burial Records</a></li>
+    <li><a href="/maps" class="<%= activePage === 'maps' ? 'active' : '' %>"><i class="fa-solid fa-map"></i> Cemetery Map</a></li>
+    <li><a href="/adminviewbookings" class="<%= activePage === 'clientTransactions' ? 'active' : '' %>"><i class="fa-solid fa-handshake"></i> Client Transactions</a></li>
+    <li><a href="/admin_inventory" class="<%= activePage === 'inventory' ? 'active' : '' %>"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+    <li><a href="/admin_logs" class="<%= activePage === 'logs' ? 'active' : '' %>"><i class="fa-solid fa-clipboard-list"></i> Logs</a></li>
+  </ul>
+
+  <script>
+    // Sidebar toggle for mobile
+    document.addEventListener("DOMContentLoaded", () => {
+      const sidebar = document.querySelector(".sidebar");
+      const toggleBtn = document.getElementById("sidebarToggle");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+          sidebar.classList.toggle("active");
+        });
+      }
+    });
+  </script>
+</aside>
