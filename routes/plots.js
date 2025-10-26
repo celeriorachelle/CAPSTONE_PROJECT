@@ -5,6 +5,14 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+router.get('/map', (req, res) => {
+  const role = req.user ? req.user.role : null;
+
+  res.render('map', {
+    role: role
+  });
+});
+
 router.get('/memorial-chapel', async (req, res) => {
   try {
     const [rows] = await db.query(`

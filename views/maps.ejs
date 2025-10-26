@@ -9,7 +9,13 @@
 <body>
   <div class="map-container">
     <h1 style="color: white; font-family: 'Poppins', sans-serif;">Cemetery Map</h1>
-    <div><a class="back-btn" href="/">← Back to Home</a></div>
+    <div>
+      <% if (user.role === 'admin') { %>
+        <a class="back-btn" href="/admin">← Back to Dashboard</a>
+      <% } else { %>
+        <a class="back-btn" href="/">← Back to Home</a>
+      <% } %>
+    </div>
     <div class="search-container" style="margin-bottom: 15px;">
       <form id="searchForm" onsubmit="handleSearch(event)" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <input type="text" id="firstName" placeholder="First Name" style="padding: 5px;">
