@@ -158,8 +158,10 @@
     <ul>
       <li><a href="/staff_dashboard">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
-      <li><a href="/maps"></i> Cemetery Map</a></li>
+      <li><a href="/maps">Cemetery Map</a></li>
       <li><a href="/staff_installments" class="active">Track Installments</a></li>
+      <li><a href="/staff_checknotificationlogs">Notification Logs</a></li>
+      <li><a href="/staff_viewpaymentreports">Payment Reports</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
@@ -194,7 +196,10 @@
               <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }) %></td>
               <td><%= p.status %></td>
               <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
-              <td><button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button></td>
+<td>
+  <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
+  <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
+</td>
             </tr>
           <% }) %>
         <% } %>
@@ -242,12 +247,23 @@
         <div class="actions">
           <button class="btn-secondary" onclick="closeRemindModal()">Cancel</button>
           <button class="btn-primary" id="sendEmailBtn" onclick="sendReminderFromModal()">Send Email</button>
+          <!-- ✅ FIXED: Use currentPaymentId instead of undefined p.id -->
+          <button class="btn-remind" style="background:#28a745;" onclick="sendSMS(currentPaymentId)">Send SMS</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    function sendSMS(paymentId) {
+      if (!confirm("Send SMS reminder to client?")) return;
+
+      fetch(`/staff_installments/sms/${paymentId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => alert(data.message))
+        .catch(() => alert("Error sending SMS."));
+    }
+
     // Search filter
     document.getElementById("searchInput").addEventListener("input", function() {
       const term = this.value.toLowerCase();
@@ -344,6 +360,20 @@
       body.readOnly = !isManual;
       body.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
       subj.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
+    }
+
+    function markAsPaid(paymentId) {
+      if (!confirm("Confirm payment received? This will update the next due date.")) return;
+
+      fetch(`/staff_installments/updateDueDate/${paymentId}`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        location.reload();
+      })
+      .catch(() => alert("Error updating due date."));
     }
   </script>
 </body>

@@ -4,63 +4,114 @@
   <meta charset="UTF-8">
   <title>Staff Dashboard</title>
   <link rel="stylesheet" href="/stylesheets/staff_dashboard.css">
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     /* ===============================
        🔔 Notification Bell + Dropdown
        =============================== */
-    .notification-wrapper { position: relative; display: inline-block; }
-
-    .fa-bell {
-      font-size: 1.4rem;
-      background: linear-gradient(135deg, #8aac7c, #7a9c6c);
-      color: white; border-radius: 50%;
-      padding: 0.9rem; cursor: pointer;
-      transition: all 0.3s ease;
+    .notification-wrapper {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 25px;
     }
 
-    .fa-bell:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(138,172,124,0.3); }
+    .fa-bell {
+      font-size: 1.6rem;
+      background: linear-gradient(135deg, #8aac7c, #7a9c6c);
+      color: white;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    .fa-bell:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(138, 172, 124, 0.4);
+    }
 
     .notification-badge {
-      position: absolute; top: 6px; right: 6px;
-      background: #e63946; color: white; border-radius: 50%;
-      font-size: 0.7rem; font-weight: 700;
-      padding: 3px 6px; line-height: 1;
+      position: absolute;
+      top: 2px;
+      right: 8px;
+      background: #e63946;
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 6px;
+      line-height: 1;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       display: none;
+      min-width: 18px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      z-index: 11;
     }
 
     .notification-dropdown {
-      position: absolute; top: 55px; right: 0;
-      background: #fff; border-radius: 10px;
+      position: absolute;
+      top: 60px;
+      right: 0;
+      background: #fff;
+      border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      width: 320px; display: none; overflow: hidden;
-      z-index: 1000; animation: fadeIn 0.3s ease;
+      width: 320px;
+      display: none;
+      overflow: hidden;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
     }
 
     .notification-dropdown header {
       background: linear-gradient(135deg, #8aac7c, #7a9c6c);
-      color: white; padding: 0.8rem 1rem;
-      font-weight: 600; text-align: center;
+      color: white;
+      padding: 0.8rem 1rem;
+      font-weight: 600;
+      text-align: center;
     }
 
     .notification-dropdown ul {
-      list-style: none; max-height: 300px;
-      overflow-y: auto; padding: 0; margin: 0;
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
     }
 
     .notification-dropdown li {
-      padding: 0.8rem 1rem; border-bottom: 1px solid #eee;
-      cursor: pointer; transition: background 0.2s ease;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background 0.2s ease;
     }
 
-    .notification-dropdown li:hover { background: #f5f8f2; }
+    .notification-dropdown li:hover {
+      background: #f5f8f2;
+    }
 
     .notification-dropdown small {
-      display: block; font-size: 0.75rem;
-      color: #888; margin-top: 3px;
+      display: block;
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    /* ✅ Mark as read style */
+    .notification-dropdown li.read {
+      background-color: #f0f0f0;
+      color: #777;
     }
 
     @keyframes fadeIn {
@@ -69,7 +120,9 @@
     }
 
     /* Bell Animation */
-    .bell-animate { animation: shake 0.5s ease; }
+    .bell-animate {
+      animation: shake 0.5s ease;
+    }
 
     @keyframes shake {
       0% { transform: rotate(0deg); }
@@ -81,18 +134,48 @@
 
     /* ✅ Toast Notification */
     .toast {
-      position: fixed; bottom: 30px; right: 30px;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
       background: linear-gradient(135deg, #8aac7c, #7a9c6c);
-      color: white; padding: 15px 20px;
-      border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-      font-weight: 500; z-index: 2000;
-      display: flex; align-items: center; gap: 10px;
-      opacity: 0; transform: translateX(120%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      font-weight: 500;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateX(120%);
       transition: all 0.5s ease;
     }
 
-    .toast.show { opacity: 1; transform: translateX(0); }
-    .toast i { font-size: 1.2rem; }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .toast i {
+      font-size: 1.2rem;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      padding: 15px 25px;
+      background: #f6f6f6;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .topbar .icons {
+      display: flex;
+      align-items: center;
+    }
   </style>
 </head>
 
@@ -100,10 +183,12 @@
   <div class="sidebar">
     <h2>Staff Panel</h2>
     <ul>
-      <li><a href="/staff_dashboard" class="active">Dashboard</a></li>
+<li><a href="/staff_dashboard" class="active">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
       <li><a href="/maps">Cemetery Map</a></li>
       <li><a href="/staff_installments">Track Installments</a></li>
+      <li><a href="/staff_checknotificationlogs">Notification Logs</a></li>
+      <li><a href="/staff_viewpaymentreports">Payment Reports</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
@@ -121,7 +206,9 @@
           <span class="notification-badge" id="notificationCount">0</span>
           <div class="notification-dropdown" id="notificationDropdown">
             <header>Notifications</header>
-            <ul id="notificationList"><li>Loading notifications...</li></ul>
+            <ul id="notificationList">
+              <li>Loading notifications...</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -157,19 +244,22 @@
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     let lastLatestMessage = null;
+    let unreadCount = 0;
 
-    // 🔔 Toggle dropdown
     notifBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      notifDropdown.style.display =
-        notifDropdown.style.display === 'block' ? 'none' : 'block';
-      notifCount.style.display = 'none';
+      const isVisible = notifDropdown.style.display === 'block';
+      notifDropdown.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        notifCount.textContent = unreadCount;
+        notifCount.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+      }
     });
 
-    // ✅ Hide when clicking outside
     document.addEventListener('click', (e) => {
-      if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target))
+      if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
         notifDropdown.style.display = 'none';
+      }
     });
 
     function showToast(message) {
@@ -178,7 +268,20 @@
       setTimeout(() => toast.classList.remove('show'), 4000);
     }
 
-    // ✅ Fetch staff notifications (from staff_dashboard.js route)
+    async function markAsRead(id, li) {
+      try {
+        const res = await fetch(`/staff_dashboard/notifications/mark-read/${id}`, { method: 'POST' });
+        if (res.ok) {
+          li.classList.add('read');
+          if (unreadCount > 0) unreadCount--;
+          notifCount.textContent = unreadCount;
+          notifCount.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+        }
+      } catch (err) {
+        console.error('Error marking notification as read:', err);
+      }
+    }
+
     async function fetchNotifications() {
       try {
         const res = await fetch('/staff_dashboard/notifications/json');
@@ -191,20 +294,29 @@
           return;
         }
 
+        unreadCount = data.filter(n => !n.is_read).length;
+        notifCount.textContent = unreadCount;
+        notifCount.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+
         data.forEach(item => {
           const li = document.createElement('li');
           li.innerHTML = `
             <strong>${item.message}</strong>
             <small>${new Date(item.datestamp).toLocaleString()}</small>
           `;
-          li.addEventListener('click', () => {
-            window.location.href = '/staff_viewbookings';
+          if (item.is_read) li.classList.add('read');
+
+          li.addEventListener('click', async () => {
+            await markAsRead(item.id, li);
+            if (item.message.includes('booking')) {
+              window.location.href = '/staff_viewbookings?user_id=' + (item.user_id || '');
+            } else if (item.message.includes('paid') || item.message.includes('downpayment')) {
+              window.location.href = '/staff_installments?user_id=' + (item.user_id || '');
+            }
           });
+
           notifList.appendChild(li);
         });
-
-        notifCount.textContent = data.length;
-        notifCount.style.display = 'flex';
 
         if (lastLatestMessage && data[0] && data[0].message !== lastLatestMessage) {
           showToast('🆕 ' + data[0].message);
@@ -220,6 +332,15 @@
 
     setInterval(fetchNotifications, 10000);
     fetchNotifications();
+       function updateDateTime() {
+      const now = new Date();
+      document.getElementById("currentDateTime").textContent = now.toLocaleString();
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    let lastUnreadCount = 0;
+
   </script>
 </body>
 </html>

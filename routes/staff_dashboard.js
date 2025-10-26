@@ -56,9 +56,24 @@ router.get('/', requireStaff, async (req, res) => {
 // 🟢 Notifications (bookings + payments)
 router.get('/notifications/json', requireStaff, async (req, res) => {
   try {
+    // Ensure staff_notifications table exists
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS staff_notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ref_id INT,
+        user_id INT,
+        message VARCHAR(255),
+        datestamp DATETIME,
+        is_read BOOLEAN DEFAULT 0
+      )
+    `);
+
+    const [existing] = await db.query(`SELECT message FROM staff_notifications`);
+
+    // Fetch new notifications
     const [bookings] = await db.query(`
-      SELECT booking_id AS id, 
-             CONCAT('New booking by ', firstname, ' ', lastname) AS message, 
+      SELECT booking_id AS id, user_id,
+             CONCAT('New booking by ', firstname, ' ', lastname) AS message,
              generated_at AS datestamp
       FROM booking_tbl
       WHERE status IN ('pending', 'reserved', 'approved')
@@ -67,8 +82,8 @@ router.get('/notifications/json', requireStaff, async (req, res) => {
     `);
 
     const [payments] = await db.query(`
-      SELECT p.payment_id AS id, 
-             CONCAT('Client paid ', p.payment_type, ' installment (', u.firstName, ' ', u.lastName, ')') AS message, 
+      SELECT p.payment_id AS id, p.user_id,
+             CONCAT('Client paid ', p.payment_type, ' installment (', u.firstName, ' ', u.lastName, ')') AS message,
              p.paid_at AS datestamp
       FROM payment_tbl p
       JOIN user_tbl u ON p.user_id = u.user_id
@@ -77,14 +92,36 @@ router.get('/notifications/json', requireStaff, async (req, res) => {
       LIMIT 5
     `);
 
-    const all = [...bookings, ...payments].sort(
-      (a, b) => new Date(b.datestamp) - new Date(a.datestamp)
-    );
+    const all = [...bookings, ...payments]
+      .sort((a, b) => new Date(b.datestamp) - new Date(a.datestamp))
+      .slice(0, 10);
 
-    res.json(all.slice(0, 10));
+    // Insert new unseen notifications
+    for (const n of all) {
+      if (!existing.find(e => e.message === n.message)) {
+        await db.query(
+          `INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, ?)`,
+          [n.id, n.user_id, n.message, n.datestamp]
+        );
+      }
+    }
+
+    const [finalData] = await db.query(`SELECT * FROM staff_notifications ORDER BY datestamp DESC LIMIT 10`);
+    res.json(finalData);
   } catch (err) {
     console.error('Error fetching notifications for staff:', err);
     res.status(500).json({ message: 'Error fetching staff notifications' });
+  }
+});
+
+// 🟢 Mark as Read
+router.post('/notifications/mark-read/:id', requireStaff, async (req, res) => {
+  try {
+    await db.query(`UPDATE staff_notifications SET is_read = 1 WHERE id = ?`, [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking notification as read:', err);
+    res.status(500).json({ message: 'Error marking as read' });
   }
 });
 

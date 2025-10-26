@@ -120,5 +120,29 @@ router.get("/notification/list", requireAdmin, async (req, res) => {
     res.status(500).json([]);
   }
 });
+// ✅ Mark specific notification as read (for admin)
+router.post("/notification/mark-read/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query(`UPDATE notification_tbl SET is_read = 1 WHERE notif_id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error marking as read:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// ✅ Mark specific notification as unread (optional)
+router.post("/notification/mark-unread/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query(`UPDATE notification_tbl SET is_read = 0 WHERE notif_id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error marking as unread:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
 
 module.exports = router;

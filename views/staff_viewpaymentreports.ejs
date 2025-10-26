@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff | Payment Reports</title>
+  <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <style>
+    .btn-export {
+      background-color: #4a6b46;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-export:hover {
+      background-color: #526D82;
+      transform: scale(1.03);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #f8f9fa;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    input[type="date"], input[type="text"] {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    input[type="date"]:focus {
+      outline: none;
+      border-color: #27374D;
+      box-shadow: 0 0 3px rgba(39,55,77,0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: linear-gradient(90deg, #4a6b46, #5c8754);
+      color: white;
+    }
+
+    .paid { background-color: #d4edda; }
+    .pending { background-color: #fff3cd; }
+
+    .total-row {
+      font-weight: bold;
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Staff Panel</h2>
+    <ul>
+      <li><a href="/staff_dashboard">Dashboard</a></li>
+      <li><a href="/staff_viewbookings">View Bookings</a></li>
+      <li><a href="/maps">Cemetery Map</a></li>
+      <li><a href="/staff_installments">Track Installments</a></li>
+      <li><a href="/staff_checknotificationlogs">Notification Logs</a></li>
+      <li><a href="/staff_viewpaymentreports" class="active">Payment Reports</a></li>
+      <li><a href="/login/logout">Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <header>
+      <h1>Payment Reports</h1>
+      <div class="actions">
+        <div class="filter-container">
+          <label>From:</label>
+          <input type="date" id="startDate" value="<%= startDate %>">
+          <label>To:</label>
+          <input type="date" id="endDate" value="<%= endDate %>">
+          <button class="btn-export" onclick="filterByDate()"><i class="fa-solid fa-filter"></i> Apply</button>
+        </div>
+
+        <div class="export-buttons">
+          <button class="btn-export" onclick="exportFile('pdf')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          <button class="btn-export" onclick="exportFile('excel')"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          <button class="btn-export" onclick="exportFile('csv')"><i class="fa-solid fa-file-csv"></i> CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Payment ID</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th>Paid Date</th>
+          <th>Due Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (payments.length === 0) { %>
+          <tr><td colspan="9">No payments found.</td></tr>
+        <% } else { %>
+          <% payments.forEach(p => { %>
+            <tr class="<%= p.status === 'Paid' ? 'paid' : 'pending' %>">
+              <td><%= p.payment_id %></td>
+              <td><%= p.clientName %></td>
+              <td>₱<%= Number(p.amount).toLocaleString() %></td>
+              <td><%= p.payment_type %></td>
+              <td><%= p.method %></td>
+              <td><%= p.status %></td>
+              <td><%= p.paid_at ? new Date(p.paid_at).toLocaleString() : '—' %></td>
+              <td><%= p.due_date ? new Date(p.due_date).toLocaleDateString() : '—' %></td>
+            </tr>
+          <% }) %>
+          <tr class="total-row">
+            <td colspan="3">Total Amount</td>
+            <td colspan="6">₱<%= totalAmount.toLocaleString() %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function filterByDate() {
+      const start = document.getElementById("startDate").value;
+      const end = document.getElementById("endDate").value;
+      if (!start || !end) {
+        alert("Please select both start and end dates.");
+        return;
+      }
+      window.location.href = `/staff_viewpaymentreports?startDate=${start}&endDate=${end}`;
+    }
+
+    function exportFile(type) {
+      const start = document.getElementById("startDate").value || '';
+      const end = document.getElementById("endDate").value || '';
+      window.open(`/staff_viewpaymentreports/export/${type}?startDate=${start}&endDate=${end}`, '_blank');
+    }
+  </script>
+</body>
+</html>
