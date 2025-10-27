@@ -33,7 +33,7 @@
       gap: 1.25rem;
     }
 
-    /* 🔔 NOTIFICATION ICON */
+  /* Notification icon */
     .notification-btn {
       position: relative;
       width: 45px;
@@ -166,7 +166,7 @@
       transform: translateY(0);
     }
 
-    /* 🪄 TOAST POPUP */
+  /* Toast popup */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -218,8 +218,8 @@
     </div>
   </div>
 
-  <!-- 🪄 Toast Container -->
-  <div class="toast" id="toast">🔔 New notification received!</div>
+  <!-- Toast Container -->
+  <div class="toast" id="toast"><i class="fas fa-bell"></i>&nbsp; New notification received!</div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -231,7 +231,7 @@
 
       let lastUnreadCount = 0;
 
-      // 🔔 Click → Go to notifications page
+  // Click → Go to notifications page
       notifBtn.addEventListener("click", () => {
         window.location.href = "/notification";
       });
@@ -280,7 +280,7 @@
           // 🔥 Animate if new notification appears
           if (count > lastUnreadCount) {
             notifBtn.classList.add("new");
-            showToast("🔔 New notification received!");
+              showToast("<i class='fas fa-bell'></i>&nbsp; New notification received!");
             setTimeout(() => notifBtn.classList.remove("new"), 1200);
           }
 

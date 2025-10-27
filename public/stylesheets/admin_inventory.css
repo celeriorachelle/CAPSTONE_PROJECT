@@ -1,4 +1,6 @@
- :root {
+@import url('/stylesheets/admin.css');
+
+:root {
       --dark-green: #1b2d1b;
       --medium-green: #234123;
       --accent-green: #7c8f56;

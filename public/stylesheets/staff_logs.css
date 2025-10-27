@@ -1,38 +1,6 @@
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  display: flex;
-  background-color: #f7f9fb;
-}
+@import url('/stylesheets/admin.css');
 
-/* Sidebar */
-.sidebar {
-  width: 250px;
-  background: #27374D;
-  color: white;
-  height: 100vh;
-  padding: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar a {
-  color: white;
-  text-decoration: none;
-  display: block;
-  padding: 10px 15px;
-  border-radius: 8px;
-  transition: 0.3s;
-}
-
-.sidebar a:hover, .sidebar a.active {
-  background-color: #526D82;
-}
-
-/* Main */
+/* Main (page-specific overrides) */
 .main {
   flex: 1;
   padding: 30px;

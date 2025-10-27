@@ -1,0 +1,223 @@
+<header class="admin-header">
+  <style>
+    /* ==========================
+       TOPBAR STYLES
+    =========================== */
+    .admin-header {
+      background: #203040;
+      color: #fff;
+      padding: 15px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .admin-header h1 {
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .header-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 25px;
+    }
+
+    .header-nav a {
+      color: #f1f1f1;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.3s;
+    }
+
+    .header-nav a:hover {
+      color: #ffc107;
+    }
+
+    .header-nav .active {
+      color: #ffc107;
+      border-bottom: 2px solid #ffc107;
+      padding-bottom: 4px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .notification-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      position: relative;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      background: red;
+      color: white;
+      font-size: 11px;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 280px;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      z-index: 2000;
+    }
+
+    .notification-dropdown header {
+      background: #203040;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+    }
+
+    .notification-dropdown ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .notification-dropdown ul li {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .notification-dropdown ul li:hover {
+      background: #f8f9fa;
+    }
+
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 22px;
+      display: none;
+    }
+
+    @media (max-width: 992px) {
+      .sidebar-toggle {
+        display: block;
+      }
+      .header-nav {
+        display: none;
+      }
+    }
+
+    .date-time {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+  </style>
+
+  <div class="topbar-left">
+    <h1><i class="fa-solid fa-chart-line"></i> Dashboard Overview</h1>
+    <div class="date-time" id="currentDateTime"></div>
+  </div>
+
+  <div class="header-nav">
+    <ul>
+      <li><a href="/admin" class="<%= activePage === 'dashboard' ? 'active' : '' %>"><i class="fa-solid fa-house"></i> Home</a></li>
+      <li><a href="/admincreateb" class="<%= activePage === 'createAppointment' ? 'active' : '' %>"><i class="fa-solid fa-calendar-plus"></i> Appointments</a></li>
+      <li><a href="/admin_logs" class="<%= activePage === 'logs' ? 'active' : '' %>"><i class="fa-solid fa-clipboard-list"></i> Logs</a></li>
+    </ul>
+  </div>
+
+  <div class="topbar-right">
+    <button id="sidebarToggle" class="sidebar-toggle" title="Toggle Sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="icons">
+      <button class="notification-btn" id="notificationBtn">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notificationCount">0</span>
+      </button>
+
+      <div class="notification-dropdown" id="notificationDropdown">
+        <header>Notifications</header>
+        <ul id="notificationList">
+          <li>Loading notifications...</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="admin-profile">
+      <i class="fas fa-user-shield"></i>
+      <span>Admin</span>
+    </div>
+  </div>
+
+  <script>
+    // Display real-time date and time
+    function updateDateTime() {
+      const now = new Date();
+      const formatted = now.toLocaleString("en-PH", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      document.getElementById("currentDateTime").textContent = formatted;
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Toggle dropdown
+    const notifBtn = document.getElementById("notificationBtn");
+    const notifDropdown = document.getElementById("notificationDropdown");
+    notifBtn.addEventListener("click", () => {
+      notifDropdown.style.display =
+        notifDropdown.style.display === "block" ? "none" : "block";
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.style.display = "none";
+      }
+    });
+  </script>
+</header>
