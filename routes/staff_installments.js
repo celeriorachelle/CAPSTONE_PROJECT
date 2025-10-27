@@ -1,4 +1,4 @@
- const express = require("express");
+const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const nodemailer = require("nodemailer");
@@ -61,6 +61,117 @@ router.get("/:id", requireStaff, async (req, res) => {
   }
 });
 
+// ✅ Completion Email + Notification
+router.post("/completed_notify/:id", requireStaff, async (req, res) => {
+  const paymentId = req.params.id;
+  const { to, subject, message } = req.body;
+  const staff = req.session.user;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT p.payment_id, p.booking_id, u.user_id, CONCAT(u.firstName, ' ', u.lastName) AS name, u.email
+       FROM payment_tbl p
+       JOIN user_tbl u ON p.user_id = u.user_id
+       WHERE p.payment_id = ?`,
+      [paymentId]
+    );
+
+    if (!rows.length) return res.json({ success: false, message: "Payment not found." });
+    const client = rows[0];
+
+    await transporter.sendMail({
+      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html: `<p>${message.replace(/\n/g, "<br>")}</p>`,
+    });
+
+    await db.query(
+      `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
+       VALUES (?, ?, ?, ?, 0, NOW())`,
+      [client.user_id, client.booking_id, paymentId, message]
+    );
+
+    await db.query(
+      `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+       VALUES (?, 'staff', 'Completion Notice Sent', ?, NOW())`,
+      [staff.user_id, `Completion notice sent to ${client.name}`]
+    );
+
+    res.json({ success: true, message: "✅ Completion email and notification sent successfully!" });
+  } catch (err) {
+    console.error("❌ Error sending completion notice:", err);
+    res.json({ success: false, message: "Failed to send completion notice." });
+  }
+});
+
+// ✅ SMS version (connected to Traccar)
+router.post("/completed_sms/:id", requireStaff, async (req, res) => {
+  try {
+    const paymentId = req.params.id;
+
+    // Fetch client info
+    const [rows] = await db.query(
+      `SELECT 
+         u.firstName, 
+         u.lastName, 
+         u.contact_number,
+         p.payment_type
+       FROM user_tbl u
+       JOIN payment_tbl p ON u.user_id = p.user_id
+       WHERE p.payment_id = ?`,
+      [paymentId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "Client not found." });
+    }
+
+    const client = rows[0];
+    let phoneNumber = client.contact_number.replace(/\s+/g, "");
+    if (phoneNumber.startsWith("0")) {
+      phoneNumber = "+63" + phoneNumber.slice(1);
+    }
+
+    const message = 
+`Dear ${client.firstName} ${client.lastName},
+
+Congratulations! Your ${client.payment_type} has been fully paid.
+
+Thank you for trusting Everlasting Peace Memorial Park.`;
+
+    // Send via Traccar
+    const response = await axios.post(
+      TRACCAR_SMS_BASE_URL,
+      {
+        to: phoneNumber,
+        message: message,
+      },
+      {
+        headers: {
+          Authorization: TRACCAR_SMS_TOKEN,
+          "Content-Type": "application/json",
+        },
+        timeout: SMS_TIMEOUT,
+      }
+    );
+
+    console.log("✅ Completion SMS sent:", response.data);
+
+    // Log SMS sending
+    await db.query(
+      `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+       VALUES (?, 'staff', 'SMS Completion Notice Sent', ?, NOW())`,
+      [req.session.user.user_id, `Sent SMS completion notice to ${client.firstName} (${phoneNumber})`]
+    );
+
+    return res.json({ success: true, message: "📩 SMS completion notice sent successfully via Traccar!" });
+  } catch (err) {
+    console.error("❌ SMS sending error:", err);
+    res.json({ success: false, message: "Failed to send completion SMS." });
+  }
+});
+
 // ✅ Manual/Automatic Reminder Send
 router.post("/remind/:id", requireStaff, async (req, res) => {
   const paymentId = req.params.id;
@@ -80,7 +191,6 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
     const client = rows[0];
     const dueDate = new Date(client.due_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-    // Prepare mail
     const mailOptions = {
       from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER || "rheachellegutierrez17@gmail.com"}>`,
       to: to || client.email,
@@ -96,7 +206,6 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    // Insert notification
     await db.query(
       `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
        VALUES (?, ?, ?, ?, 0, NOW())`,
@@ -108,7 +217,6 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
       ]
     );
 
-    // Log staff action
     await db.query(
       `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
        VALUES (?, 'staff', 'Payment Reminder Sent', ?, NOW())`,
@@ -122,7 +230,7 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
   }
 });
 
-// 🆕 AUTO UPDATE NEXT DUE DATE LOGIC (when payment is made)
+// 🆕 AUTO UPDATE NEXT DUE DATE LOGIC
 router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
   const paymentId = req.params.id;
   const staff = req.session.user;
@@ -137,24 +245,14 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
     if (!rows.length) return res.json({ success: false, message: "Payment not found." });
 
     const payment = rows[0];
-
-    // compute total paid + current payment
     const newTotal = Number(payment.total_paid || 0) + Number(payment.amount);
     let nextDueDate = new Date(payment.due_date);
-
-    // add 1 month
     nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-
-    // if fully paid (reached months * monthly_amount), mark completed
     const fullAmount = payment.monthly_amount * payment.months;
     const isComplete = newTotal >= fullAmount;
 
     if (isComplete) {
-      await db.query(
-        `UPDATE payment_tbl SET status = 'Completed' WHERE payment_id = ?`,
-        [paymentId]
-      );
-
+      await db.query(`UPDATE payment_tbl SET status = 'Completed' WHERE payment_id = ?`, [paymentId]);
       await db.query(
         `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
          VALUES (?, ?, ?, ?, 0, NOW())`,
@@ -165,20 +263,17 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
           `Congratulations! Your installment plan is now fully paid.`,
         ]
       );
-
       await db.query(
         `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
          VALUES (?, 'staff', 'Installment Completed', ?, NOW())`,
         [staff.user_id, `Client has completed all installment payments.`]
       );
-
       return res.json({ success: true, message: "Installment completed successfully!" });
     } else {
       await db.query(
         `UPDATE payment_tbl SET due_date = ?, total_paid = ?, status = 'Ongoing' WHERE payment_id = ?`,
         [nextDueDate, newTotal, paymentId]
       );
-
       await db.query(
         `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
          VALUES (?, ?, ?, ?, 0, NOW())`,
@@ -189,13 +284,11 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
           `Thank you for your payment! Your next due date is on ${nextDueDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.`,
         ]
       );
-
       await db.query(
         `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
          VALUES (?, 'staff', 'Installment Updated', ?, NOW())`,
         [staff.user_id, `Updated next due date for Payment ID ${paymentId}`]
       );
-
       return res.json({ success: true, message: "Next due date updated successfully!" });
     }
   } catch (err) {
@@ -205,66 +298,81 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
 });
 
 // ==========================
-// 📱 TWILIO SMS REMINDER FEATURE
+// 📱 TRACCAR SMS REMINDER FEATURE
 // ==========================
 const axios = require("axios");
-const SEMAPHORE_API_KEY = process.env.SEMAPHORE_API_KEY;
+const TRACCAR_SMS_BASE_URL = process.env.TRACCAR_SMS_BASE_URL;
+const TRACCAR_SMS_TOKEN = process.env.TRACCAR_SMS_TOKEN;
+const SMS_TIMEOUT = process.env.TRACCAR_SMS_TIMEOUT_MS || 15000;
 
-
-// ✅ SMS Reminder Route
-// ✅ SMS Reminder Route
+// ✅ Send SMS reminder via Traccar
 router.post("/sms/:id", requireStaff, async (req, res) => {
   try {
     const installmentId = req.params.id;
-
-    // 🔍 Get client info
     const [rows] = await db.query(
-      `SELECT u.firstName, u.lastName, u.contact_number, p.booking_id
+      `SELECT 
+         u.firstName, u.lastName, u.contact_number,
+         p.payment_type, p.amount, p.due_date
        FROM user_tbl u
        JOIN payment_tbl p ON u.user_id = p.user_id
        WHERE p.payment_id = ?`,
       [installmentId]
     );
 
-    if (!rows.length) {
+    if (!rows.length)
       return res.status(404).json({ success: false, message: "Client not found." });
-    }
 
     const client = rows[0];
-    let phoneNumber = client.contact_number;
+    let phoneNumber = client.contact_number.replace(/\s+/g, "");
+    if (phoneNumber.startsWith("0")) phoneNumber = "+63" + phoneNumber.slice(1);
 
-    // ✅ Convert to 09 -> +639 format
-    if (phoneNumber.startsWith("0")) {
-      phoneNumber = "+63" + phoneNumber.slice(1);
-    }
+    const paymentType = client.payment_type || "installment payment";
+    const amount = client.amount ? Number(client.amount).toLocaleString("en-PH") : "0.00";
+    const dueDate = client.due_date
+      ? new Date(client.due_date).toLocaleDateString("en-PH", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "a future date";
 
-    // 🧠 Message content
-    const messageBody = `Hello ${client.firstName}, this is a reminder for your installment payment at Everlasting Peace Memorial Park. Thank you.`;
+    const message = 
+`Dear ${client.firstName} ${client.lastName},
 
-    // 📤 Send SMS via Semaphore
-    const response = await axios.post("https://api.semaphore.co/api/v4/messages", {
-      apikey: SEMAPHORE_API_KEY,
-      number: phoneNumber,
-      message: messageBody,
-      sendername: "EPMemorial"
-    });
+This is a reminder that your ${paymentType} of PHP${amount} is due on ${dueDate}.
 
-    console.log("✅ SMS sent successfully:", response.data);
+Please log in to our website and go to Payment History, then click the "Pay Here" button to pay your due amount.
 
-    // 🧾 Log action
+Please make your payment promptly.
+
+Thank you,
+Everlasting Peace Memorial Park`;
+
+    const response = await axios.post(
+      TRACCAR_SMS_BASE_URL,
+      { to: phoneNumber, message: message },
+      {
+        headers: {
+          Authorization: TRACCAR_SMS_TOKEN,
+          "Content-Type": "application/json",
+        },
+        timeout: SMS_TIMEOUT,
+      }
+    );
+
+    console.log("✅ SMS sent:", response.data);
+
     await db.query(
       `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
        VALUES (?, 'staff', 'SMS Reminder Sent', ?, NOW())`,
       [req.session.user.user_id, `Sent SMS reminder to ${client.firstName} (${phoneNumber})`]
     );
 
-    res.json({ success: true, message: "SMS sent successfully via Semaphore!" });
+    return res.json({ success: true, message: "SMS sent successfully via Traccar SMS Gateway!" });
   } catch (error) {
-    console.error("❌ Error sending SMS:", error);
-    res.status(500).json({ success: false, message: "Failed to send SMS.", error: error.message });
+    console.error("SMS gateway failed:", error);
+    return res.status(500).json({ success: false, message: "Failed to send SMS.", error: error.message });
   }
 });
-
-
 
 module.exports = router;
