@@ -11,14 +11,14 @@
 }
 
 :root {
-  --bg-gradient-start: #fdf5ee;
-  --bg-gradient-end: #f5ede4;
-  --primary-dark: #101b0d;
-  --primary: #2d4a24;
-  --accent-1: #8aac7c;
-  --accent-2: #7a9c6c;
+  --bg-gradient-start: #e6f1e6;      /* light greenish background */
+  --bg-gradient-end: #d4ead4;        /* slightly darker green */
+  --primary-dark: #101b0d;           /* dark green */
+  --primary: #2d4a24;                /* medium green */
+  --accent-1: #4a7f3c;               /* accent green 1 */
+  --accent-2: #7aae6b;               /* accent green 2 */
   --muted: #666;
-  --text-dark: #2b2b2b;
+  --text-dark: #1b2a17;              /* dark greenish text */
   --white: #ffffff;
 }
 
@@ -51,10 +51,25 @@ body {
 
 .admin-header h1 {
   font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin: 0;
 }
+
+/* Hamburger */
+.hamburger-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.hamburger-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+.hamburger-btn:active { transform: translateY(0); }
 
 .admin-header nav ul {
   list-style: none;
@@ -68,8 +83,9 @@ body {
   text-decoration: none;
   padding: 0.45rem 0.9rem;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 500;
   transition: background 0.22s ease, transform 0.18s ease;
+  font-size: 15px;
 }
 
 .admin-header nav ul li a:hover,
@@ -88,7 +104,6 @@ body {
   min-height: calc(100vh - 80px);
 }
 
-/* Collapsible sidebar when .admin-main has .collapsed */
 .admin-main.collapsed .sidebar {
   width: 0;
   padding: 0;
@@ -134,12 +149,10 @@ body {
 }
 
 .sidebar ul li a {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  display: block;
   text-decoration: none;
   color: var(--primary-dark);
-  background: #f7f8f6;
+  background: #f0f7f0;
   padding: 0.8rem 1rem;
   border-radius: 10px;
   transition: all 0.3s ease;
@@ -188,7 +201,6 @@ body {
   font-size: 0.9rem;
 }
 
-/* Topbar icons and search bar */
 .topbar .icons {
   display: flex;
   gap: 0.6rem;
@@ -221,17 +233,17 @@ body {
   border: 2px solid var(--white);
 }
 
-/* Notification button: circular green bell with red badge (matches screenshot) */
+/* Notification button */
 .notification-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--accent-1);
   color: var(--white);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   border: none;
   box-shadow: 0 8px 22px rgba(16,27,13,0.12);
   cursor: pointer;
@@ -248,7 +260,7 @@ body {
   position: absolute;
   top: -6px;
   right: -6px;
-  background: #ef4453; /* vivid red */
+  background: #ef4453; 
   color: #fff;
   font-size: 0.72rem;
   min-width: 20px;
@@ -321,7 +333,7 @@ body {
 
 .stat-card {
   background: var(--white);
-  border: 1px solid rgba(16, 27, 13, 0.1);
+  border: 1px solid rgba(16,  27,  13, 0.1);
   padding: 1.5rem;
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(16, 27, 13, 0.05);
@@ -368,7 +380,7 @@ body {
 }
 
 .action-btn {
-  background: #f8f9f8;
+  background: #f0f7f0;
   border: 1px solid rgba(16, 27, 13, 0.15);
   border-radius: 10px;
   padding: 1rem;
@@ -411,7 +423,7 @@ body {
 }
 
 .activity-item:hover {
-  background: #f8f9f8;
+  background: #f0f7f0;
 }
 
 .activity-icon {
@@ -449,6 +461,6 @@ body {
 
 /* Accessibility: focus outlines */
 a:focus, button:focus, input:focus, select:focus, textarea:focus {
-  outline: 3px solid rgba(138,172,124,0.18);
+  outline: 3px solid rgba(74,127,60,0.18);
   outline-offset: 2px;
 }

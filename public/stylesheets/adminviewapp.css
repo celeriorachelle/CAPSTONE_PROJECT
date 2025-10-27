@@ -1,5 +1,6 @@
 
     @import url('/stylesheets/admin.css');
+@import url('/stylesheets/hamburger-menu.css');
 
     /* Rely on shared admin.css for base layout (body, header, sidebar). */
 

@@ -50,6 +50,7 @@
                             <input type="password" id="password" name="password" required placeholder="Enter your password">
                         </div>
                     </div>
+                    <input type="hidden" name="redirect" value="<%= typeof redirect !== 'undefined' ? redirect : '' %>">
                     <div class="input-row">
                         <div class="input-checkbox">
                             <input type="checkbox" name="remember_me" id="remember_me">

@@ -12,16 +12,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/stylesheets/admin.css" />
-  <link rel="stylesheet" href="/stylesheets/admin_reports.css">
+  <link rel="stylesheet" href="/stylesheets/reports.css">
 </head>
 <body>
-  <%- include('partials/admin/topbar', { title: 'Admin Reports' }) %>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-content">
+      <h1><span class="navbar-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></span> Admin Reports</h1>
+      <a href="/admin"><span><i class="fas fa-home" aria-hidden="true"></i></span> Dashboard</a>
+    </div>
+  </div>
 
-  <main class="admin-main">
-    <%- include('partials/admin/sidebar') %>
-
-    <section class="content">
-      <div class="container">
+  <div class="container">
     <!-- Header Section -->
     <div class="header-section">
       <div class="header-content">
@@ -152,9 +154,7 @@
         </table>
       </div>
     </div>
-      </div>
-    </section>
-  </main>
+  </div>
 
   <script>
     const bookings = <%- JSON.stringify(bookings || []) %>;

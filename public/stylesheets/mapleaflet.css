@@ -125,6 +125,17 @@
       max-height: 1000px;
     }
 
+    /* Keep details visible when explicitly expanded via JS (click) */
+    .bubble-content .plot-box.expanded {
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+      max-height: 260px; /* match hover expanded size */
+    }
+    .bubble-content .plot-box.expanded .plot-details {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
         .bubble-arrow { display: visible; }
     .bubble-content {
       background: white;

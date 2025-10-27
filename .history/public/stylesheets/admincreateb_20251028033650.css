@@ -15,6 +15,45 @@
   --error-color: #dc2626;
 }
 
+/* ===== HEADER & HAMBURGER ALIGNMENT ===== */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1.25rem;
+  background: #fff; /* keep consistent with topbar card */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-header .hamburger-btn {
+  background: transparent;
+  border: none;
+  padding: 0.45rem;
+  border-radius: 8px;
+  font-size: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-header .hamburger-btn i {
+  display: block;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--primary-color);
+}
+
 /* ===== CONTENT SECTION ===== */
 .content {
   background: var(--light-bg);

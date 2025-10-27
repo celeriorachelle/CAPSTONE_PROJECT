@@ -1,34 +1,37 @@
-<!DOCTYPE html>
+x<!DOCTYPE html>
 <html>
 <head>
   <title>Cemetery Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="/stylesheets/maps.css">
   <link rel="stylesheet" href="/stylesheets/mapleaflet.css">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="map-container">
-    <h1 style="color: white; font-family: 'Poppins', sans-serif;">Cemetery Map</h1>
-    <div>
-      <% if (user.role === 'admin') { %>
-        <a class="back-btn" href="/admin">← Back to Dashboard</a>
-      <% } else { %>
-        <a class="back-btn" href="/">← Back to Home</a>
-      <% } %>
+  <div class="map-container" style="width: 100%;">
+    <div class="header-container">
+      <h1 style="color: white; font-family: 'Poppins', sans-serif;">Cemetery Map</h1>
+      <div>
+        <% if (user && user.role === 'admin') { %>
+          <a class="back-btn" href="/admin">← Back to Dashboard</a>
+        <% } else { %>
+          <a class="back-btn" href="/">← Back to Home</a>
+        <% } %>
+      </div>
     </div>
     <div class="search-container" style="margin-bottom: 15px;">
       <form id="searchForm" onsubmit="handleSearch(event)" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="firstName" placeholder="First Name" style="padding: 5px;">
-        <input type="text" id="lastName" placeholder="Last Name" style="padding: 5px;">
+        <input type="text" id="firstName" placeholder="First Name" style="padding: 5px; max-width: 250px;">
+        <input type="text" id="lastName" placeholder="Last Name" style="padding: 5px; max-width: 250px;">
         <input type="number" id="yearBorn" placeholder="Year Born" style="padding: 5px; width:110px;" min="1800" max="2100">
         <input type="number" id="yearDied" placeholder="Year Died" style="padding: 5px; width:110px;" min="1800" max="2100">
-        <button type="submit" style="padding: 5px 15px;">Search</button>
+        <button type="submit" style="padding: 5px 15px; margin-left: auto;">Search</button>
         <button type="button" onclick="clearSearch()" style="padding: 5px 15px;">Clear Search</button>
       </form>
     </div>
     <div id="map"></div>
     <div id="infoBox" class="info-box">
-      <em>Click a section to view plots. You can also draw/edit polygons.</em>
+      <em>Click a section to view plots.      </em>
     </div>
   </div>
 
@@ -210,16 +213,48 @@
       const fullName = [p.deceased_firstName, p.deceased_middleName, p.deceased_lastName].filter(Boolean).join(' ');
       const born = formatDate(p.birth_date);
       const died = formatDate(p.death_date);
+      const avail = (p.availability || '').toLowerCase();
+      function availColor(a) {
+        if (a === 'available') return '#2ecc71'; // green
+        if (a === 'reserved') return '#f1c40f'; // yellow
+        if (a === 'occupied') return '#e74c3c'; // red
+        return '#bdc3c7'; // default gray
+      }
+      function btnStyle(a) {
+        const base = 'color:#111;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;';
+        if (a === 'available') return `${base} background:${availColor(a)};`;
+        if (a === 'reserved') return `${base} background:${availColor(a)};`;
+        if (a === 'occupied') return `${base} background:${availColor(a)};`;
+        return `${base} background:${availColor(a)};`;
+      }
       return `
-        <div class="plot-box" title="${p.plot_number || ''}">
-          <div class="plot-header">${p.plot_number || 'N/A'}</div>
-          <div class="plot-details">
+        <div class="plot-box" data-plot='${JSON.stringify({
+          plot_id: p.plot_id || '',
+          plot_number: p.plot_number || '',
+          location: p.location || '',
+          type: p.type || '',
+          price: p.price || 0,
+          availability: avail,
+          deceased_firstName: p.deceased_firstName || '',
+          deceased_middleName: p.deceased_middleName || '',
+          deceased_lastName: p.deceased_lastName || '',
+          birth_date: p.birth_date || '',
+          death_date: p.death_date || ''
+        }).replace(/"/g, '&quot;')}' style="border:2px solid ${availColor(avail)}; border-radius:8px;">
+          <div class="plot-header" style="display:flex;align-items:center;justify-content:space-between;background:${availColor(avail)};color:#111;padding:4px 8px;border-top-left-radius:6px;border-top-right-radius:6px;">
+            <span>${p.plot_number || 'N/A'}</span>
+            <button class="plot-close" title="Close" style="background:transparent;border:none;font-size:16px;line-height:1;cursor:pointer;padding:0 4px;">×</button>
+          </div>
+          <div class="plot-details" style="display:none;padding:8px;">
             <div><strong>Location:</strong> ${p.location || 'N/A'}</div>
             <div><strong>Type:</strong> ${p.type || 'N/A'}</div>
             <div><strong>Status:</strong> ${p.availability || 'N/A'}</div>
             <div style="margin-top:6px;"><strong>Name:</strong> ${fullName || 'N/A'}</div>
             <div><strong>Born:</strong> ${born}</div>
             <div><strong>Died:</strong> ${died}</div>
+            <div style="margin-top:8px;">
+              <button class="view-details-btn" style="${btnStyle(avail)}">View Details</button>
+            </div>
           </div>
         </div>
       `;
@@ -251,6 +286,85 @@
       if (titleEl) titleEl.textContent = title;
       const plotsContainer = bubbleEl.querySelector('.bubble-plots');
       plotsContainer.innerHTML = plots.map(p => plotHtml(p)).join('');
+
+      // Make plot boxes clickable to toggle details and handle View Details
+      plotsContainer.querySelectorAll('.plot-box').forEach(box => {
+        box.style.cursor = 'pointer';
+        const details = box.querySelector('.plot-details');
+        const closeBtn = box.querySelector('.plot-close');
+
+        // Clicking header or box toggles details (but not the close or view buttons)
+        box.addEventListener('click', (e) => {
+          // Don't trigger if clicking buttons
+          if (e.target && (e.target.classList.contains('view-details-btn') || e.target.classList.contains('plot-close'))) return;
+          
+          if (details) {
+            // Toggle the expanded state
+            const isExpanded = box.classList.contains('expanded');
+            if (!isExpanded) {
+              // Expand this box
+              box.classList.add('expanded');
+              details.style.display = 'block';
+              if (closeBtn) {
+                closeBtn.style.display = 'block';
+              }
+            } else {
+              // Collapse this box
+              box.classList.remove('expanded');
+              details.style.display = 'none';
+              if (closeBtn) {
+                closeBtn.style.display = 'none';
+              }
+            }
+            
+            const data = JSON.parse(box.getAttribute('data-plot').replace(/&quot;/g, '"'));
+            const btn = box.querySelector('.view-details-btn');
+            if (btn) {
+              const avail = (data.availability || '').toLowerCase();
+              if (avail === 'available') { btn.textContent = 'View Details'; btn.style.background = '#2ecc71'; btn.disabled = false; }
+              else if (avail === 'reserved') { btn.textContent = 'Reserved'; btn.style.background = '#f1c40f'; btn.disabled = true; }
+              else if (avail === 'occupied') { btn.textContent = 'Occupied'; btn.style.background = '#e74c3c'; btn.disabled = true; }
+              else { btn.textContent = 'View Details'; btn.style.background = '#bdc3c7'; btn.disabled = false; }
+            }
+          }
+        });
+
+        // Close button hides details (keeps the box visible, collapsed)
+        if (closeBtn) {
+          closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (details) details.style.display = 'none';
+          });
+        }
+
+        // Handle View Details button
+        const viewBtn = box.querySelector('.view-details-btn');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const data = JSON.parse(box.getAttribute('data-plot').replace(/&quot;/g, '"'));
+            const avail = (data.availability || '').toLowerCase();
+            if (avail !== 'available') return;
+
+            let isLoggedIn = false;
+            try {
+              const resp = await fetch('/users/me', { credentials: 'include' });
+              if (resp.ok) {
+                const me = await resp.json();
+                isLoggedIn = !!(me && me.user_id);
+              }
+            } catch (_) {}
+
+            if (!isLoggedIn) {
+              const intended = encodeURIComponent(`/book/${data.plot_id}`);
+              window.location.href = `/login?redirect=${intended}`;
+              return;
+            }
+
+            window.location.href = `/book/${data.plot_id}`;
+          });
+        }
+      });
 
       // Convert map point to container pixel position
       const latlng = L.latLng(point[0], point[1]);
@@ -564,6 +678,13 @@
       showBubbleHtmlAtPoint([center.lat, center.lng], 'Chapel', html);
     });
 
+  </script>
+
+  <script>
+    // Fallback endpoint for login status if /users/me doesn't exist
+    // This adds a minimal handler relying on a server-side variable injected optionally.
+    // If the server renders maps.ejs with a user variable, expose it for client checks.
+    window.__CURRENT_USER__ = <%- JSON.stringify(typeof user !== 'undefined' ? user : null) %>;
   </script>
       <footer class="footer" style="margin-top:3%;">
       <%- include('partials/footer') %>

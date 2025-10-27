@@ -109,12 +109,38 @@
 </head>
 
 <body>
-  <%- include('partials/admin/topbar', { title: 'Burial Records' }) %>
+  <!-- Header -->
+  <header class="admin-header">
+    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
+    <h1>Burial Records</h1>
+    <nav>
+      <ul>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </nav>
+  </header>
 
   <main class="admin-main">
-    <%- include('partials/admin/sidebar') %>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <ul>
+        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
+        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
+        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
+        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
+        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
+      </ul>
+    </aside>
 
-  <!-- Content Section -->
+    <!-- Content Section -->
     <section class="content">
      <header class="topbar">
         <div class="topbar-left">
