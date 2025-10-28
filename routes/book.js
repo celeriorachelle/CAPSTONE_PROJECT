@@ -140,7 +140,7 @@ router.post('/', requireLogin, async (req, res) => {
       }
 
       req.session.burialBookingData = bookingData;
-      req.session.burialPlotId = ownedPlots[0].plot_id;
+      // The plot selection is now handled on the /book/burial-details page
 
       return res.redirect('/book/burial-details');
     }
@@ -239,18 +239,39 @@ router.post('/submit', requireLogin, async (req, res) => {
 router.get('/burial-details', requireLogin, async (req, res) => {
   const bookingData = req.session.burialBookingData;
   if (!bookingData) return res.redirect('/book');
+
+  const userId = req.session.user.user_id;
+  let ownedPlots = [];
+  try {
+    // Fetch all plots owned by the user
+    [ownedPlots] = await db.query(
+      `SELECT plot_id, plot_number, location, type, availability
+       FROM plot_map_tbl
+       WHERE user_id = ?`,
+      [userId]
+    );
+  } catch (err) {
+    console.error('Error fetching owned plots for burial details:', err);
+    return res.redirect('/userdashboard?alert=' + encodeURIComponent("Error fetching your plots. Please try again later."));
+  }
+
+  if (ownedPlots.length === 0) {
+    return res.redirect('/userdashboard?alert=' + encodeURIComponent("It seems that you currently don't have any plot yet, book a plot first."));
+  }
+
   res.render('burial_details', {
     title: 'Burial Details',
-    bookingData
+    bookingData,
+    ownedPlots // Pass owned plots to the template
   });
 });
 
 router.post('/burial-details', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
-  const { deceased_firstName, deceased_lastName, birth_date, death_date } = req.body;
+  const { deceased_firstName, deceased_lastName, birth_date, death_date, plot_id: selectedPlotId } = req.body;
 
+  // Retrieve booking data from session
   const bookingData = req.session.burialBookingData;
-  let plotId = req.session.burialPlotId;
 
   if (!bookingData) {
     return res.redirect('/book');
@@ -260,25 +281,37 @@ router.post('/burial-details', requireLogin, async (req, res) => {
     return res.render('burial_details', {
       title: 'Burial Details',
       bookingData,
+      ownedPlots: await (async () => { // Re-fetch plots for re-render
+        const [ps] = await db.query(`SELECT plot_id, plot_number, location, type, availability FROM plot_map_tbl WHERE user_id = ?`, [userId]);
+        return ps;
+      })(),
       error: 'All deceased information fields are required.'
     });
   }
 
   try {
-    if (!plotId) {
-      const [owned] = await db.query(`SELECT plot_id FROM plot_map_tbl WHERE user_id = ? LIMIT 1`, [userId]);
-      if (!owned || owned.length === 0) {
-        return res.redirect('/userdashboard?alert=' + encodeURIComponent("It seems that you currently don't have any plot yet, book a plot first."));
-      }
-      plotId = owned[0].plot_id;
+    // Validate selected plot_id
+    const [ownedPlots] = await db.query(
+      `SELECT plot_id FROM plot_map_tbl WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (!selectedPlotId || !ownedPlots.some(p => p.plot_id == selectedPlotId)) {
+      return res.render('burial_details', {
+        title: 'Burial Details',
+        bookingData,
+        ownedPlots, // Pass back for re-rendering
+        error: 'Please select a valid plot you own for burial.'
+      });
     }
+    const plotIdToUse = parseInt(selectedPlotId, 10); // Ensure it's a number
 
     // Update plot with deceased info
     await db.query(
       `UPDATE plot_map_tbl
-       SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?
-       WHERE plot_id = ? AND user_id = ?`,
-      [deceased_firstName, deceased_lastName, birth_date, death_date, plotId, userId]
+       SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?, availability = 'occupied'
+       WHERE plot_id = ? AND user_id = ?`, // Ensure user owns the plot they are updating
+      [deceased_firstName, deceased_lastName, birth_date, death_date, plotIdToUse, userId]
     );
 
     // Insert burial booking
@@ -294,8 +327,8 @@ router.post('/burial-details', requireLogin, async (req, res) => {
         bookingData.phone,
         bookingData.bookingDate,
         bookingData.visitTime,
-        bookingData.notes,
-        plotId
+        bookingData.notes, // This is the correct notes parameter
+        plotIdToUse // Use the selected plot ID
       ]
     );
     const bookingId = result.insertId;
@@ -304,7 +337,7 @@ router.post('/burial-details', requireLogin, async (req, res) => {
     await db.query(
       `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
        VALUES (?, ?, ?, 0, NOW(), ?)`,
-      [userId, bookingId, 'Your burial booking has been submitted and is pending approval.', plotId]
+      [userId, bookingId, 'Your burial booking has been submitted and is pending approval.', plotIdToUse] // Use the selected plot ID
     );
 
     // ✅ Log the burial booking
@@ -312,12 +345,12 @@ router.post('/burial-details', requireLogin, async (req, res) => {
       user_id: userId,
       user_role: req.session.user.role,
       action: 'Booking',
-      details: `${req.session.user.role} ${req.session.user.name} booked a burial for ${deceased_firstName} ${deceased_lastName}.`
+      details: `${req.session.user.role} ${req.session.user.name} booked a burial for ${deceased_firstName} ${deceased_lastName} in plot ${plotIdToUse}.`
     });
 
     // Clear session vars for burial flow
     req.session.burialBookingData = null;
-    req.session.burialPlotId = null;
+    req.session.burialPlotId = null; // Clear the old session variable
 
     // Fetch updated bookings list
     const [userBookings] = await db.query(
@@ -340,10 +373,13 @@ router.post('/burial-details', requireLogin, async (req, res) => {
     return res.render('burial_details', {
       title: 'Burial Details',
       bookingData,
+      ownedPlots: await (async () => { // Re-fetch plots for re-render
+        const [ps] = await db.query(`SELECT plot_id, plot_number, location, type, availability FROM plot_map_tbl WHERE user_id = ?`, [userId]);
+        return ps;
+      })(),
       error: 'Failed to save burial details. Please try again.'
     });
   }
 });
 
 module.exports = router;
-

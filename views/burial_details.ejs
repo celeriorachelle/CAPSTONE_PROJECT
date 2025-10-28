@@ -27,6 +27,20 @@
       <% } %>
 
       <form action="/book/burial-details" method="POST" class="form-grid">
+        <% if (ownedPlots && ownedPlots.length > 0) { %>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="plot_id">Select Plot for Burial</label>
+            <select id="plot_id" name="plot_id" required>
+              <option value="">-- Select an Owned Plot --</option>
+              <% ownedPlots.forEach(plot => { %>
+                <option value="<%= plot.plot_id %>">Plot #<%= plot.plot_number %> (<%= plot.location %> - <%= plot.type %>) %></option>
+              <% }); %>
+            </select>
+          </div>
+        <% } else { %>
+          <p class="error-message" style="grid-column: 1 / -1;">You do not currently own any plots. Please acquire a plot before booking a burial service.</p>
+        <% } %>
+
         <div class="form-group">
           <label for="deceased_firstName">Deceased First Name</label>
           <input type="text" id="deceased_firstName" name="deceased_firstName" required>
@@ -49,7 +63,7 @@
 
         <div class="form-actions">
           <button type="button" onclick="window.location.href='/book'">Cancel</button>
-          <button type="submit">Submit</button>
+          <button type="submit" <%= (ownedPlots && ownedPlots.length > 0) ? '' : 'disabled' %>>Submit</button>
         </div>
       </form>
     </div>

@@ -48,7 +48,7 @@ body {
   border-radius: 16px;
   padding: 35px 40px;
   margin: 40px auto;
-  max-width: 900px;
+  width: fit-content;
   border: 1px solid rgba(16,27,13,0.12);
 }
 

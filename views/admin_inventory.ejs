@@ -6,6 +6,7 @@
   <title>Plot Inventory | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin_inventory.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" />
 </head>
 
 <body>
@@ -79,11 +80,6 @@
                         <button type="button" class="btn-action btn-edit" onclick='openPopup(true, <%- JSON.stringify(plot) %>)'>
                           <i class="fas fa-edit"></i> Edit
                         </button>
-                        <form method="POST" action="/admin_inventory/delete/<%= plot.item_id %>" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this plot?')">
-                          <button type="submit" class="btn-action btn-delete">
-                            <i class="fas fa-trash"></i> Delete
-                          </button>
-                        </form>
                       </div>
                     </td>
                   </tr>
@@ -107,67 +103,192 @@
     </section>
   </main>
 
-  <!-- Popup -->
+  <!-- Popup: Plot List -->
   <div class="popup" id="plotPopup">
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup()">&times;</span>
-      <h2 id="popupTitle">Add New Plot</h2>
-      <form id="plotForm" method="POST" action="/admin_inventory/add">
-        <input type="hidden" name="item_id" id="itemId">
+      <h2 id="popupTitle">Plot List</h2>
+      <div id="plotListContainer">
+        <div style="text-align:center; color:#888;">Select an item to view plots.</div>
+      </div>
+    </div>
+  </div>
 
-        <label>Item Name</label>
-        <input type="text" name="item_name" id="itemName" required>
+  <!-- Popup: Add Plot -->
+  <div class="popup" id="addPlotPopup">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closeAddPlotPopup()">&times;</span>
+      <h2>Add New Plot</h2>
+      <form id="addPlotForm">
+        <label>Plot Number</label>
+        <input type="text" name="plot_number" id="addPlotNumber" required>
 
-        <label>Category</label>
-        <input type="text" name="category" id="category" required>
+        <label>Location</label>
+        <select name="location" id="addPlotLocation" required>
+          <option value="Veterans Memorial">Veterans Memorial</option>
+          <option value="Memorial Chapel Level 1">Memorial Chapel Level 1</option>
+          <option value="Memorial Chapel Level 2">Memorial Chapel Level 2</option>
+          <option value="Memorial Chapel Level 3">Memorial Chapel Level 3</option>
+          <option value="Serenity Columbarium">Serenity Columbarium</option>
+          <option value="Heritage Gardens">Heritage Gardens</option>
+          <option value="Family Estates">Family Estates</option>
+        </select>
 
-        <label>Total Plots</label>
-        <input type="number" name="total_plots" id="totalPlots" min="1" required>
+        <label>Type</label>
+        <select name="type" id="addPlotType" required>
+          <option value="Plot">Plot</option>
+          <option value="Apartment">Apartment</option>
+          <option value="Vault">Vault</option>
+          <option value="Tomb">Tomb</option>
+          <option value="Ossuary">Ossuary</option>
+        </select>
 
-        <label>Available Plots</label>
-        <input type="number" name="available_plots" id="availablePlots" min="0" required>
-
-        <label>Default Price</label>
-        <input type="number" name="default_price" id="defaultPrice" min="0" required>
+        <label>Price</label>
+        <input type="number" name="price" id="addPlotPrice" min="0" required>
 
         <div class="popup-actions">
-          <button type="submit" class="save-btn" id="popupSubmitBtn">Add Plot</button>
-          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+          <button type="submit" class="save-btn">Add Plot</button>
+          <button type="button" class="cancel-btn" onclick="closeAddPlotPopup()">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
   <script>
     let currentPage = 1;
     let filteredRows = [];
+    let currentItemName = null;
 
     // Popup functions
     function openPopup(edit = false, plot = null) {
       document.getElementById("plotPopup").style.display = "flex";
-      document.getElementById("plotForm").reset();
-
+      document.getElementById("popupTitle").innerText = "Plot List";
+      const plotListContainer = document.getElementById("plotListContainer");
+      plotListContainer.innerHTML = '<div style="text-align:center; color:#888;">Loading plots...</div>';
       if (edit && plot) {
-        document.getElementById("popupTitle").innerText = "Edit Plot";
-        document.getElementById("popupSubmitBtn").innerText = "Update Plot";
-        document.getElementById("plotForm").action = "/admin_inventory/edit/" + plot.item_id;
-        document.getElementById("itemId").value = plot.item_id;
-        document.getElementById("itemName").value = plot.item_name;
-        document.getElementById("category").value = plot.category;
-        document.getElementById("totalPlots").value = plot.total_plots;
-        document.getElementById("availablePlots").value = plot.available_plots;
-        document.getElementById("defaultPrice").value = plot.default_price;
+        currentItemName = plot.item_name;
+        // Fetch plots for this item name
+        fetch(`/admin_inventory/plots/${encodeURIComponent(plot.item_name)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.plots && data.plots.length > 0) {
+              let html = `<div style='max-height:350px;overflow:auto;'><table style='width:100%; border-collapse:separate; border-spacing:0; font-size:15px;'>`;
+              html += `<tr style='background:#f8f9fa;'><th style='padding:8px 4px;text-align:center;'>Plot Number</th><th style='padding:8px 4px;text-align:center;'>Location</th><th style='padding:8px 4px;text-align:center;'>Type</th><th style='padding:8px 4px;text-align:center;'>Price</th><th style='padding:8px 4px;text-align:center;'>Status</th><th style='padding:8px 4px;text-align:center;'>Action</th></tr>`;
+              data.plots.forEach(p => {
+                html += `<tr style='border-bottom:1px solid #e9ecef;'>` +
+                  `<td style='padding:6px 4px;text-align:center;'>${p.plot_number}</td>` +
+                  `<td style='padding:6px 4px;text-align:center;'>${p.location}</td>` +
+                  `<td style='padding:6px 4px;text-align:center;'>${p.type}</td>` +
+                  `<td style='padding:6px 4px;text-align:center;'>₱${Number(p.price).toLocaleString()}</td>` +
+                  `<td style='padding:6px 4px;text-align:center;'>${p.availability}</td>` +
+                  `<td style='padding:6px 4px;text-align:center;'><button class='btn-action btn-delete' style='padding:4px 10px;font-size:13px;' onclick='deletePlot(${p.plot_id})'><i class="fas fa-trash"></i> Delete</button></td>` +
+                  `</tr>`;
+              });
+              html += `</table></div>`;
+              plotListContainer.innerHTML = html;
+            } else {
+              plotListContainer.innerHTML = '<div style="text-align:center; color:#888;">No plots found for this item.</div>';
+            }
+          })
+          .catch(() => {
+            plotListContainer.innerHTML = '<div style="text-align:center; color:#c00;">Failed to load plots.</div>';
+          });
       } else {
-        document.getElementById("popupTitle").innerText = "Add New Plot";
-        document.getElementById("popupSubmitBtn").innerText = "Add Plot";
-        document.getElementById("plotForm").action = "/admin_inventory/add";
+        plotListContainer.innerHTML = '<div style="text-align:center; color:#888;">Select an item to view plots.</div>';
       }
     }
 
     function closePopup() {
       document.getElementById("plotPopup").style.display = "none";
-      document.getElementById("plotForm").reset();
     }
+
+    // Add Plot Popup
+    function openAddPlotPopup() {
+      document.getElementById("addPlotPopup").style.display = "flex";
+      document.getElementById("addPlotForm").reset();
+    }
+    function closeAddPlotPopup() {
+      document.getElementById("addPlotPopup").style.display = "none";
+    }
+
+    // Helper: Update inventory table row counts
+    function updateInventoryRowCounts(itemName) {
+      fetch(`/admin_inventory/plots/${encodeURIComponent(itemName)}`)
+        .then(res => res.json())
+        .then(data => {
+          const total = data.plots.length;
+          const available = data.plots.filter(p => p.availability === 'available').length;
+          // Find the row in the inventory table
+          document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
+            if (row.children[0] && row.children[0].textContent.trim() === itemName) {
+              row.children[2].textContent = total;
+              row.children[3].textContent = available;
+            }
+          });
+        });
+    }
+
+    // Add Plot Form Submission
+    document.getElementById('addPlotForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const plot_number = document.getElementById('addPlotNumber').value;
+      const location = document.getElementById('addPlotLocation').value;
+      const type = document.getElementById('addPlotType').value;
+      const price = document.getElementById('addPlotPrice').value;
+      fetch('/admin_inventory/plot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plot_number, location, type, price })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({ icon: 'success', title: 'Success', text: 'Plot added successfully!' });
+          closeAddPlotPopup();
+          if (currentItemName) {
+            openPopup(true, { item_name: currentItemName });
+            updateInventoryRowCounts(currentItemName);
+          }
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to add plot: ' + (data.error || 'Unknown error') });
+        }
+      })
+      .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to add plot.' }));
+    });
+
+    // Delete Plot
+    function deletePlot(plot_id) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to delete this plot?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`/admin_inventory/plot/${plot_id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Plot deleted successfully!' });
+                if (currentItemName) {
+                  openPopup(true, { item_name: currentItemName });
+                  updateInventoryRowCounts(currentItemName);
+                }
+              } else {
+                Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to delete plot: ' + (data.error || 'Unknown error') });
+              }
+            })
+            .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to delete plot.' }));
+        }
+      });
+    }
+
+    // Change Add Plot button to open the new popup
+    document.querySelector('.btn-add').onclick = openAddPlotPopup;
 
     // Search and Filter
     const searchInput = document.getElementById('searchInput');
