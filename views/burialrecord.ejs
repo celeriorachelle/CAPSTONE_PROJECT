@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
 
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
+
   <style>
     /* --- Burial Records Table Design --- */
     .records-table {
@@ -142,35 +146,50 @@
 
     <!-- Content Section -->
     <section class="content">
-     <header class="topbar">
+      <header class="topbar">
         <div class="topbar-left">
           <h2>Burial Records</h2>
           <div class="date-time" id="currentDateTime"></div>
         </div>
       </header>
 
-
       <!-- Table Section -->
       <section class="records-table">
         <h3><i class="fas fa-table"></i> Burial Records Table</h3>
         <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Deceased Name</th>
-                <th>Booking ID</th>
-                <th>Date of Death</th>
-                <th>Plot No.</th>
-                <th>Booking Date</th>
-                <th>Status</th>
-                <th>Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="7">No records available</td>
-              </tr>
-            </tbody>
+          <table id="burialTable">
+      <thead>
+  <tr>
+    <th>Plot No.</th>
+    <th>Deceased Name</th>
+    <th>Birth Date</th>
+    <th>Death Date</th>
+    <th>Location</th>
+    <th>Plot Type</th>
+    <th>Booked By</th>
+   
+  </tr>
+</thead>
+<tbody>
+  <% if (burialRecords && burialRecords.length > 0) { %>
+    <% burialRecords.forEach(record => { %>
+      <tr>
+        <td><%= record.plot_number %></td>
+        <td><%= record.deceased_firstName %> <%= record.deceased_lastName %></td>
+        <td><%= record.birth_date || 'N/A' %></td>
+        <td><%= record.death_date || 'N/A' %></td>
+        <td><%= record.location %></td>
+        <td><%= record.item_name || record.plot_type %></td>
+        <td><%= record.booked_by || 'N/A' %></td>
+        
+      </tr>
+    <% }) %>
+  <% } else { %>
+    <tr>
+      <td colspan="8">No burial records available</td>
+    </tr>
+  <% } %>
+</tbody>
           </table>
         </div>
       </section>
@@ -178,18 +197,34 @@
   </main>
 
   <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
   <script>
-     // Live date/time
-    setInterval(() => {
-      document.getElementById("currentDateTime").textContent =
-        new Date().toLocaleString();
-    }, 1000);
+    // Live date/time
     function updateDateTime() {
       const now = new Date();
       document.getElementById("currentDateTime").textContent = now.toLocaleString();
     }
     updateDateTime();
-    setInterval(updateDateTime, 60000);
+    setInterval(updateDateTime, 1000);
+
+    // Initialize DataTable with search and export
+    $(document).ready(function() {
+      $('#burialTable').DataTable({
+        dom: 'Bfrtip',
+        pageLength: 10,
+        buttons: [
+          'copy', 'csv', 'excel', 'print'
+        ]
+      });
+    });
   </script>
 </body>
 </html>

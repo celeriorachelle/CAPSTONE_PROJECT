@@ -72,7 +72,6 @@
     }
 
     .content-header h2::before {
-      content: '📋';
       font-size: 1.5rem;
     }
 

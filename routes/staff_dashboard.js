@@ -10,24 +10,21 @@ function requireStaff(req, res, next) {
   next();
 }
 
-// Staff Dashboard Overview
+// 🟢 Staff Dashboard Overview
 router.get('/', requireStaff, async (req, res) => {
   try {
-    // Total approved or reserved bookings
     const [bookings] = await db.query(`
       SELECT COUNT(*) AS totalBookings 
       FROM booking_tbl 
       WHERE status IN ('approved', 'reserved')
     `);
 
-    // Pending payments
     const [pendingPayments] = await db.query(`
       SELECT COUNT(*) AS pendingPayments 
       FROM payment_tbl 
       WHERE status = 'pending'
     `);
 
-    // Upcoming due payments (within 7 days)
     const [upcomingDue] = await db.query(`
       SELECT COUNT(*) AS upcomingDue 
       FROM payment_tbl 
@@ -35,7 +32,6 @@ router.get('/', requireStaff, async (req, res) => {
       AND due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
     `);
 
-    // Total staff actions logged
     const [logs] = await db.query(`
       SELECT COUNT(*) AS totalLogs 
       FROM logs_tbl 
@@ -54,6 +50,78 @@ router.get('/', requireStaff, async (req, res) => {
   } catch (err) {
     console.error('Error loading staff dashboard:', err);
     res.status(500).send('Error loading staff dashboard');
+  }
+});
+
+// 🟢 Notifications (bookings + payments)
+router.get('/notifications/json', requireStaff, async (req, res) => {
+  try {
+    // Ensure staff_notifications table exists
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS staff_notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ref_id INT,
+        user_id INT,
+        message VARCHAR(255),
+        datestamp DATETIME,
+        is_read BOOLEAN DEFAULT 0
+      )
+    `);
+
+    const [existing] = await db.query(`SELECT message FROM staff_notifications`);
+
+    // Fetch new notifications
+    const [bookings] = await db.query(`
+      SELECT booking_id AS id, user_id,
+             CONCAT('New booking by ', firstname, ' ', lastname) AS message,
+             generated_at AS datestamp
+      FROM booking_tbl
+      WHERE status IN ('pending', 'reserved', 'approved')
+      ORDER BY generated_at DESC
+      LIMIT 5
+    `);
+
+    const [payments] = await db.query(`
+      SELECT p.payment_id AS id, p.user_id,
+             CONCAT('Client paid ', p.payment_type, ' installment (', u.firstName, ' ', u.lastName, ')') AS message,
+             p.paid_at AS datestamp
+      FROM payment_tbl p
+      JOIN user_tbl u ON p.user_id = u.user_id
+      WHERE p.status = 'paid' OR p.payment_type = 'downpayment'
+      ORDER BY p.paid_at DESC
+      LIMIT 5
+    `);
+
+    const all = [...bookings, ...payments]
+      .sort((a, b) => new Date(b.datestamp) - new Date(a.datestamp))
+      .slice(0, 10);
+
+    // Insert new unseen notifications
+    for (const n of all) {
+      if (!existing.find(e => e.message === n.message)) {
+        await db.query(
+          `INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, ?)`,
+          [n.id, n.user_id, n.message, n.datestamp]
+        );
+      }
+    }
+
+    const [finalData] = await db.query(`SELECT * FROM staff_notifications ORDER BY datestamp DESC LIMIT 10`);
+    res.json(finalData);
+  } catch (err) {
+    console.error('Error fetching notifications for staff:', err);
+    res.status(500).json({ message: 'Error fetching staff notifications' });
+  }
+});
+
+// 🟢 Mark as Read
+router.post('/notifications/mark-read/:id', requireStaff, async (req, res) => {
+  try {
+    await db.query(`UPDATE staff_notifications SET is_read = 1 WHERE id = ?`, [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking notification as read:', err);
+    res.status(500).json({ message: 'Error marking as read' });
   }
 });
 

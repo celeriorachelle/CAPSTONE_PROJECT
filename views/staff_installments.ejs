@@ -7,6 +7,7 @@
   <style>
     .due-soon { background-color: #fff3cd; }
     .overdue { background-color: #f8d7da; }
+    .completed { background-color: #d4edda; } 
     .btn-remind {
       background-color: #17a2b8;
       color: white;
@@ -150,6 +151,60 @@
     }
 
     #installmentTable tr.hidden { display: none; }
+    .completed td {
+  opacity: 0.85;
+}
+.completed td button {
+  cursor: not-allowed;
+}
+/* ======= COMPLETED SECTION DESIGN ======= */
+.divider-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  border: none;
+  background: linear-gradient(to right, transparent, #28a745, transparent);
+}
+
+.divider-text {
+  background: #f1fff1;
+  color: #198754;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-size: 15px;
+  box-shadow: 0 2px 6px rgba(40,167,69,0.2);
+}
+
+/* Completed rows with card effect */
+.styled-completed {
+  background: linear-gradient(145deg, #e9f8ee, #d4edda);
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.styled-completed:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.status-badge {
+  background: #28a745;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
   </style>
 </head>
 <body>
@@ -158,7 +213,10 @@
     <ul>
       <li><a href="/staff_dashboard">Dashboard</a></li>
       <li><a href="/staff_viewbookings">View Bookings</a></li>
+      <li><a href="/maps">Cemetery Map</a></li>
       <li><a href="/staff_installments" class="active">Track Installments</a></li>
+      <li><a href="/staff_checknotificationlogs">Notification Logs</a></li>
+      <li><a href="/staff_viewpaymentreports">Payment Reports</a></li>
       <li><a href="/login/logout">Logout</a></li>
     </ul>
   </div>
@@ -181,25 +239,118 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody id="installmentTable">
-        <% if (installments.length === 0) { %>
-          <tr><td colspan="7">No downpayment records found.</td></tr>
-        <% } else { %>
-          <% installments.forEach(p => { %>
-            <tr class="<%= p.days_left < 0 ? 'overdue' : (p.days_left <= 3 ? 'due-soon' : '') %>" data-payment-id="<%= p.id %>">
-              <td><%= p.id %></td>
-              <td><%= p.clientName %></td>
-              <td>₱<%= Number(p.amount).toLocaleString() %></td>
-              <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }) %></td>
-              <td><%= p.status %></td>
-              <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
-              <td><button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button></td>
-            </tr>
-          <% }) %>
-        <% } %>
-      </tbody>
+<tbody id="installmentTable">
+  <% if (installments.length === 0) { %>
+    <tr><td colspan="7">No downpayment records found.</td></tr>
+  <% } else { %>
+
+    <!-- 🔹 ACTIVE / DUE / OVERDUE PAYMENTS -->
+    <% const activeList = installments.filter(p => p.status !== 'Completed'); %>
+    <% if (activeList.length > 0) { %>
+      <% activeList.forEach(p => { %>
+        <tr 
+          class="<%= p.status === 'Completed' 
+            ? 'completed' 
+            : (p.days_left < 0 ? 'overdue' : (p.days_left <= 3 ? 'due-soon' : '')) %>" 
+          data-payment-id="<%= p.id %>">
+
+          <td><%= p.id %></td>
+          <td><%= p.clientName %></td>
+          <td>₱<%= Number(p.amount).toLocaleString() %></td>
+          <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }) %></td>
+          <td><%= p.status %></td>
+          <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
+          <td>
+            <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
+            <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
+          </td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr><td colspan="7">No active or overdue records found.</td></tr>
+    <% } %>
+
+    <!-- 🌿 DIVIDER: COMPLETED PAYMENTS -->
+    <% const completedList = installments.filter(p => p.status === 'Completed'); %>
+    <% if (completedList.length > 0) { %>
+      <!-- Fancy Divider -->
+      <tr class="divider-row">
+        <td colspan="7">
+          <div class="divider-container">
+            <hr class="divider-line">
+            <span class="divider-text">✅ Completed Payments</span>
+            <hr class="divider-line">
+          </div>
+        </td>
+      </tr>
+
+    <% completedList.forEach(p => { %>
+  <tr class="completed styled-completed" data-payment-id="<%= p.id %>">
+    <td><%= p.id %></td>
+    <td><%= p.clientName %></td>
+    <td>₱<%= Number(p.amount).toLocaleString() %></td>
+    <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }) %></td>
+    <td>
+      <span class="status-badge">✔ Completed</span>
+    </td>
+    <td>—</td>
+    <td>
+      <!-- ✅ Replace this disabled button -->
+      <button class="btn-primary" style="background:#28a745;" onclick="openCompletedNotify(<%= p.id %>)">
+        Notify User
+      </button>
+    </td>
+  </tr>
+<% }) %>
+
+    <% } %>
+  <% } %>
+</tbody>
+
     </table>
   </div>
+<!-- ✅ COMPLETED NOTIFICATION MODAL -->
+<div id="completedBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+  <div class="modal" role="document">
+    <header>
+      <h3>Send Completion Notification</h3>
+      <span class="close" onclick="closeCompletedModal()">✕</span>
+    </header>
+
+    <div>
+      <div class="form-row">
+        <label>To (Email)</label>
+        <input id="completedEmail" type="email" readonly>
+      </div>
+
+      <div class="form-row">
+        <label>Subject</label>
+        <input id="completedSubject" type="text" value="Congratulations! Your Installment Plan is Fully Paid">
+      </div>
+
+      <div class="form-row">
+        <label>Message</label>
+        <textarea id="completedBody" rows="6">
+Dear [ClientName],
+
+Congratulations! Your installment payment plan has been successfully completed. 
+Thank you for your trust and timely payments.
+
+Your account is now fully settled. Please keep this as confirmation.
+
+Warm regards,
+Everlasting Peace Memorial Park
+        </textarea>
+      </div>
+
+      <div class="actions">
+        <button class="btn-secondary" onclick="closeCompletedModal()">Cancel</button>
+        <button class="btn-primary" onclick="sendCompletionEmail()">Send Email</button>
+        <button class="btn-remind" style="background:#28a745;" onclick="sendCompletionSMS()">Send SMS</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- Reminder Modal -->
   <div id="remindBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
@@ -241,12 +392,79 @@
         <div class="actions">
           <button class="btn-secondary" onclick="closeRemindModal()">Cancel</button>
           <button class="btn-primary" id="sendEmailBtn" onclick="sendReminderFromModal()">Send Email</button>
+          <!-- ✅ FIXED: Use currentPaymentId instead of undefined p.id -->
+<button class="btn-remind" style="background:#28a745;" onclick="sendSMS(currentPaymentId, this)">Send SMS</button>
         </div>
       </div>
     </div>
   </div>
+  
 
   <script>
+    let currentCompletedId = null;
+
+function openCompletedNotify(paymentId) {
+  currentCompletedId = paymentId;
+  fetch(`/staff_installments/${paymentId}`)
+    .then(res => res.json())
+    .then(data => {
+      const client = data.payment;
+      document.getElementById("completedEmail").value = client.email;
+      document.getElementById("completedBody").value =
+        `Dear ${client.name},\n\nCongratulations! Your installment payment plan has been successfully completed.\nThank you for your trust and timely payments.\n\nYour account is now fully settled.\n\nWarm regards,\nEverlasting Peace Memorial Park`;
+      document.getElementById("completedBackdrop").style.display = "flex";
+    })
+    .catch(() => alert("Failed to load client info."));
+}
+
+function closeCompletedModal() {
+  document.getElementById("completedBackdrop").style.display = "none";
+  currentCompletedId = null;
+}
+
+function sendCompletionEmail() {
+  const payload = {
+    to: document.getElementById("completedEmail").value,
+    subject: document.getElementById("completedSubject").value,
+    message: document.getElementById("completedBody").value,
+  };
+
+  fetch(`/staff_installments/completed_notify/${currentCompletedId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+    .then(res => res.json())
+    .then(data => alert(data.message))
+    .catch(() => alert("Failed to send email."));
+}
+
+function sendCompletionSMS() {
+  if (!confirm("Send SMS completion notice to client?")) return;
+  fetch(`/staff_installments/completed_sms/${currentCompletedId}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => alert(data.message || "SMS sent!"))
+    .catch(() => alert("Failed to send SMS."));
+}
+
+function sendSMS(paymentId, btn) {
+  if (!confirm("Send SMS reminder to client?")) return;
+  if (btn) { btn.disabled = true; const original = btn.textContent; btn.textContent = "Sending..."; }
+  fetch(`/staff_installments/sms/${paymentId}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || "SMS request sent.");
+      // optional: console.log(data.gateway);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error sending SMS. Check server logs and phone gateway.");
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = original; }
+    });
+}
+
     // Search filter
     document.getElementById("searchInput").addEventListener("input", function() {
       const term = this.value.toLowerCase();
@@ -269,10 +487,11 @@
           const dueDate = new Date(client.due_date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
           const formattedAmount = (Number(client.amount || 0)).toLocaleString();
 
-          const defaultSubject = `Payment Reminder – Payment ID ${client.payment_id} due ${dueDate}`;
+          const defaultSubject = `Payment Due Reminder – Payment ID ${client.payment_id} due ${dueDate}`;
           const defaultBody = `<p>Dear ${client.name},</p>
           <p>This is a friendly reminder that your <strong>${client.payment_type}</strong> of <strong>₱${formattedAmount}</strong> is due on <strong>${dueDate}</strong>.</p>
           <p>Please settle your payment on or before the due date to avoid penalties.</p>
+           <p>Just Log in to our website and go to Payment History then click the "Pay Here" button to pay your due amount.</p>
           <p>Thank you,<br>Everlasting Peace Memorial Park</p>`;
 
           document.getElementById('emailSubject').value = defaultSubject;
@@ -342,6 +561,20 @@
       body.readOnly = !isManual;
       body.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
       subj.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
+    }
+
+    function markAsPaid(paymentId) {
+      if (!confirm("Confirm payment received? This will update the next due date.")) return;
+
+      fetch(`/staff_installments/updateDueDate/${paymentId}`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        location.reload();
+      })
+      .catch(() => alert("Error updating due date."));
     }
   </script>
 </body>

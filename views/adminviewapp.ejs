@@ -33,9 +33,9 @@
     <h1>Admin Dashboard</h1>
     <nav>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
+       <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
+        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
         <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
         <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
@@ -44,11 +44,11 @@
 
   <main class="admin-main">
     <aside class="sidebar">
-      <h3><i class="fas fa-calendar-check"></i> Appointments</h3>
+      <h3><i class="fas fa-calendar-check"></i> View Schedule</h3>
       <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
+       <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
+        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
+        <li><a href="/adminviewapp" class="active"><i class="fas fa-list"></i> View Booking</a></li>
         <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
         <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
         <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
@@ -59,7 +59,7 @@
       <h3><i class="fas fa-filter"></i> Filter by Status</h3>
       <div class="filters">
         <button onclick="filterStatus('all')" class="active" id="filter-all">
-          <i class="fas fa-list"></i> All Appointments
+          <i class="fas fa-list"></i> All Bookings
         </button>
         <button onclick="filterStatus('pending')" id="filter-pending">
           <i class="fas fa-clock"></i> Pending
@@ -81,7 +81,7 @@
 
     <section class="content">
       <div class="content-header">
-        <h2>All Appointments</h2>
+        <h2>All Bookings</h2>
         <div class="search-controls">
           <div class="search-bar">
             <i class="fas fa-search"></i>
@@ -92,30 +92,30 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></div>
-            <div class="stat-number" id="totalAppointments">0</div>
-            <div class="stat-label">Total Appointments</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-hourglass-half" aria-hidden="true"></i></div>
-            <div class="stat-number" id="pendingCount">0</div>
-            <div class="stat-label">Pending</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></div>
-            <div class="stat-number" id="approvedCount">0</div>
-            <div class="stat-label">Approved</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-sync-alt" aria-hidden="true"></i></div>
-            <div class="stat-number" id="ongoingCount">0</div>
-            <div class="stat-label">Ongoing</div>
-          </div>
+          <div class="stat-icon">📊</div>
+          <div class="stat-number" id="totalAppointments">0</div>
+          <div class="stat-label">Total Bookings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-number" id="pendingCount">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-number" id="approvedCount">0</div>
+          <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-number" id="ongoingCount">0</div>
+          <div class="stat-label">Ongoing</div>
+        </div>
       </div>
 
       <div class="appointments-container">
         <div class="table-header">
-          <h3><i class="fas fa-calendar-alt"></i> Appointments List</h3>
+          <h3><i class="fas fa-calendar-alt"></i> Bookings </h3>
           <span id="appointmentCount">Loading...</span>
         </div>
 
@@ -143,8 +143,8 @@
 
         <div id="emptyState" class="empty-state" style="display: none;">
           <i class="fas fa-calendar-times"></i>
-          <h3>No Appointments Found</h3>
-          <p>No appointments match your current filter criteria.</p>
+          <h3>No Bookings Found</h3>
+          <p>No bookings match your current filter criteria.</p>
         </div>
 
         <div class="pagination" id="paginationContainer" style="display: none;">
@@ -164,7 +164,7 @@
   <div id="appointmentModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3><i class="fas fa-info-circle"></i> Appointment Details</h3>
+        <h3><i class="fas fa-info-circle"></i> Bookings Details</h3>
         <span class="close" onclick="closeModal()">&times;</span>
       </div>
       <div id="appointmentDetails"></div>
