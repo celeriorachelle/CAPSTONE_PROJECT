@@ -57,30 +57,120 @@ router.get('/', requireLogin, async(req,res)=>{
 });
 
 // POST update profile
-router.post('/', requireLogin, async(req,res)=>{
+router.post('/', requireLogin, async (req, res) => {
   const userId = req.session.user.user_id;
-  const {firstname,lastname,email,phone,address,password,confirm_password} = req.body;
-  const formData = {firstname,lastname,email,phone,address};
-  try{
-    if((password||confirm_password) && password!==confirm_password)
-      return res.render('accountsettings',{formData,error:'Passwords do not match',success:null});
-
-    let sql, params;
-    if(password){
-      const hash = await bcrypt.hash(password,10);
-      sql = `UPDATE user_tbl SET firstName=?,lastName=?,email=?,contact_number=?,address=?,password_hash=? WHERE user_id=?`;
-      params = [firstname,lastname,email,phone,address,hash,userId];
-    }else{
-      sql = `UPDATE user_tbl SET firstName=?,lastName=?,email=?,contact_number=?,address=? WHERE user_id=?`;
-      params = [firstname,lastname,email,phone,address,userId];
+  const { firstname, lastname, email, phone, address, password, confirm_password } = req.body;
+  
+  try {
+    // Validate inputs
+    if (!firstname || !lastname || !email) {
+      return res.render('accountsettings', {
+        formData: { firstname, lastname, email, phone, address },
+        error: 'Name and email are required',
+        success: null
+      });
     }
 
-    await db.query(sql, params);
-    req.session.user.name = firstname;
-    res.render('accountsettings',{formData,error:null,success:'Profile updated successfully.'});
-  }catch(err){
-    console.error(err);
-    res.render('accountsettings',{formData,error:'Failed to update profile.',success:null});
+    // Check if email is already in use by another user
+    const [existingUser] = await db.query(
+      'SELECT user_id FROM user_tbl WHERE email = ? AND user_id != ?',
+      [email, userId]
+    );
+
+    if (existingUser.length > 0) {
+      return res.render('accountsettings', {
+        formData: { firstname, lastname, email, phone, address },
+        error: 'Email is already in use',
+        success: null
+      });
+    }
+
+    // Base query matches user_tbl columns exactly
+    let updateQuery = `
+      UPDATE user_tbl 
+      SET firstName = ?, 
+          lastName = ?, 
+          email = ?, 
+          contact_number = ?,
+          address = ?
+      WHERE user_id = ?
+    `;
+    let params = [firstname, lastname, email, phone || null, address || null, userId];
+
+    // Handle password update if provided
+    if (password || confirm_password) {
+      if (password !== confirm_password) {
+        return res.render('accountsettings', {
+          formData: { firstname, lastname, email, phone, address },
+          error: 'Passwords do not match',
+          success: null
+        });
+      }
+      
+      if (password.length < 6) {
+        return res.render('accountsettings', {
+          formData: { firstname, lastname, email, phone, address },
+          error: 'Password must be at least 6 characters long',
+          success: null
+        });
+      }
+
+      // Update query with password_hash field
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateQuery = `
+        UPDATE user_tbl 
+        SET firstName = ?, 
+            lastName = ?, 
+            email = ?, 
+            contact_number = ?,
+            address = ?,
+            password_hash = ?
+        WHERE user_id = ?
+      `;
+      params = [firstname, lastname, email, phone || null, address || null, hashedPassword, userId];
+    }
+
+    // Execute update
+    await db.query(updateQuery, params);
+
+    // Update session data
+    req.session.user = {
+      ...req.session.user,
+      firstname,
+      lastname,
+      email,
+      contact_number: phone,
+      address
+    };
+
+    // Fetch updated user data to display
+    const [rows] = await db.query(
+      'SELECT firstName, lastName, email, contact_number, address, avatar FROM user_tbl WHERE user_id = ?',
+      [userId]
+    );
+
+    const formData = {
+      firstname: rows[0].firstName,
+      lastname: rows[0].lastName,
+      email: rows[0].email,
+      phone: rows[0].contact_number,
+      address: rows[0].address,
+      avatar: rows[0].avatar || '/images/g.png'
+    };
+
+    res.render('accountsettings', {
+      formData,
+      error: null,
+      success: 'Profile updated successfully'
+    });
+
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.render('accountsettings', {
+      formData: { firstname, lastname, email, phone, address },
+      error: 'Failed to update profile: ' + err.message,
+      success: null
+    });
   }
 });
 

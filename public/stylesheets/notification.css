@@ -9,37 +9,44 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  scroll-behavior: smooth;
   font-family: 'Poppins', Arial, sans-serif;
+  scroll-behavior: smooth;
 }
 
 html, body {
   height: 100%;
-  color: #333;
+  font-family: 'Poppins', Arial, sans-serif;
+  position: relative;
 }
-
+  
 body {
   background: linear-gradient(135deg, #fdf5ee 0%, #f5ede4 100%);
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  overflow-x: hidden;
-  line-height: 1.6;
+  display: flex;
+  color: #101b0d;
 }
 
-/* =============================
-   Layout
-============================= */
+/* MAIN LAYOUT */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.4s ease;
-  width: 100%;
+  margin-left: 250px;
+  transition: all 0.3s ease;
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  position: relative;
 }
 
 .sidebar.collapsed ~ .main {
   margin-left: 0;
+  width: 100%;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px 30px;
+    width: 100%;
 }
 
 footer {
