@@ -11,6 +11,23 @@
   <!-- Main Admin CSS -->
   <link rel="stylesheet" href="/stylesheets/admin.css" />
   <link rel="stylesheet" href="/stylesheets/admincreateb.css" />
+
+  <style>
+    /* Basic form styling added inline for quick preview */
+    .form-card { max-width: 960px; margin: 0 auto; padding: 22px; background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    label { display:block; font-weight:600; margin-bottom:6px; color:#222; }
+    input, select, textarea { width:100%; padding:9px 10px; border:1px solid #d0d7de; border-radius:6px; font-size:14px; background:#fafbfc; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#4a90e2; box-shadow:0 4px 12px rgba(74,144,226,0.08); }
+    .btn { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
+    .btn-primary { background:#0b74de; color:#fff; }
+    .btn-secondary { background:#eef2f6; color:#0b74de; }
+    .error-message { color:#b00020; font-size:13px; margin-top:6px; }
+    .success-message { background:#e9f7ef; color:#0b662a; padding:8px 12px; border-radius:6px; margin-bottom:12px; }
+    #toast { right:20px; bottom:20px; }
+    @media (max-width:800px) { .form-grid { grid-template-columns:1fr; } }
+  </style>
 </head>
 <body>
   <!-- ===== HEADER (Topbar + Hamburger) ===== -->
@@ -65,9 +82,14 @@
         <form id="appointmentForm" method="POST" action="/admincreateb">
           <div class="form-grid">
             <div class="form-group">
-              <label for="fullname">Full Name *</label>
-              <input type="text" id="fullname" name="fullname" required placeholder="Enter full name" value="<%= F.fullname || '' %>" />
-              <div class="error-message" id="fullnameError"></div>
+              <label for="firstName">First Name *</label>
+              <input type="text" id="firstName" name="firstName" required placeholder="Enter first name" value="<%= F.firstName || '' %>" />
+              <div class="error-message" id="firstNameError"></div>
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input type="text" id="lastName" name="lastName" required placeholder="Enter last name" value="<%= F.lastName || '' %>" />
+              <div class="error-message" id="lastNameError"></div>
             </div>
 
             <div class="form-group">
@@ -85,14 +107,15 @@
                 <option value="" disabled <%= !F.service ? 'selected' : '' %>>Select Service</option>
                 <option value="burial" <%= (F.service === 'burial') ? 'selected' : '' %>>Burial Service</option>
                 <option value="memorial" <%= (F.service === 'memorial') ? 'selected' : '' %>>Memorial Service</option>
+                <option value="plot" <%= (F.service === 'plot') ? 'selected' : '' %>>Plot Booking</option>
               </select>
               <div class="error-message" id="serviceError"></div>
             </div>
 
-            <div class="form-group">
-              <label for="plot_id">Link to Plot (optional)</label>
+            <div class="form-group" id="plotGroup" style="display:none">
+              <label for="plot_id">Plot *</label>
               <select id="plot_id" name="plot_id">
-                <option value="" <%= !F.plot_id ? 'selected' : '' %>>-- No plot --</option>
+                <option value="" <%= !F.plot_id ? 'selected' : '' %> >-- No plot --</option>
                 <% if (typeof plots !== 'undefined' && Array.isArray(plots)) { %>
                   <% plots.forEach(p => { %>
                     <option value="<%= p.plot_id %>" <%= (Number(F.plot_id) === p.plot_id) ? 'selected' : '' %>>Plot <%= p.plot_number %> — <%= p.location %> (₱<%= p.price %>)</option>
@@ -102,7 +125,7 @@
               <div class="error-message" id="plotError"></div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="paymentGroup" style="display:none">
               <label for="payment_method">Payment Received?</label>
               <select id="payment_method" name="payment_method">
                 <option value="none" <%= (!F.payment_method || F.payment_method === 'none') ? 'selected' : '' %>>No (record later)</option>
@@ -116,19 +139,9 @@
                 <option value="fullpayment">Full Payment</option>
                 <option value="downpayment">Downpayment (installment)</option>
               </select>
-
-                <div id="fullFields">
-                <label for="cash_amount">Amount Received (₱)</label>
-                <input type="number" step="0.01" min="0" id="cash_amount" name="cash_amount" placeholder="0.00" value="<%= F.cash_amount || '' %>" />
-                <div class="error-message" id="cashError"></div>
-              </div>
-
               <div id="downFields" style="display:none;margin-top:8px">
-                <label for="monthly_amount">Monthly Amount (₱)</label>
-                <input type="number" step="0.01" min="0" id="monthly_amount" name="monthly_amount" placeholder="0.00" value="<%= F.monthly_amount || '' %>" />
                 <label for="months">Months</label>
                 <input type="number" min="1" id="months" name="months" placeholder="e.g., 12" value="<%= F.months || '' %>" />
-                <div class="error-message" id="downError"></div>
               </div>
             </div>
 
@@ -154,7 +167,7 @@
             </div>
 
             <!-- Deceased info for burial (only shown when service=burial) -->
-            <div class="form-group" id="deceasedFields" style="<% if (F.service === 'burial') { %>display:block<% } else { %>display:none<% } %>">
+            <div class="form-group" id="deceasedFields" style="<%= (F.service === 'burial') ? 'display:block' : 'display:none' %>">
               <label>Deceased Details (for Burial)</label>
               <input type="text" id="deceased_firstName" name="deceased_firstName" placeholder="Deceased First Name" value="<%= F.deceased_firstName || '' %>" />
               <input type="text" id="deceased_lastName" name="deceased_lastName" placeholder="Deceased Last Name" style="margin-top:6px" value="<%= F.deceased_lastName || '' %>" />
@@ -188,214 +201,181 @@
 
   <!-- ===== SCRIPTS ===== -->
   <script>
-    // Sidebar toggle (guarded)
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const adminMain = document.querySelector('.admin-main');
-    if (sidebarToggle && adminMain) {
-      sidebarToggle.addEventListener('click', () => {
-        adminMain.classList.toggle('collapsed');
-      });
-    }
+    window.addEventListener('DOMContentLoaded', function() {
+      // Query all elements after DOM is loaded
+      const serviceEl = document.getElementById('service');
+      const plotGroup = document.getElementById('plotGroup');
+      const paymentGroup = document.getElementById('paymentGroup');
+      const cashFields = document.getElementById('cashFields');
+      const deceasedFields = document.getElementById('deceasedFields');
+      const plotEl = document.getElementById('plot_id');
+      const paymentMethodEl = document.getElementById('payment_method');
+      const cashAmountEl = document.getElementById('cash_amount');
+      const paymentOptionEl = document.getElementById('payment_option');
+      const downFields = document.getElementById('downFields');
+      const monthlyAmountEl = document.getElementById('monthly_amount');
+      const monthsEl = document.getElementById('months');
+      const timeEl = document.getElementById('time');
+      const deceasedFirstEl = document.getElementById('deceased_firstName');
+      const deceasedLastEl = document.getElementById('deceased_lastName');
+      const birthDateEl = document.getElementById('birth_date');
+      const deathDateEl = document.getElementById('death_date');
+      const appointmentFormEl = document.getElementById('appointmentForm');
+      const clearBtnEl = document.getElementById('clearBtn');
 
-    // Update date/time
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById("currentDateTime").textContent = now.toLocaleString();
-    }
-    updateDateTime();
-    setInterval(updateDateTime, 60000);
+      function updatePaymentOption() {
+        if (!paymentOptionEl) return;
+        if (paymentOptionEl.value === 'downpayment') {
+          downFields.style.display = 'block';
+          monthlyAmountEl.required = true;
+          monthsEl.required = true;
+          cashAmountEl.required = true;
+        } else {
+          downFields.style.display = 'none';
+          monthlyAmountEl.required = false;
+          monthsEl.required = false;
+          cashAmountEl.required = true;
+        }
+      }
 
-    // Notification toggle (guarded)
-    const notificationBtn = document.getElementById("notificationBtn");
-    const notificationDropdown = document.getElementById("notificationDropdown");
-    if (notificationBtn && notificationDropdown) {
-      notificationBtn.addEventListener("click", () => {
-        notificationDropdown.classList.toggle("active");
-      });
-    }
-
-    // Toast Notification Logic
-    const toast = document.getElementById("toast");
-    const toastMessage = document.getElementById("toastMessage");
-
-    function showToast(message) {
-      toastMessage.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 4000);
-    }
-
-    // Simulated Notifications (replace with fetch from backend if needed)
-    const notificationList = document.getElementById("notificationList");
-    const notificationCount = document.getElementById("notificationCount");
-
-    function loadNotifications() {
-      const sampleNotifications = [
-        "New booking request received.",
-        "Appointment confirmed for Oct 30.",
-        "System backup completed successfully.",
-      ];
-      notificationList.innerHTML = "";
-      sampleNotifications.forEach(msg => {
-        const li = document.createElement("li");
-        li.textContent = msg;
-        notificationList.appendChild(li);
-      });
-      notificationCount.textContent = sampleNotifications.length;
-      showToast("You have new notifications!");
-    }
-
-    setTimeout(loadNotifications, 2000);
-
-    // Clear form (guarded)
-    const clearBtnEl = document.getElementById("clearBtn");
-    const appointmentFormEl = document.getElementById("appointmentForm");
-    if (clearBtnEl && appointmentFormEl) {
-      clearBtnEl.addEventListener("click", () => {
-        appointmentFormEl.reset();
-      });
-    }
-
-    // Client-side validation before submit
-    // Toggle plot requirement when service=burial and toggle cash fields
-    const serviceEl = document.getElementById('service');
-    const plotEl = document.getElementById('plot_id');
-    const paymentMethodEl = document.getElementById('payment_method');
-    const cashFields = document.getElementById('cashFields');
-    const cashAmountEl = document.getElementById('cash_amount');
-  const paymentOptionEl = document.getElementById('payment_option');
-  const downFields = document.getElementById('downFields');
-  const monthlyAmountEl = document.getElementById('monthly_amount');
-  const monthsEl = document.getElementById('months');
-  const deceasedFields = document.getElementById('deceasedFields');
-  const deceasedFirstEl = document.getElementById('deceased_firstName');
-  const deceasedLastEl = document.getElementById('deceased_lastName');
-  const birthDateEl = document.getElementById('birth_date');
-  const deathDateEl = document.getElementById('death_date');
-
-    function updateFormState() {
-      if (serviceEl && serviceEl.value === 'burial') {
-        // make plot required visually
-        plotEl.required = true;
-        // show deceased fields
-        if (deceasedFields) deceasedFields.style.display = 'block';
-        // require time for burial
-        if (timeEl) timeEl.required = true;
-      } else {
-        plotEl.required = false;
+      function updateFormState() {
+        const svc = serviceEl ? serviceEl.value : '';
+        // Hide all by default
+        if (plotGroup) plotGroup.style.display = 'none';
+        if (paymentGroup) paymentGroup.style.display = 'none';
+        if (cashFields) cashFields.style.display = 'none';
         if (deceasedFields) deceasedFields.style.display = 'none';
-        if (timeEl) timeEl.required = (serviceEl && serviceEl.value === 'memorial');
-      }
-      if (paymentMethodEl && paymentMethodEl.value === 'cash') {
-        cashFields.style.display = 'block';
-        cashAmountEl.required = true;
-        // when cash fields are visible, ensure payment option UI reflects current selection
-        if (paymentOptionEl) updatePaymentOption();
-      } else {
-        cashFields.style.display = 'none';
-        cashAmountEl.required = false;
-      }
-    }
+        if (plotEl) plotEl.required = false;
+        if (timeEl) timeEl.required = false;
+        if (cashAmountEl) cashAmountEl.required = false;
 
-    // ensure timeEl defined and only required for memorial/burial
-    const timeEl = document.getElementById('time');
-
-    function updatePaymentOption() {
-      if (!paymentOptionEl) return;
-      if (paymentOptionEl.value === 'downpayment') {
-        downFields.style.display = 'block';
-        monthlyAmountEl.required = true;
-        monthsEl.required = true;
-        cashAmountEl.required = true; // initial downpayment amount required
-      } else {
-        downFields.style.display = 'none';
-        monthlyAmountEl.required = false;
-        monthsEl.required = false;
-        cashAmountEl.required = true;
-      }
-    }
-
-  if (serviceEl) serviceEl.addEventListener('change', updateFormState);
-    if (paymentMethodEl) paymentMethodEl.addEventListener('change', updateFormState);
-  if (paymentOptionEl) paymentOptionEl.addEventListener('change', updatePaymentOption);
-
-    updateFormState();
-
-    if (appointmentFormEl) {
-      appointmentFormEl.addEventListener('submit', function (e) {
-      // Clear previous errors
-      ['fullnameError','phoneError','emailError','serviceError','dateError','timeError','plotError'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = '';
-      });
-
-      const fullname = document.getElementById('fullname').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const service = document.getElementById('service').value;
-  const date = document.getElementById('date').value;
-  const time = document.getElementById('time').value;
-      let valid = true;
-
-      if (!fullname) { document.getElementById('fullnameError').textContent = 'Full name is required.'; valid = false; }
-      const phoneRe = /^[0-9\-\s\(\)\+]{7,20}$/;
-      if (!phone || !phoneRe.test(phone)) { document.getElementById('phoneError').textContent = 'Enter a valid phone number.'; valid = false; }
-      if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { document.getElementById('emailError').textContent = 'Enter a valid email.'; valid = false; }
-      if (!service) { document.getElementById('serviceError').textContent = 'Please select a service.'; valid = false; }
-      // If burial, ensure a plot is selected
-      if (service === 'burial') {
-        const pid = document.getElementById('plot_id').value;
-        if (!pid) { document.getElementById('plotError').textContent = 'Please select a plot for burial service.'; valid = false; }
-      }
-      // If burial, validate deceased fields
-      if (service === 'burial') {
-        const dfn = (deceasedFirstEl && deceasedFirstEl.value || '').trim();
-        const dln = (deceasedLastEl && deceasedLastEl.value || '').trim();
-        const bd = (birthDateEl && birthDateEl.value) || '';
-        const dd = (deathDateEl && deathDateEl.value) || '';
-        if (!dfn || !dln || !bd || !dd) {
-          document.getElementById('deceasedError').textContent = 'Please fill deceased details for burial.';
-          valid = false;
-        }
-      }
-      if (!date) { document.getElementById('dateError').textContent = 'Please select a date.'; valid = false; }
-  // time is only required for memorial and burial
-  if ((service === 'memorial' || service === 'burial') && !time) { document.getElementById('timeError').textContent = 'Please select a time.'; valid = false; }
-
-      // Prevent past dates
-      if (date) {
-        const sel = new Date(date + 'T' + (time || '00:00') + ':00');
-        const now = new Date();
-        if (sel < now) { document.getElementById('dateError').textContent = 'Date/time must be in the future.'; valid = false; }
-      }
-
-      // If cash selected, validate cash amount
-      if (paymentMethodEl && paymentMethodEl.value === 'cash') {
-        const amt = parseFloat(cashAmountEl.value);
-        if (Number.isNaN(amt) || amt <= 0) {
-          document.getElementById('cashError').textContent = 'Enter a valid amount received.';
-          valid = false;
-        }
-        // if downpayment option, validate monthly and months
-        if (paymentOptionEl && paymentOptionEl.value === 'downpayment') {
-          const monthly = parseFloat(monthlyAmountEl.value);
-          const monthsVal = parseInt(monthsEl.value, 10);
-          if (Number.isNaN(monthly) || monthly <= 0) {
-            document.getElementById('downError').textContent = 'Enter a valid monthly amount.';
-            valid = false;
+        if (svc === 'burial') {
+          if (plotGroup) plotGroup.style.display = 'block';
+          if (paymentGroup) paymentGroup.style.display = 'block';
+          if (cashFields) cashFields.style.display = 'block';
+          if (deceasedFields) deceasedFields.style.display = 'block';
+          if (plotEl) plotEl.required = true;
+          if (timeEl) timeEl.required = true;
+          if (cashAmountEl) cashAmountEl.required = true;
+        } else if (svc === 'plot') {
+          if (plotGroup) plotGroup.style.display = 'block';
+          if (paymentGroup) paymentGroup.style.display = 'block';
+          if (paymentMethodEl && paymentMethodEl.value === 'cash') {
+            if (cashFields) cashFields.style.display = 'block';
+            if (cashAmountEl) cashAmountEl.required = true;
           }
-          if (Number.isNaN(monthsVal) || monthsVal <= 0) {
-            document.getElementById('downError').textContent = 'Enter a valid months count.';
-            valid = false;
-          }
+          if (plotEl) plotEl.required = true;
+        } else if (svc === 'memorial') {
+          if (timeEl) timeEl.required = true;
         }
       }
 
-        if (!valid) {
-          e.preventDefault();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-    }
+      // Attach listeners
+      if (serviceEl) {
+        serviceEl.addEventListener('change', updateFormState);
+        serviceEl.addEventListener('input', updateFormState);
+      }
+      if (paymentMethodEl) {
+        paymentMethodEl.addEventListener('change', function() {
+          updateFormState();
+        });
+        paymentMethodEl.addEventListener('input', function() {
+          updateFormState();
+        });
+      }
+      if (paymentOptionEl) paymentOptionEl.addEventListener('change', updatePaymentOption);
+
+      // Clear form button
+      if (clearBtnEl && appointmentFormEl) {
+        clearBtnEl.addEventListener('click', function() {
+          appointmentFormEl.reset();
+          if (plotGroup) plotGroup.style.display = 'none';
+          if (paymentGroup) paymentGroup.style.display = 'none';
+          if (cashFields) cashFields.style.display = 'none';
+          if (deceasedFields) deceasedFields.style.display = 'none';
+        });
+      }
+
+      // Initial state
+      updateFormState();
+      updatePaymentOption();
+
+      if (appointmentFormEl) {
+        appointmentFormEl.addEventListener('submit', function (e) {
+          // Clear previous errors
+          ['firstNameError', 'lastNameError', 'phoneError','emailError','serviceError','dateError','timeError','plotError'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '';
+          });
+
+          const firstName = document.getElementById('firstName').value.trim();
+          const lastName = document.getElementById('lastName').value.trim();
+          const phone = document.getElementById('phone').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const service = document.getElementById('service').value;
+          const date = document.getElementById('date').value;
+          const time = document.getElementById('time').value;
+          let valid = true;
+
+          if (!firstName) { document.getElementById('firstNameError').textContent = 'First name is required.'; valid = false; }
+          if (!lastName) { document.getElementById('lastNameError').textContent = 'Last name is required.'; valid = false; }
+          const phoneRe = /^[0-9\-\s\(\)\+]{7,20}$/;
+          if (!phone || !phoneRe.test(phone)) { document.getElementById('phoneError').textContent = 'Enter a valid phone number.'; valid = false; }
+          if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { document.getElementById('emailError').textContent = 'Enter a valid email.'; valid = false; }
+          if (!service) { document.getElementById('serviceError').textContent = 'Please select a service.'; valid = false; }
+          // If burial or plot booking, ensure a plot is selected
+          if (service === 'burial' || service === 'plot') {
+            const pid = document.getElementById('plot_id').value;
+            if (!pid) { document.getElementById('plotError').textContent = 'Please select a plot for this service.'; valid = false; }
+          }
+          // If burial, validate deceased fields
+          if (service === 'burial') {
+            const dfn = (deceasedFirstEl && deceasedFirstEl.value || '').trim();
+            const dln = (deceasedLastEl && deceasedLastEl.value || '').trim();
+            const bd = (birthDateEl && birthDateEl.value) || '';
+            const dd = (deathDateEl && deathDateEl.value) || '';
+            if (!dfn || !dln || !bd || !dd) {
+              document.getElementById('deceasedError').textContent = 'Please fill deceased details for burial.';
+              valid = false;
+            }
+          }
+          if (!date) { document.getElementById('dateError').textContent = 'Please select a date.'; valid = false; }
+          // time is only required for memorial and burial
+          if ((service === 'memorial' || service === 'burial') && !time) { document.getElementById('timeError').textContent = 'Please select a time.'; valid = false; }
+
+          // Prevent past dates
+          if (date) {
+            const sel = new Date(date + 'T' + (time || '00:00') + ':00');
+            const now = new Date();
+            if (sel < now) { document.getElementById('dateError').textContent = 'Date/time must be in the future.'; valid = false; }
+          }
+
+          // If cash selected and payment group visible, validate cash amount
+          if (paymentGroup && paymentGroup.style.display !== 'none' && paymentMethodEl && paymentMethodEl.value === 'cash') {
+            const amt = parseFloat(cashAmountEl.value);
+            if (Number.isNaN(amt) || amt <= 0) {
+              document.getElementById('cashError').textContent = 'Enter a valid amount received.'; valid = false;
+            }
+            // if downpayment option, validate monthly and months
+            if (paymentOptionEl && paymentOptionEl.value === 'downpayment') {
+              const monthly = parseFloat(monthlyAmountEl.value);
+              const monthsVal = parseInt(monthsEl.value, 10);
+              if (Number.isNaN(monthly) || monthly <= 0) {
+                document.getElementById('downError').textContent = 'Enter a valid monthly amount.'; valid = false;
+              }
+              if (Number.isNaN(monthsVal) || monthsVal <= 0) {
+                document.getElementById('downError').textContent = 'Enter a valid months count.'; valid = false;
+              }
+            }
+          }
+
+          if (!valid) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>
