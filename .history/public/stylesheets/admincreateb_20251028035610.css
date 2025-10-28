@@ -4,51 +4,15 @@
 ===================================== */
 
 :root {
-  --bg-gradient-start: #e6f1e6;      /* light greenish background */
-  --bg-gradient-end: #d4ead4;        /* slightly darker green */
-  --primary-dark: #101b0d;           /* dark green */
-  --primary: #2d4a24;                /* medium green */
-  --accent-1: #4a7f3c;               /* accent green 1 */
-  --accent-2: #7aae6b;               /* accent green 2 */
-  --muted: #666;
-  --text-dark: #1b2a17;              /* dark greenish text */
-  --white: #ffffff;
-}
-
-/* ===== HEADER STYLES ===== */
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: var(--white);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-left h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.hamburger-btn {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--white);
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  --primary-color: #1e3a8a;
+  --secondary-color: #3b82f6;
+  --accent-color: #1d4ed8;
+  --light-bg: #f9fafb;
+  --border-color: #e5e7eb;
+  --text-dark: #111827;
+  --text-light: #6b7280;
+  --success-color: #16a34a;
+  --error-color: #dc2626;
 }
 
 /* ===== CONTENT SECTION ===== */

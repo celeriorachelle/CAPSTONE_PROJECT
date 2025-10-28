@@ -6,7 +6,11 @@ const { addLog } = require('./log_helper'); // ✅ Integrated from ver2: Logging
 
 // ✅ Middleware to require login
 function requireLogin(req, res, next) {
-  if (!req.session.user) return res.redirect('/login');
+  if (!req.session.user) {
+    // preserve intended booking target if available in URL
+    const intended = req.originalUrl && req.originalUrl.startsWith('/book/') ? req.originalUrl : '/book';
+    return res.redirect(`/login?redirect=${encodeURIComponent(intended)}`);
+  }
   next();
 }
 

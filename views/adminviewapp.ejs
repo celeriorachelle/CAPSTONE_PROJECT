@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Appointments | Everlasting Peace Memorial Park</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></script>
   <link rel="stylesheet" href="/stylesheets/admin.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
+  <script src="/JS/hamburger-menu.js" defer></script>
   <style>
     /* Minimal styles for the notify modal (if you want extra styling add to your CSS file) */
     .modal { display: none; position: fixed; z-index: 999; left:0; top:0; width:100%; height:100%; overflow:auto; background: rgba(0,0,0,0.4); }
@@ -28,6 +29,7 @@
 </head>
 <body>
   <header class="admin-header">
+    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
     <h1>Admin Dashboard</h1>
     <nav>
       <ul>

@@ -6,8 +6,12 @@ const { addLog } = require('./log_helper');
 
 // Login page
 router.get('/', (req, res) => {
-  // If user already logged in, send them to the appropriate dashboard instead of showing login page
+  // If user already logged in, handle optional redirect param first
   if (req.session && req.session.user) {
+    const redirectTo = req.query.redirect;
+    if (redirectTo && typeof redirectTo === 'string' && redirectTo.startsWith('/')) {
+      return res.redirect(redirectTo);
+    }
     const role = req.session.user.role;
     if (role === 'admin') return res.redirect('/admin');
     if (role === 'staff') return res.redirect('/staff_dashboard');
@@ -19,7 +23,7 @@ router.get('/', (req, res) => {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
 
-  res.render('login', { success: req.query.success || null, error: null });
+  res.render('login', { success: req.query.success || null, error: null, redirect: req.query.redirect || '' });
 });
 
 // ✅ Logout route with logging
@@ -56,12 +60,12 @@ router.post('/', async (req, res) => {
     );
 
     if (rows.length === 0)
-      return res.render('login', { error: 'No account with that email address found.', success: null });
+      return res.render('login', { error: 'No account with that email address found.', success: null, redirect: req.body.redirect || req.query.redirect || '' });
 
     const user = rows[0];
     const ok = await bcrypt.compare(password, user.password_hash || '');
     if (!ok)
-      return res.render('login', { error: 'Incorrect password. Please try again.', success: null });
+      return res.render('login', { error: 'Incorrect password. Please try again.', success: null, redirect: req.body.redirect || req.query.redirect || '' });
 
     req.session.user = {
       user_id: user.user_id,
@@ -83,14 +87,20 @@ router.post('/', async (req, res) => {
       details: `${user.role} ${user.firstName} logged in.`,
     });
 
-    // Redirect based on role
+    // Redirect to intended URL if provided and safe
+    const redirectTo = req.body.redirect || req.query.redirect;
+    if (redirectTo && typeof redirectTo === 'string' && redirectTo.startsWith('/')) {
+      return res.redirect(redirectTo);
+    }
+
+    // Fallback: role-based redirect
     if (user.role === 'admin') return res.redirect('/admin');
     if (user.role === 'staff') return res.redirect('/staff_dashboard');
     return res.redirect('/userdashboard');
 
   } catch (error) {
     console.error('Login error:', error);
-    res.render('login', { error: 'An internal error occurred. Please try again.', success: null });
+    res.render('login', { error: 'An internal error occurred. Please try again.', success: null, redirect: req.body.redirect || req.query.redirect || '' });
   }
 });
 

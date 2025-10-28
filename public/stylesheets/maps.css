@@ -37,6 +37,33 @@
       opacity: 0.9;
     }
 
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header-container h1 {
+      margin: 0;
+      color: white;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      text-decoration: none;
+      color: white;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     .main-content {
       display: grid;
       grid-template-columns: 1fr 350px;
@@ -82,7 +109,7 @@
     .search-box {
       position: relative;
       flex: 1;
-      min-width: 250px;
+      max-width: 250px;
     }
 
     .search-box input {
@@ -155,18 +182,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      cursor: default;
       border-radius: 8px;
       position: relative;
       font-weight: bold;
       font-size: 12px;
-    }
-
-    .plot:hover {
-      transform: scale(1.1);
-      z-index: 10;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
 
     .plot.available {
@@ -251,6 +271,45 @@
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
+      display: none;
+    }
+
+    .plot-box.expanded .plot-details {
+      display: block;
+    }
+
+    .plot-box.expanded {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .plot-box {
+      position: relative;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .plot-box .close-plot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: none;
+      z-index: 2;
+    }
+
+    .plot-box.expanded .close-plot {
+      display: block;
+    }
+
+    .plot-box.expanded .plot-details {
+      display: block;
     }
 
     .detail-row {
@@ -301,16 +360,26 @@
       padding: 12px;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       font-weight: 600;
-      transition: all 0.3s ease;
       text-transform: uppercase;
       font-size: 12px;
     }
 
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    /* Close button styles */
+    .bubble-close {
+      cursor: pointer;
+      padding: 5px 10px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      color: #666;
+    }
+
+    .bubble-close:hover {
+      color: #333;
     }
 
     .btn-primary { background: #667eea; color: white; }
@@ -421,6 +490,116 @@
     .form-group textarea:focus {
       outline: none;
       border-color: #666b81;
+    }
+
+    /* Enhanced Search Bar Styles for maps.ejs */
+    .search-container {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      background: #ffffff;
+      padding: 16px 18px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      /* backdrop-filter: blur(2px); */
+    }
+    #searchForm {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+    #searchForm input#firstName { grid-column: span 3; }
+    #searchForm input#lastName { grid-column: span 3; }
+    #searchForm input#yearBorn { grid-column: span 2; }
+    #searchForm input#yearDied { grid-column: span 2; }
+    #searchForm button[type="submit"] { grid-column: span 1; }
+    #searchForm button[type="button"] { grid-column: span 1; }
+
+    @media (max-width: 900px) {
+      #searchForm input#firstName,
+      #searchForm input#lastName { grid-column: span 6; }
+      #searchForm input#yearBorn,
+      #searchForm input#yearDied { grid-column: span 3; }
+      #searchForm button[type="submit"],
+      #searchForm button[type="button"] { grid-column: span 3; }
+    }
+
+    @media (max-width: 600px) {
+      #searchForm { grid-template-columns: repeat(6, 1fr); }
+      #searchForm input#firstName,
+      #searchForm input#lastName,
+      #searchForm input#yearBorn,
+      #searchForm input#yearDied,
+      #searchForm button[type="submit"],
+      #searchForm button[type="button"] { grid-column: span 6; }
+    }
+
+    .search-container input[type="text"],
+    .search-container input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #dcdfe6;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 14px;
+      color: #333;
+      transition: border-color .2s ease, box-shadow .2s ease;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.02) inset;
+    }
+
+    .search-container input[type="text"]::placeholder,
+    .search-container input[type="number"]::placeholder {
+      color: #9aa0a6;
+    }
+
+    .search-container input[type="text"]:focus,
+    .search-container input[type="number"]:focus {
+      outline: none;
+      border-color: #155724;
+      box-shadow: 0 0 0 4px rgba(10,116,255,0.08);
+    }
+
+    .search-container button[type="submit"],
+    .search-container button[type="button"] {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .search-container button[type="submit"] {
+      background: #155724;
+      color: #fff;
+    }
+
+    .search-container button[type="button"] {
+      background: #f1f3f4;
+      color: #333;
+    }
+
+    .search-container button:hover { transform: translateY(-2px); }
+    .search-container button:active { transform: translateY(0); }
+
+    .search-container button[type="submit"]:hover { background: #1d7231; }
+    .search-container button[type="button"]:hover { background: #e6e9ec; }
+
+    .search-container button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(10,116,255,0.16);
+    }
+
+    .info-box {
+      max-width: 1200px;
+      margin: 10px auto 0;
+      background: #ffffffd9;
+      color: #333;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     }
 
     @media (max-width: 768px) {

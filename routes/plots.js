@@ -16,10 +16,10 @@ router.get('/map', (req, res) => {
 router.get('/memorial-chapel', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      SELECT plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Memorial Chapel%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      GROUP BY plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/memorial-chapel] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {
@@ -43,10 +43,10 @@ router.get('/memorial-chapel', async (req, res) => {
 router.get('/heritage-gardens', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      SELECT plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Heritage Gardens%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      GROUP BY plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/heritage-gardens] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {
@@ -70,10 +70,10 @@ router.get('/heritage-gardens', async (req, res) => {
 router.get('/veterans-memorial', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      SELECT plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Veterans Memorial%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      GROUP BY plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/veterans-memorial] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {
@@ -97,10 +97,10 @@ router.get('/veterans-memorial', async (req, res) => {
 router.get('/serenity-columbarium', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      SELECT plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Serenity Columbarium%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      GROUP BY plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/serenity-columbarium] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {
@@ -158,10 +158,10 @@ router.get('/family-estates', async (req, res) => {
   try {
     // Fetch only the specified fields, grouped by plot_number
     const [rows] = await db.query(`
-      SELECT plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      SELECT plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
       FROM plot_map_tbl
       WHERE location LIKE '%Family Estates%'
-      GROUP BY plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
+      GROUP BY plot_id, plot_number, location, type, price, deceased_firstName, deceased_lastName, birth_date, death_date, availability, coord_x, coord_y
     `);
     console.log('[/plots/family-estates] db rows count =', Array.isArray(rows) ? rows.length : typeof rows);
     if (Array.isArray(rows) && rows.length > 0) {

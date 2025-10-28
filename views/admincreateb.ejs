@@ -3,113 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Create Booking | Everlasting Peace Memorial Park</title>
+  <title>Create Appointment | Everlasting Peace Memorial Park</title>
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Main Admin CSS -->
   <link rel="stylesheet" href="/stylesheets/admin.css" />
-  <link rel="stylesheet" href="/stylesheets/admincreateb.css">
-  </head>
+  <link rel="stylesheet" href="/stylesheets/admincreateb.css" />
+</head>
 <body>
-  <!-- Enhanced Admin Header -->
+  <!-- ===== HEADER (Topbar + Hamburger) ===== -->
   <header class="admin-header">
-    <h1>Admin Dashboard</h1>
+    <div class="header-left">
+      <button id="sidebarToggle" aria-label="Toggle menu" class="hamburger-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1>Admin Dashboard</h1>
+    </div>
     <nav>
       <ul>
-       <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        <li><a href="/admin">Home</a></li>
+        <li><a href="/adminviewapp">Appointments</a></li>
+        <li><a href="/adminviewbookings">Bookings</a></li>
+        <li><a href="/reports">Reports</a></li>
+        <li><a href="/login/logout">Logout</a></li>
       </ul>
     </nav>
   </header>
 
+  <!-- ===== MAIN LAYOUT ===== -->
   <main class="admin-main">
-    <!-- Enhanced Sidebar from View Appointments -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+      <h3>Dashboard Menu</h3>
       <ul>
-        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb" class="active"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
+        <li><a href="/admin">Dashboard Home</a></li>
+        <li><a href="/admincreateb" class="active">Create Appointment</a></li>
+        <li><a href="/adminviewapp">View Appointments</a></li>
+        <li><a href="/burialrecord">Burial Records</a></li>
+        <li><a href="/maps">Cemetery Map</a></li>
+        <li><a href="/adminviewbookings">Client Transactions</a></li>
+        <li><a href="/admin_inventory">Inventory</a></li>
+        <li><a href="/admin_logs">Logs</a></li>
       </ul>
-
-      <h3><i class="fas fa-cog"></i> Appointment Tools</h3>
-      <div class="appointment-sections">
-        <button onclick="showQuickForm()" class="active" id="quick-form">
-          <i class="fas fa-bolt"></i> Quick Booking
-        </button>
-        <button onclick="showAdvancedForm()" id="advanced-form">
-          <i class="fas fa-cogs"></i> Advanced Options
-        </button>
-        <button onclick="showTemplates()" id="templates">
-          <i class="fas fa-file-alt"></i> Use Template
-        </button>
-        <button onclick="showBulkCreate()" id="bulk-create">
-          <i class="fas fa-layer-group"></i> Bulk Create
-        </button>
-      </div>
-
-      <h3><i class="fas fa-chart-line"></i> Quick Stats</h3>
-      <div class="appointment-sections">
-        <button onclick="showTodayStats()" style="background: rgba(40, 167, 69, 0.2); color: #155724;">
-          <i class="fas fa-calendar-day"></i> Today: 8 Appointments
-        </button>
-        <button onclick="showWeekStats()">
-          <i class="fas fa-calendar-week"></i> This Week: 23
-        </button>
-        <button onclick="showAvailableSlots()">
-          <i class="fas fa-clock"></i> Available Slots: 12
-        </button>
-      </div>
     </aside>
 
-    <!-- Enhanced Main Content -->
+    <!-- ===== CONTENT AREA ===== -->
     <section class="content">
-      <h2> Create New Booking</h2>
-      
-      <div class="appointment-form">
-        <h1><i class="fas fa-calendar-plus"></i> Schedule Booking</h1>
-        <p class="form-subtitle">Please fill in the details below to book your appointment</p>
-        
-        <div class="success-message" id="successMessage">
-          <i class="fas fa-check-circle"></i> Appointment successfully created!
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Create New Appointment</h2>
+          <div class="date-time" id="currentDateTime"></div>
         </div>
+        <div class="icons">
+          <!-- Notification Bell -->
+          <button class="notification-btn" id="notificationBtn">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationCount">0</span>
+          </button>
+
+          <!-- Notification Dropdown -->
+          <div class="notification-dropdown" id="notificationDropdown">
+            <header>Notifications</header>
+            <ul id="notificationList">
+              <li>Loading notifications...</li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== FORM SECTION ===== -->
+      <div class="form-card">
+        <p class="form-subtitle">Please fill in the details below to book an appointment.</p>
+
+        <div class="success-message" id="successMessage">Appointment successfully created!</div>
 
         <form id="appointmentForm" method="POST" action="/admincreateb">
           <div class="form-grid">
             <div class="form-group">
-              <label for="fullname">
-                <i class="fas fa-user"></i> Full Name *
-              </label>
-              <input type="text" id="fullname" name="fullname" required placeholder="Enter your full name" />
+              <label for="fullname">Full Name *</label>
+              <input type="text" id="fullname" name="fullname" required placeholder="Enter full name" />
               <div class="error-message" id="fullnameError"></div>
             </div>
 
             <div class="form-group">
-              <label for="phone">
-                <i class="fas fa-phone"></i> Phone Number *
-              </label>
+              <label for="phone">Phone Number *</label>
               <input type="tel" id="phone" name="phone" required placeholder="(123) 456-7890" />
               <div class="error-message" id="phoneError"></div>
             </div>
 
             <div class="form-group">
-              <label for="email">
-                <i class="fas fa-envelope"></i> Email Address
-              </label>
+              <label for="email">Email Address</label>
               <input type="email" id="email" name="email" placeholder="your.email@example.com" />
               <div class="error-message" id="emailError"></div>
             </div>
 
             <div class="form-group">
-              <label for="service">
-                <i class="fas fa-concierge-bell"></i> Service Type *
-              </label>
+              <label for="service">Service Type *</label>
               <select id="service" name="service" required>
                 <option value="" disabled selected>Select Service</option>
                 <option value="burial">Burial Service</option>
@@ -123,17 +115,13 @@
             </div>
 
             <div class="form-group">
-              <label for="date">
-                <i class="fas fa-calendar"></i> Date of Appointment *
-              </label>
+              <label for="date">Date of Appointment *</label>
               <input type="date" id="date" name="date" required />
               <div class="error-message" id="dateError"></div>
             </div>
 
             <div class="form-group">
-              <label for="time">
-                <i class="fas fa-clock"></i> Preferred Time *
-              </label>
+              <label for="time">Preferred Time *</label>
               <select id="time" name="time" required>
                 <option value="" disabled selected>Select Time</option>
                 <option value="09:00">9:00 AM</option>
@@ -148,351 +136,87 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="notes">
-                <i class="fas fa-sticky-note"></i> Additional Notes
-              </label>
-              <textarea id="notes" name="notes" rows="4" placeholder="Any special requests or additional information..."></textarea>
+              <label for="notes">Additional Notes</label>
+              <textarea id="notes" name="notes" rows="4" placeholder="Any special requests or details..."></textarea>
             </div>
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn btn-clear" id="clearBtn">
-              <i class="fas fa-eraser"></i> Clear Form
-            </button>
-            <button type="button" class="btn btn-ai" id="aiBtn">
-              <i class="fas fa-robot"></i> AI Suggestions
-            </button>
-            <button type="submit" class="btn btn-submit" id="submitBtn">
-              <i class="fas fa-calendar-check"></i> Book Appointment
-            </button>
+            <button type="button" class="btn btn-secondary" id="clearBtn">Clear Form</button>
+            <button type="button" class="btn btn-secondary" id="aiBtn">AI Suggestions</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Book Appointment</button>
           </div>
         </form>
       </div>
     </section>
   </main>
-   <!-- footer removed to use admin.css layout and centralized footer if needed -->
 
-  <!-- AI Suggestions Modal -->
-  <div id="aiModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-robot"></i> AI Suggestions</h3>
-        <span class="close" id="closeModal">&times;</span>
-      </div>
-      <div id="suggestionsList">
-        <div class="suggestion-item" data-service="burial" data-time="10:00">
-          <div class="suggestion-title">Morning Burial Service</div>
-          <div class="suggestion-desc">Recommended for peaceful ceremonies with better weather conditions and optimal lighting</div>
-        </div>
-        <div class="suggestion-item" data-service="lot-inquiry" data-time="14:00">
-          <div class="suggestion-title">Afternoon Lot Viewing</div>
-          <div class="suggestion-desc">Perfect lighting for viewing available plots and memorial sites with clear visibility</div>
-        </div>
-        <div class="suggestion-item" data-service="memorial" data-time="09:00">
-          <div class="suggestion-title">Early Memorial Planning</div>
-          <div class="suggestion-desc">Quiet morning hours ideal for detailed memorial service planning and consultation</div>
-        </div>
-        <div class="suggestion-item" data-service="maintenance" data-time="11:00">
-          <div class="suggestion-title">Mid-Morning Maintenance</div>
-          <div class="suggestion-desc">Optimal time for site inspections and maintenance discussions with full daylight</div>
-        </div>
-      </div>
-    </div>
+  <!-- ===== TOAST NOTIFICATION ===== -->
+  <div id="toast" class="toast">
+    <i class="fas fa-bell"></i>
+    <span id="toastMessage">New Notification</span>
   </div>
 
+  <!-- ===== SCRIPTS ===== -->
   <script>
-    class AppointmentManager {
-      constructor() {
-        this.form = document.getElementById('appointmentForm');
-        this.initializeEventListeners();
-        this.setMinDate();
-        this.loadSavedData();
-      }
+    // Sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const adminMain = document.querySelector('.admin-main');
+    sidebarToggle.addEventListener('click', () => {
+      adminMain.classList.toggle('collapsed');
+    });
 
-      initializeEventListeners() {
-        // Form submission
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        
-        // Button events
-        document.getElementById('clearBtn').addEventListener('click', () => this.clearForm());
-        document.getElementById('aiBtn').addEventListener('click', () => this.showAISuggestions());
-        document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
-        
-        // Real-time validation
-        this.form.querySelectorAll('input, select, textarea').forEach(field => {
-          field.addEventListener('blur', () => this.validateField(field));
-          field.addEventListener('input', () => this.clearFieldError(field));
-        });
+    // Update date/time
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("currentDateTime").textContent = now.toLocaleString();
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
 
-        // Phone number formatting
-        document.getElementById('phone').addEventListener('input', (e) => this.formatPhoneNumber(e));
-        
-        // Auto-save form data
-        this.form.addEventListener('input', () => this.saveFormData());
+    // Notification toggle
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationDropdown = document.getElementById("notificationDropdown");
 
-        // Modal events
-        window.addEventListener('click', (e) => {
-          if (e.target === document.getElementById('aiModal')) {
-            this.closeModal();
-          }
-        });
+    notificationBtn.addEventListener("click", () => {
+      notificationDropdown.classList.toggle("active");
+    });
 
-        // AI suggestion selection
-        document.querySelectorAll('.suggestion-item').forEach(item => {
-          item.addEventListener('click', () => this.applySuggestion(item));
-        });
-      }
+    // Toast Notification Logic
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
 
-      setMinDate() {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        document.getElementById('date').min = tomorrow.toISOString().split('T')[0];
-      }
-
-      validateField(field) {
-        const value = field.value.trim();
-        const fieldName = field.name;
-        let isValid = true;
-        let errorMessage = '';
-
-        switch (fieldName) {
-          case 'fullname':
-            if (!value) {
-              errorMessage = 'Full name is required';
-              isValid = false;
-            } else if (value.length < 2) {
-              errorMessage = 'Name must be at least 2 characters';
-              isValid = false;
-            }
-            break;
-
-          case 'phone':
-            const phoneRegex = /^$$\d{3}$$ \d{3}-\d{4}$/;
-            if (!value) {
-              errorMessage = 'Phone number is required';
-              isValid = false;
-            } else if (!phoneRegex.test(value)) {
-              errorMessage = 'Please enter a valid phone number';
-              isValid = false;
-            }
-            break;
-
-          case 'email':
-            if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-              errorMessage = 'Please enter a valid email address';
-              isValid = false;
-            }
-            break;
-
-          case 'date':
-            if (!value) {
-              errorMessage = 'Appointment date is required';
-              isValid = false;
-            } else {
-              const selectedDate = new Date(value);
-              const today = new Date();
-              if (selectedDate <= today) {
-                errorMessage = 'Please select a future date';
-                isValid = false;
-              }
-            }
-            break;
-
-          case 'service':
-          case 'time':
-            if (!value) {
-              errorMessage = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
-              isValid = false;
-            }
-            break;
-        }
-
-        this.showFieldError(field, errorMessage, !isValid);
-        return isValid;
-      }
-
-      showFieldError(field, message, hasError) {
-        const formGroup = field.closest('.form-group');
-        const errorElement = formGroup.querySelector('.error-message');
-        
-        if (hasError) {
-          formGroup.classList.add('error');
-          formGroup.classList.remove('success');
-          errorElement.textContent = message;
-        } else {
-          formGroup.classList.remove('error');
-          formGroup.classList.add('success');
-          errorElement.textContent = '';
-        }
-      }
-
-      clearFieldError(field) {
-        const formGroup = field.closest('.form-group');
-        formGroup.classList.remove('error');
-        const errorElement = formGroup.querySelector('.error-message');
-        errorElement.textContent = '';
-      }
-
-      formatPhoneNumber(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 6) {
-          value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
-        } else if (value.length >= 3) {
-          value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
-        }
-        e.target.value = value;
-      }
-
-      handleSubmit(e) {
-        // Validate all fields
-        let isFormValid = true;
-        const requiredFields = this.form.querySelectorAll('[required]');
-        
-        requiredFields.forEach(field => {
-          if (!this.validateField(field)) {
-            isFormValid = false;
-          }
-        });
-
-        if (!isFormValid) {
-          e.preventDefault();
-          this.showNotification('Please correct the errors above', 'error');
-          return;
-        }
-
-        // Show loading state
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.classList.add('loading');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-        // Allow form to submit naturally to the server
-        this.showNotification('Creating appointment...', 'info');
-      }
-
-      clearForm() {
-        this.form.reset();
-        document.getElementById('successMessage').style.display = 'none';
-        
-        // Clear all validation states
-        this.form.querySelectorAll('.form-group').forEach(group => {
-          group.classList.remove('error', 'success');
-        });
-        
-        this.form.querySelectorAll('.error-message').forEach(error => {
-          error.textContent = '';
-        });
-
-        this.clearSavedData();
-        this.showNotification('Form cleared successfully', 'info');
-      }
-
-      showAISuggestions() {
-        document.getElementById('aiModal').style.display = 'block';
-      }
-
-      closeModal() {
-        document.getElementById('aiModal').style.display = 'none';
-      }
-
-      applySuggestion(suggestionElement) {
-        const service = suggestionElement.dataset.service;
-        const time = suggestionElement.dataset.time;
-        
-        if (service) {
-          document.getElementById('service').value = service;
-        }
-        if (time) {
-          document.getElementById('time').value = time;
-        }
-        
-        this.closeModal();
-        this.showNotification('AI suggestion applied successfully!', 'success');
-      }
-
-      saveFormData() {
-        const formData = new FormData(this.form);
-        const data = Object.fromEntries(formData);
-        localStorage.setItem('appointmentFormData', JSON.stringify(data));
-      }
-
-      loadSavedData() {
-        const savedData = localStorage.getItem('appointmentFormData');
-        if (savedData) {
-          const data = JSON.parse(savedData);
-          Object.keys(data).forEach(key => {
-            const field = document.getElementById(key);
-            if (field && data[key]) {
-              field.value = data[key];
-            }
-          });
-        }
-      }
-
-      clearSavedData() {
-        localStorage.removeItem('appointmentFormData');
-      }
-
-      showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-          ${message}
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.style.animation = 'slideOutRight 0.3s ease';
-          setTimeout(() => notification.remove(), 300);
-        }, 3000);
-      }
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4000);
     }
 
-    // Global functions for sidebar interactions
-    function showQuickForm() {
-      updateActiveButton('quick-form');
-      new AppointmentManager().showNotification('Quick booking mode activated', 'info');
-    }
+    // Simulated Notifications (replace with fetch from backend if needed)
+    const notificationList = document.getElementById("notificationList");
+    const notificationCount = document.getElementById("notificationCount");
 
-    function showAdvancedForm() {
-      updateActiveButton('advanced-form');
-      new AppointmentManager().showNotification('Advanced options coming soon...', 'info');
-    }
-
-    function showTemplates() {
-      updateActiveButton('templates');
-      new AppointmentManager().showNotification('Template selection coming soon...', 'info');
-    }
-
-    function showBulkCreate() {
-      updateActiveButton('bulk-create');
-      new AppointmentManager().showNotification('Bulk creation feature coming soon...', 'info');
-    }
-
-    function showTodayStats() {
-      new AppointmentManager().showNotification('Today: 8 appointments scheduled', 'info');
-    }
-
-    function showWeekStats() {
-      new AppointmentManager().showNotification('This week: 23 appointments total', 'info');
-    }
-
-    function showAvailableSlots() {
-      new AppointmentManager().showNotification('12 available time slots remaining today', 'success');
-    }
-
-    function updateActiveButton(activeId) {
-      document.querySelectorAll('.appointment-sections button').forEach(btn => {
-        btn.classList.remove('active');
+    function loadNotifications() {
+      const sampleNotifications = [
+        "New booking request received.",
+        "Appointment confirmed for Oct 30.",
+        "System backup completed successfully.",
+      ];
+      notificationList.innerHTML = "";
+      sampleNotifications.forEach(msg => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        notificationList.appendChild(li);
       });
-      document.getElementById(activeId).classList.add('active');
+      notificationCount.textContent = sampleNotifications.length;
+      showToast("You have new notifications!");
     }
 
-    // Initialize the appointment manager when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      new AppointmentManager();
+    setTimeout(loadNotifications, 2000);
+
+    // Clear form
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      document.getElementById("appointmentForm").reset();
     });
   </script>
 </body>

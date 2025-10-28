@@ -31,6 +31,7 @@ router.get("/family-estates", async (req, res) => {
     console.error("❌ Error fetching Family Estates plots:", error);
     res.status(500).json({ error: "Database error while fetching Family Estates plots." });
   }
+  
 });
 
 // ✅ GET all plots (for rendering the map)

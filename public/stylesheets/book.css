@@ -1,3 +1,4 @@
+@import url('/stylesheets/admin.css');
 /* 🌿 GLOBAL RESET */
 * {
   margin: 0;
@@ -21,12 +22,24 @@ body {
 
 /* 🌿 MAIN SECTION */
 .main {
+  align-content: center;
+  margin-left: 250px;
+  transition: margin-left 0.4s ease;
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: 78px;
+}
+
+/* Ensure topbar stretches full width */
+.topbar {
   width: 100%;
+  position: relative;
+  left: 0;
+  right: 0;
 }
 
 /* 🌿 FORM CONTAINER */
@@ -186,10 +199,37 @@ footer {
     width: 100%;
   }
 
-  .main,
-  .topbar,
+  .main {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .sidebar.collapsed ~ .main {
+    margin-left: 0;
+  }
+  
+  .topbar {
+    width: 100%;
+  }
+
   .footer {
-    margin-left: 0 !important;
-    width: 100% !important;
+    width: 100%;
+  }
+  
+  #sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  #sidebar.collapsed {
+    transform: translateX(0);
+    width: 78px;
+  }
+
+  body {
+    overflow-x: hidden;
+    position: relative;
   }
 }
