@@ -21,9 +21,21 @@
       padding: 3rem 2rem;
       border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-      max-width: 500px;
+      max-width: 720px; /* increase to accomodate wider content */
       width: 100%;
       text-align: center;
+      box-sizing: border-box;
+    }
+
+    /* allow long transaction ids to wrap and break gracefully */
+    .tx-value {
+      display: inline-block;
+      max-width: 100%;
+      word-break: break-all; /* break long tokens */
+      overflow-wrap: anywhere;
+      text-align: center;
+      color: #111;
+      word-wrap: break-word;
     }
 
     .success-icon {
@@ -112,18 +124,25 @@
     <div class="success-icon"></div>
     <h1>Payment Successful!</h1>
     <p>Your payment has been processed successfully. Thank you for your purchase.</p>
-
+    <% 
+      // Defensive local variables: support snake_case or camelCase locals and avoid ReferenceError
+      const tx = (typeof transaction_id !== 'undefined') ? transaction_id : (typeof transactionId !== 'undefined' ? transactionId : null);
+      const paidAtVal = (typeof paid_at !== 'undefined') ? paid_at : (typeof paidAt !== 'undefined' ? paidAt : null);
+      const amtVal = (typeof amount !== 'undefined') ? amount : (typeof amt !== 'undefined' ? amt : null);
+    %>
     <div style="margin-bottom:1.25rem;text-align:center;">
       <p style="margin:6px 0;font-weight:600;">Transaction Details</p>
-      <p style="margin:4px 0;color:#333;">Transaction ID: <span style="font-weight:700;"><%= transaction_id || 'N/A' %></span></p>
+  <p style="margin:4px 0;color:#333;">Transaction ID:<br/><span class="tx-value" style="font-weight:700;"><%= tx || 'N/A' %></span></p>
       <p style="margin:4px 0;color:#333;">Amount: 
         <span style="font-weight:700;color:#155724;">
-          ₱<%= (typeof amount === 'number') 
-              ? amount.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) 
-              : (amount || 'N/A') %>
+          ₱<% if (typeof amtVal === 'number') { %>
+            <%= amtVal.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) %>
+          <% } else { %>
+            <%= amtVal || 'N/A' %>
+          <% } %>
         </span>
       </p>
-      <p style="margin:4px 0;color:#333;">Paid at: <span style="font-weight:700;"><%= paid_at || 'N/A' %></span></p>
+      <p style="margin:4px 0;color:#333;">Paid at: <span style="font-weight:700;"><%= paidAtVal || 'N/A' %></span></p>
     </div>
 
     <a href="/userdashboard" class="btn-dashboard">Back to Dashboard</a>
@@ -146,7 +165,7 @@
         const canvas = await html2canvas(card);
         const imageData = canvas.toDataURL('image/png');
 
-        const filename = 'receipt_<%= transaction_id ? transaction_id : Date.now() %>';
+  const filename = 'receipt_<%= tx ? tx : Date.now() %>';
 
         const response = await fetch('/bookplots/save-receipt', {
           method: 'POST',

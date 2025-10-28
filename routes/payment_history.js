@@ -23,16 +23,17 @@ router.get("/", async (req, res) => {
       [userId]
     );
 
-    // 2. Fetch current active installment (downpayment + installments)
+    // 2. Fetch current active installment (latest booking with an active payment)
     const [installmentRows] = await db.query(
       `SELECT b.booking_id, pm.plot_number, pm.location, pm.price AS total_price,
-              COALESCE(SUM(p.amount),0) AS total_paid,
+              COALESCE(SUM(CASE WHEN p.status IN ('active','paid') THEN p.amount ELSE 0 END),0) AS total_paid,
               MIN(CASE WHEN p.status = 'active' THEN p.due_date END) AS next_due_date
-       FROM booking_tbl b
-       JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
-       LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id AND p.status != 'defaulted'
+  FROM booking_tbl b
+  JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
+       LEFT JOIN payment_tbl p ON b.booking_id = p.booking_id AND p.status NOT IN ('defaulted','cancelled')
        WHERE b.user_id = ?
-         AND NOT EXISTS (SELECT 1 FROM payment_tbl p2 WHERE p2.booking_id = b.booking_id AND p2.status = 'defaulted')
+         AND b.plot_id IS NOT NULL
+         AND EXISTS (SELECT 1 FROM payment_tbl p2 WHERE p2.booking_id = b.booking_id AND p2.status = 'active')
        GROUP BY b.booking_id
        HAVING total_paid < pm.price
        ORDER BY b.booking_id DESC

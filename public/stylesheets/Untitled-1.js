@@ -85,8 +85,13 @@ router.get("/success", async (req, res) => {
 
       delete req.session.paymentData;
 
-      // Render success page
-      res.render("payment_success");
+      // Render success page (pass expected locals to avoid template ReferenceErrors)
+      res.render("payment_success", {
+        bookingId: paymentData.booking_id,
+        amount: paymentData.amount || paymentData.monthly_amount,
+        transaction_id: paymentData.transaction_id || null,
+        paid_at: new Date().toISOString(),
+      });
     }
   } catch (err) {
     console.error("Error logging payment success or sending receipt:", err);

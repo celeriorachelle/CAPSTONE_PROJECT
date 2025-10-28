@@ -199,12 +199,17 @@ router.get("/success", async (req, res) => {
           subject: `Receipt for Payment - Plot #${receiptData.plot_number}`,
           html: receiptHtml,
         });
-      }
+        }
+
+      // Prepare locals for template (defensive: ensure amount/tx/paid_at are provided)
+      const amountVal = paymentData.amount != null ? paymentData.amount : (paymentData.monthly_amount != null ? paymentData.monthly_amount : null);
+      const txVal = null; // no transaction id available in this flow
+      const paidAtVal = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
       delete req.session.paymentData;
 
-      // Render success page
-      res.render("payment_success");
+      // Render success page with consistent locals
+      res.render("payment_success", { bookingId: paymentData.booking_id, amount: amountVal, transaction_id: txVal, paid_at: paidAtVal });
     }
   } catch (err) {
     console.error("Error logging payment success or sending receipt:", err);
@@ -356,6 +361,8 @@ router.get("/installment-success", async (req, res) => {
         ]
       );
       const newPaymentId = insertResult.insertId;
+  console.log('Installment-success: inserted payment id=', newPaymentId);
+  console.log('Installment-success: paymentData snapshot=', paymentData);
       // Log successful payment
       await addLog({
         user_id: paymentData.user_id,
@@ -378,9 +385,36 @@ router.get("/installment-success", async (req, res) => {
           [paymentData.plot_id]
         );
       }
+      // Prepare locals for template
+      let amountVal = paymentData.monthly_amount != null ? paymentData.monthly_amount : (paymentData.amount != null ? paymentData.amount : null);
+      let txVal = req.query.session_id || null;
+      let paidAtVal = new Date().toISOString().slice(0,19).replace('T',' ');
+
+      // Fallback: fetch the newly inserted payment row to populate missing locals
+      try {
+        const [newRows] = await db.query(
+          `SELECT payment_id, amount, transaction_id, paid_at FROM payment_tbl WHERE payment_id = ? LIMIT 1`,
+          [newPaymentId]
+        );
+        console.log('Installment-success: fetched inserted payment row:', newRows);
+        if (newRows.length) {
+          const nr = newRows[0];
+          if (amountVal == null && nr.amount != null) amountVal = Number(nr.amount);
+          if (!txVal && nr.transaction_id) txVal = nr.transaction_id;
+          if ((!paidAtVal || paidAtVal === '') && nr.paid_at) {
+            const d = new Date(nr.paid_at);
+            paidAtVal = d.toISOString().slice(0,19).replace('T',' ');
+          }
+        }
+      } catch (fetchErr) {
+        console.error('Failed to fetch inserted payment row for fallback locals:', fetchErr);
+      }
+
+      console.log('Installment-success: locals before render ->', { amountVal, txVal, paidAtVal });
+
       delete req.session.paymentData;
+      res.render('payment_success', { bookingId: paymentData.booking_id, amount: amountVal, transaction_id: txVal, paid_at: paidAtVal });
     }
-    res.render('payment_success');
   } catch (err) {
     console.error("Error logging installment payment success:", err);
     res.status(500).send("Installment payment success, but log not recorded.");

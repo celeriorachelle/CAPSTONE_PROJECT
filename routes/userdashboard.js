@@ -85,17 +85,41 @@ router.get('/', requireLogin, async (req, res) => {
       [userId]
     );
 
-    // Fetch active installments (payments) for current user
+
+    // Fetch only the latest active installment per booking for current user
     const [activePayments] = await db.query(
-      `SELECT payment_id, booking_id, amount, due_date, status
-       FROM payment_tbl
-       WHERE user_id = ? AND status = 'active'`,
-      [userId]
+      `SELECT p1.* FROM payment_tbl p1
+        INNER JOIN (
+          SELECT booking_id, MAX(paid_at) AS max_paid_at
+          FROM payment_tbl
+          WHERE user_id = ? AND status = 'active'
+          GROUP BY booking_id
+        ) p2 ON p1.booking_id = p2.booking_id AND p1.paid_at = p2.max_paid_at
+        WHERE p1.user_id = ? AND p1.status = 'active'`,
+      [userId, userId]
     );
+
+    // Deduplicate activePayments server-side: keep the latest paid_at per booking_id
+    let dedupedActivePayments = [];
+    if (activePayments && activePayments.length > 0) {
+      const latestByBooking = new Map();
+      for (const p of activePayments) {
+        const key = p.booking_id || p.bookingId || null;
+        if (!key) continue;
+        const existing = latestByBooking.get(key);
+        // compare paid_at timestamps (fall back to payment_id if no date)
+        const pTime = p.paid_at ? new Date(p.paid_at).getTime() : (p.payment_id || 0);
+        const eTime = existing && existing.paid_at ? new Date(existing.paid_at).getTime() : (existing ? existing.payment_id || 0 : 0);
+        if (!existing || pTime > eTime) {
+          latestByBooking.set(key, p);
+        }
+      }
+      dedupedActivePayments = Array.from(latestByBooking.values());
+    }
 
     // Build installment warnings and take actions for overdue >7 days
     const installmentWarnings = [];
-    if (activePayments && activePayments.length > 0) {
+    if (dedupedActivePayments && dedupedActivePayments.length > 0) {
       const now = new Date();
       // helper: convert date-string or Date to a local-midnight Date
       function toLocalDateStart(d) {
@@ -112,7 +136,7 @@ router.get('/', requireLogin, async (req, res) => {
         return null;
       }
 
-      for (const p of activePayments) {
+  for (const p of dedupedActivePayments) {
         const dueStart = toLocalDateStart(p.due_date);
         if (!dueStart) continue;
         const msPerDay = 24 * 60 * 60 * 1000;
@@ -178,7 +202,7 @@ router.get('/', requireLogin, async (req, res) => {
     res.render('userdashboard', {
       user: req.session.user,
       pendingBookings: pendingRows || [],
-      reminders: activePayments || [],
+      reminders: dedupedActivePayments || [],
       recommendations: recommendationsWithLinks || [],
       showSurvey: !hasPreferences && !hasHistory,
       alert: req.query.alert,

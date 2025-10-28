@@ -299,6 +299,16 @@ router.get('/success', async (req, res) => {
     if (bookingId && paymentData) {
       const paymentMethod = paymentData.option === 'downpayment' ? 'downpayment' : 'fullpayment';
       const paymentStatus = paymentMethod === 'downpayment' ? 'active' : 'paid';
+
+      // PATCH: Mark previous 'active' payment as 'paid' before inserting new 'active' payment
+      if (paymentStatus === 'active') {
+        // Only for installment payments, not full payment
+        await db.query(
+          `UPDATE payment_tbl SET status = 'paid' WHERE booking_id = ? AND status = 'active'`,
+          [bookingId]
+        );
+      }
+
       const [paymentResult] = await db.query(
         `INSERT INTO payment_tbl
           (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount, total_paid)
