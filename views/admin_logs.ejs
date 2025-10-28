@@ -6,127 +6,16 @@
   <title>Activity Logs | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
-  <style>
-    .main-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      margin-top: 1rem;
-    }
-    .main-content .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    .main-content .header h1 {
-      color: #2d4a24;
-      font-size: 1.8rem;
-    }
-    .main-content .header button {
-      background: linear-gradient(135deg, #8aac7c, #6b915e);
-      border: none;
-      padding: 0.7rem 1.2rem;
-      border-radius: 10px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .main-content .header button:hover {
-      transform: scale(1.05);
-      background: linear-gradient(135deg, #769c68, #587c4d);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fafafa;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    thead {
-      background: #8aac7c;
-      color: white;
-    }
-    th, td {
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    tbody tr:hover {
-      background: #f4f8f2;
-    }
-
-  /* Filter Form Styling */
-    .filter-form {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .filter-form label {
-      font-weight: 600;
-      color: #2d4a24;
-    }
-    .filter-form select,
-    .filter-form input {
-      padding: 0.5rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .filter-form button {
-      background: #6b915e;
-      color: white;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .filter-form button:hover {
-      background: #587c4d;
-    }
-  </style>
+  <link rel="stylesheet" href="/stylesheets/admin_logs.css" />
 </head>
 <body>
-  <header class="admin-header">
-    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
-    <h1>Admin Dashboard</h1>
-    <nav>
-      <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <!-- reusable topbar -->
+  <%- include('partials/admin/topbar', { activePage: 'logs' }) %>
 
   <main class="admin-main">
-    <aside class="sidebar">
-      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
-      <ul>
-        <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs" class="active"><i class="fas fa-clipboard-list"></i> Logs</a></li>
-      </ul>
-    </aside>
+    <%- include('partials/admin/sidebar', { activePage: 'logs' }) %>
 
     <section class="content">
-      <header class="topbar">
-        <div class="topbar-left">
-          <h2>Activity Logs</h2>
-          <div class="date-time" id="currentDateTime"></div>
-        </div>
-      </header>
 
       <div class="main-content">
         <div class="header">

@@ -1,101 +1,38 @@
 @import url('/stylesheets/admin.css');
 @import url('/stylesheets/hamburger-menu.css');
 
-:root {
-      --dark-green: #1b2d1b;
-      --medium-green: #234123;
-      --accent-green: #7c8f56;
-      --light-green: #6c7d48;
-      --white: #ffffff;
-    }
+/* Admin Logs page layout (cleaned and consistent with other admin pages) */
+.content {
+  flex: 1;
+  padding: 2rem;
+  background: transparent;
+  overflow-y: auto;
+  min-height: calc(100vh - 120px);
+  margin-top: 60px;
+}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+.admin-main {
+  margin-left: 270px;
+  transition: margin-left 0.25s ease;
+  padding-top: 60px;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      display: flex;
-      color: var(--white);
-    }
+.admin-main.collapsed { margin-left: 0; }
 
-    .sidebar {
-      width: 240px;
-      background-color: var(--dark-green);
-      min-height: 100vh;
-      position: fixed;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 0;
-    }
+.content-header { margin-bottom: 1rem; display:flex; justify-content:space-between; align-items:center; }
 
-    .sidebar h2 {
-      text-align: center;
-      font-size: 18px;
-      margin-bottom: 30px;
-      padding: 0 15px;
-    }
+.content-area { background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
 
-    .nav-links a {
-      display: block;
-      padding: 12px 20px;
-      color: var(--white);
-      text-decoration: none;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
+table { width: 100%; border-collapse: collapse; }
+thead { background: #8aac7c; color: #fff; }
+th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #eee; }
+tbody tr:hover { background: #f6faf6; }
 
-    .nav-links a:hover,
-    .nav-links a.active {
-      background-color: var(--medium-green);
-      border-radius: 8px;
-    }
+.filter-form { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem; }
 
-    .main-content {
-      margin-left: 240px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+.pagination-controls { margin-top: 12px; display:flex; justify-content:space-between; align-items:center; }
 
-    .header {
-      background: var(--dark-green);
-      color: var(--white);
-      padding: 15px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 3px solid var(--medium-green);
-    }
-
-    .header h1 { font-size: 22px; }
-
-    .header button {
-      background: var(--accent-green);
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--white);
-      font-weight: bold;
-    }
-    .header button:hover { background: var(--light-green); }
-
-    .content-area { flex: 1; padding: 30px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--medium-green);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid var(--dark-green);
-      text-align: left;
-    }
-
-    th { background: var(--dark-green); }
+@media (max-width: 768px) {
+  .admin-main { margin-left: 0; }
+  .content { padding: 1rem; margin-top: 120px; }
+}

@@ -1,14 +1,6 @@
 @import url('/stylesheets/admin.css');
 @import url('/stylesheets/hamburger-menu.css');
 
-:root {
-  --dark-green: #1b2d1b;
-  --medium-green: #234123;
-  --accent-green: #7c8f56;
-  --light-green: #6c7d48;
-  --white: #ffffff;
-}
-
 /* Content Area */
 .content {
   flex: 1;
@@ -59,41 +51,31 @@
   gap: 0.5rem;
 }
 
-.header-actions {
+.search-controls {
   display: flex;
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.search-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-bar i {
-  position: absolute;
-  left: 1rem;
-  color: #999;
-}
-
-.search-bar input {
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
+.filter-select {
+  background: #f8f9fa;
   border: 2px solid #e0e0e0;
   border-radius: 25px;
-  min-width: 250px;
+  padding: 0.5rem 1rem;
   transition: all 0.3s ease;
+  min-width: 200px;
+  font-size: 14px;
 }
 
-.search-bar input:focus {
-  outline: none;
+.filter-select:hover {
   border-color: #8aac7c;
+  background: white;
   box-shadow: 0 0 0 3px rgba(138, 172, 124, 0.1);
 }
 
-/* Table Container */
-.inventory-container {
+/* Table Styles */
+.appointments-container {
   background: white;
   border-radius: 15px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -110,13 +92,6 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.table-header h3 {
-  color: #2d4a24;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .records-limit {
   display: flex;
   align-items: center;
@@ -129,94 +104,110 @@
   font-weight: 500;
 }
 
-.filter-select {
-  background: #f8f9fa;
-  border: 2px solid #e0e0e0;
-  border-radius: 25px;
-  padding: 0.5rem 1rem;
-  transition: all 0.3s ease;
+.records-limit select {
   min-width: 80px;
-  font-size: 14px;
+  padding: 0.5rem;
 }
 
-.filter-select:hover {
-  border-color: #8aac7c;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(138, 172, 124, 0.1);
-}
-
-/* Table Wrapper */
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Table Styles */
-.inventory-table {
+.appointments-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1200px;
-  table-layout: fixed;
+  min-width: 1600px; /* Increased for better spacing */
+  table-layout: fixed; /* Fixed layout prevents overlap */
 }
 
-/* Specific column widths */
-.inventory-table th:nth-child(1),
-.inventory-table td:nth-child(1) {
-  width: 200px;
-  min-width: 200px;
+/* Specific column widths to prevent overlap */
+.appointments-table th:nth-child(1),
+.appointments-table td:nth-child(1) {
+  width: 50px; /* # */
+  min-width: 50px;
 }
 
-.inventory-table th:nth-child(2),
-.inventory-table td:nth-child(2) {
-  width: 150px;
+.appointments-table th:nth-child(2),
+.appointments-table td:nth-child(2) {
+  width: 150px; /* Client Name */
   min-width: 150px;
 }
 
-.inventory-table th:nth-child(3),
-.inventory-table td:nth-child(3) {
-  width: 120px;
+.appointments-table th:nth-child(3),
+.appointments-table td:nth-child(3) {
+  width: 120px; /* Contact */
   min-width: 120px;
-  text-align: center;
 }
 
-.inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) {
-  width: 140px;
-  min-width: 140px;
-  text-align: center;
-}
-
-.inventory-table th:nth-child(5),
-.inventory-table td:nth-child(5) {
-  width: 130px;
-  min-width: 130px;
-}
-
-.inventory-table th:nth-child(6),
-.inventory-table td:nth-child(6) {
-  width: 180px;
+.appointments-table th:nth-child(4),
+.appointments-table td:nth-child(4) {
+  width: 180px; /* Email */
   min-width: 180px;
 }
 
-.inventory-table th,
-.inventory-table td {
+.appointments-table th:nth-child(5),
+.appointments-table td:nth-child(5) {
+  width: 120px; /* Service */
+  min-width: 120px;
+}
+
+.appointments-table th:nth-child(6),
+.appointments-table td:nth-child(6) {
+  width: 110px; /* Booking Date */
+  min-width: 110px;
+}
+
+.appointments-table th:nth-child(7),
+.appointments-table td:nth-child(7) {
+  width: 120px; /* Booking Status */
+  min-width: 120px;
+}
+
+.appointments-table th:nth-child(8),
+.appointments-table td:nth-child(8) {
+  width: 120px; /* Payment Type */
+  min-width: 120px;
+}
+
+.appointments-table th:nth-child(9),
+.appointments-table td:nth-child(9) {
+  width: 120px; /* Payment Status */
+  min-width: 120px;
+}
+
+.appointments-table th:nth-child(10),
+.appointments-table td:nth-child(10) {
+  width: 110px; /* Amount */
+  min-width: 110px;
+}
+
+.appointments-table th:nth-child(11),
+.appointments-table td:nth-child(11) {
+  width: 110px; /* Due Date */
+  min-width: 110px;
+}
+
+.appointments-table th,
+.appointments-table td {
   padding: 1rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e9ecef;
   vertical-align: middle;
 }
 
-.inventory-table th.actions-column,
-.inventory-table td.actions-column {
-  width: 280px;
-  min-width: 280px;
+/* Actions column specific styling */
+.appointments-table th.actions-column,
+.appointments-table td.actions-column {
+  width: 400px;
+  min-width: 400px;
   white-space: normal;
   overflow: visible;
 }
 
-.inventory-table th {
+.appointments-table th {
   background: #f8f9fa;
   font-weight: 600;
   color: #2d4a24;
@@ -226,31 +217,43 @@
   border-bottom: 2px solid #e0e0e0;
 }
 
-.inventory-table tbody tr {
+.appointments-table tbody tr {
   transition: all 0.3s ease;
 }
 
-.inventory-table tbody tr:hover {
+.appointments-table tbody tr:hover {
   background: #f8f9fa;
 }
 
-.inventory-table td:not(.actions-column) {
+/* Text overflow handling for regular columns */
+.appointments-table td:not(.actions-column) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  flex-wrap: wrap;
+/* Make email and name columns show full text on hover */
+.appointments-table td:nth-child(2),
+.appointments-table td:nth-child(4) {
+  position: relative;
 }
 
-.action-buttons form {
-  margin: 0;
-  display: inline;
+.appointments-table td:nth-child(2):hover,
+.appointments-table td:nth-child(4):hover,
+.appointments-table td:nth-child(8):hover,
+.appointments-table td:nth-child(11):hover {
+  overflow: visible;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Action Buttons Container */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0;
 }
 
 /* Button Styles */
@@ -261,70 +264,92 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 500;
-  font-size: 13px;
-  color: white;
+  font-size: 12px;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-action i {
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.btn-add {
+.btn-view {
   background: #6fbf73;
+  color: white;
 }
 
-.btn-add:hover {
+.btn-view:hover {
   background: #63a965;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(111, 191, 115, 0.2);
 }
 
+.btn-auto {
+  background: #9b59b6;
+  color: white;
+}
+
+.btn-auto:hover {
+  background: #8e44ad;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.2);
+}
+
 .btn-edit {
-  background: #4a90e2;
+  background: #3498db;
+  color: white;
 }
 
 .btn-edit:hover {
-  background: #3a7bc8;
+  background: #2980b9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 }
 
-.btn-delete {
-  background: #dc3545;
+.btn-send {
+  background: #8aac7c;
+  color: white;
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 25px;
+  font-size: 15px;
+  margin-top: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.btn-delete:hover {
-  background: #c82333;
+.btn-send:hover {
+  background: #7aa36f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+  box-shadow: 0 4px 12px rgba(138, 172, 124, 0.2);
 }
 
-/* Popup Styles */
-.popup {
+/* Modal Styles */
+.modal {
   display: none;
   position: fixed;
-  top: 0;
+  z-index: 1000;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  background-color: rgba(0,0,0,0.5);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
+  align-items: center;
+  justify-content: center;
 }
 
-.popup-content {
-  background: white;
+.modal-content {
+  background-color: white;
   padding: 2rem;
   border-radius: 20px;
   width: 90%;
-  max-width: 500px;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -345,8 +370,6 @@
   color: #666;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: none;
-  border: none;
 }
 
 .close-btn:hover {
@@ -354,85 +377,39 @@
   transform: rotate(90deg);
 }
 
-.popup-content h2 {
+.modal-content h3 {
   color: #2d4a24;
   margin-bottom: 1.5rem;
-  text-align: center;
   font-size: 1.5rem;
 }
 
-.popup-content label {
-  display: block;
-  margin-top: 1rem;
+.modal-content p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.modal-content p b {
   color: #2d4a24;
-  font-weight: 600;
-  font-size: 14px;
+  min-width: 120px;
+  display: inline-block;
 }
 
-.popup-content input,
-.popup-content select {
+#emailMessage {
   width: 100%;
-  padding: 0.7rem;
-  border-radius: 8px;
+  min-height: 150px;
+  padding: 1rem;
   border: 2px solid #e0e0e0;
-  margin-top: 0.3rem;
+  border-radius: 10px;
+  font-family: inherit;
   font-size: 14px;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
+  resize: vertical;
+  margin-top: 1rem;
 }
 
-.popup-content input:focus,
-.popup-content select:focus {
+#emailMessage:focus {
   outline: none;
   border-color: #8aac7c;
   box-shadow: 0 0 0 3px rgba(138, 172, 124, 0.1);
-}
-
-.popup-content input[readonly] {
-  background: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.popup-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.save-btn,
-.cancel-btn {
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  font-size: 14px;
-}
-
-.save-btn {
-  background: #6fbf73;
-  color: white;
-}
-
-.save-btn:hover {
-  background: #63a965;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(111, 191, 115, 0.2);
-}
-
-.cancel-btn {
-  background: #999;
-  color: white;
-}
-
-.cancel-btn:hover {
-  background: #777;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(153, 153, 153, 0.2);
 }
 
 /* Pagination Styles */
@@ -517,7 +494,56 @@
   font-weight: 500;
 }
 
-/* Scrollbar styling */
+/* Responsive Design */
+@media (max-width: 992px) {
+  .admin-main {
+    margin-left: 0;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+  
+  .content-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-controls {
+    flex-direction: column;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .appointments-table th.actions-column,
+  .appointments-table td.actions-column {
+    min-width: 200px;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .page-numbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Scrollbar styling for table wrapper */
 .table-wrapper::-webkit-scrollbar {
   height: 10px;
 }
@@ -534,57 +560,4 @@
 
 .table-wrapper::-webkit-scrollbar-thumb:hover {
   background: #7aa36f;
-}
-
-/* Responsive Design */
-@media (max-width: 992px) {
-  .admin-main {
-    margin-left: 0;
-  }
-  
-  .content {
-    padding: 1rem;
-  }
-  
-  .content-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .header-actions {
-    flex-direction: column;
-  }
-  
-  .search-bar input {
-    width: 100%;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .btn-action {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .pagination {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .page-numbers {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .popup-content {
-    width: 95%;
-    padding: 1.5rem;
-  }
-
-  .popup-actions {
-    flex-direction: column;
-  }
 }

@@ -56,8 +56,19 @@
   background: var(--light-bg);
   flex: 1;
   padding: 2rem;
-  min-height: 100vh;
+  /* Account for fixed header height (120px) */
+  min-height: calc(100vh - 120px);
   transition: margin-left 0.3s ease;
+}
+
+/* When using the reusable fixed sidebar/header, offset the main layout */
+.admin-main {
+  margin-left: 270px; /* match sidebar width */
+  transition: margin-left 0.25s ease;
+}
+
+.admin-main.collapsed {
+  margin-left: 0;
 }
 
 .topbar {

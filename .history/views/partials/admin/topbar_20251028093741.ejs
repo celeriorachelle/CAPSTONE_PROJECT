@@ -1,0 +1,409 @@
+<header class="admin-header">
+  <style>
+    /* ==========================
+       TOPBAR STYLES
+    =========================== */
+      :root {
+        --bg-gradient-start: #e6f1e6;      /* light greenish background */
+        --bg-gradient-end: #d4ead4;        /* slightly darker green */
+        --primary-dark: #101b0d;           /* dark green */
+        --primary: #2d4a24;                /* medium green */
+        --accent-1: #4a7f3c;               /* accent green 1 */
+        --accent-2: #7aae6b;               /* accent green 2 */
+        --muted: #666;
+        --text-dark: #1b2a17;              /* dark greenish text */
+        --white: #ffffff;
+      }
+
+    .admin-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      /* larger header for better spacing */
+      height: 120px;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .admin-header h1 {
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .header-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 25px;
+    }
+
+    .header-nav a {
+      color: #f1f1f1;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.3s;
+    }
+
+    .header-nav a:hover {
+      color: #ffc107;
+    }
+
+    .header-nav .active {
+      color: #ffc107;
+      border-bottom: 2px solid #ffc107;
+      padding-bottom: 4px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .notification-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-1, #4a7f3c);
+      color: white;
+      font-size: 0.95rem;
+      border: none;
+      box-shadow: 0 8px 22px rgba(16,27,13,0.12);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .notification-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(16,27,13,0.14);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ef4453;
+      color: #fff;
+      font-size: 0.72rem;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+      border: 3px solid var(--white, #ffffff);
+    }
+
+    .notification-dropdown {
+      position: absolute;
+      top: 80px;
+      right: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      width: 330px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+      z-index: 1000;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-dropdown header {
+      background: linear-gradient(135deg, #8aac7c, #6d9360);
+      color: #fff;
+      padding: 12px 15px;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .notification-dropdown ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .notification-dropdown ul::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .notification-dropdown ul::-webkit-scrollbar-thumb {
+      background: #cfcfcf;
+      border-radius: 3px;
+    }
+
+    .notification-dropdown ul li {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f1f1f1;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .notification-dropdown ul li:hover {
+      background: #f7fdf5;
+    }
+
+    .notification-dropdown ul li.unread {
+      background: #f0f7ec;
+      font-weight: 600;
+    }
+
+    .notification-dropdown ul li small {
+      display: block;
+      color: #555;
+      font-size: 0.8rem;
+      margin-top: 3px;
+    }
+
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 22px;
+      display: none;
+    }
+
+    @media (max-width: 992px) {
+      .sidebar-toggle {
+        display: block;
+      }
+      .header-nav {
+        display: none;
+      }
+    }
+
+    .date-time {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    /* Side Toast Notification */
+    .side-toast {
+      position: fixed;
+      top: 140px; /* place toast below the taller header */
+      right: -350px;
+      background: #2d4a24;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      font-weight: 500;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: right 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+
+    .side-toast.show {
+      right: 20px;
+      opacity: 1;
+    }
+  </style>
+
+  <div class="topbar-left">
+    <h1><i class="fa-solid fa-chart-line"></i> Dashboard Overview</h1>
+    <div class="date-time" id="currentDateTime"></div>
+  </div>
+
+  <div class="header-nav">
+    <ul>
+      <li><a href="/admin" class="<%= activePage === 'dashboard' ? 'active' : '' %>"><i class="fa-solid fa-house"></i> Home</a></li>
+      <li><a href="/admincreateb" class="<%= activePage === 'createAppointment' ? 'active' : '' %>"><i class="fa-solid fa-calendar-plus"></i> Appointments</a></li>
+      <li><a href="/admin_logs" class="<%= activePage === 'logs' ? 'active' : '' %>"><i class="fa-solid fa-clipboard-list"></i> Logs</a></li>
+    </ul>
+  </div>
+
+  <div class="topbar-right">
+    <button id="sidebarToggle" class="sidebar-toggle" title="Toggle Sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="icons">
+      <button class="notification-btn" id="notificationBtn">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notificationCount">0</span>
+      </button>
+
+      <div class="notification-dropdown" id="notificationDropdown">
+        <header>Notifications</header>
+        <ul id="notificationList">
+          <li>Loading notifications...</li>
+        </ul>
+      </div>
+    </div>
+
+      <div class="admin-profile">
+      <i class="fas fa-user-shield"></i>
+      <span>Admin</span>
+    </div>
+  </div>
+
+  <!-- Side Toast -->
+  <div class="side-toast" id="sideToast">
+    <span>New notification received!</span>
+  </div>
+
+  <script>
+    // Display real-time date and time
+    let lastUnreadCount = 0;
+
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("currentDateTime").textContent = now.toLocaleString();
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    function showSideToast(message) {
+      const toast = document.getElementById('sideToast');
+      toast.querySelector('span').textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function getReadNotifications() {
+      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    }
+
+    function markAsRead(id) {
+      let read = getReadNotifications();
+      if (!read.includes(id)) {
+        read.push(id);
+        localStorage.setItem('readNotifications', JSON.stringify(read));
+      }
+      fetchNotificationList();
+      fetchNotifications();
+    }
+
+    function getUnreadCount() {
+      const read = getReadNotifications();
+      const allItems = JSON.parse(localStorage.getItem('latestNotifications') || '[]');
+      return allItems.filter(item => !read.includes(item.booking_id)).length;
+    }
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/admin/notification/count');
+        const data = await res.json();
+        const badge = document.getElementById('notificationCount');
+        const unread = getUnreadCount();
+
+        badge.textContent = unread > 0 ? unread : 0;
+        badge.style.display = unread > 0 ? 'inline' : 'none';
+
+        if (unread > lastUnreadCount) {
+          showSideToast('New notification received!');
+        }
+        lastUnreadCount = unread;
+      } catch (err) {
+        console.error('Error fetching notification count:', err);
+      }
+    }
+
+    async function fetchNotificationList() {
+      try {
+        const res = await fetch('/admin/notification/list');
+        const list = await res.json();
+        localStorage.setItem('latestNotifications', JSON.stringify(list));
+
+        const read = getReadNotifications();
+        const container = document.getElementById('notificationList');
+
+        if (list.length === 0) {
+          container.innerHTML = '<li>No recent activity</li>';
+        } else {
+          container.innerHTML = list.map(item => {
+            const isRead = read.includes(item.booking_id);
+            return `
+              <li class="${isRead ? '' : 'unread'}" onclick="openBooking('${item.booking_id}')">
+                ${item.message}
+                <small>${new Date(item.created_at).toLocaleString()}</small>
+              </li>`;
+          }).join('');
+        }
+
+        fetchNotifications();
+      } catch (err) {
+        console.error('Error fetching notification list:', err);
+      }
+    }
+
+    function openBooking(id) {
+      markAsRead(id);
+      window.location.href = '/adminviewapp';
+    }
+
+    function openDownpayment(id) {
+      markAsRead(id);
+      window.location.href = '/adminviewbookings';
+    }
+
+    fetchNotificationList();
+    setInterval(fetchNotificationList, 10000);
+
+    // Toggle dropdown and sidebar
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notificationDropdown');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const adminMain = document.querySelector('.admin-main');
+
+    notifBtn.addEventListener('click', () => {
+      notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';
+      fetchNotificationList();
+    });
+
+    sidebarToggle.addEventListener('click', () => {
+      adminMain.classList.toggle('collapsed');
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.style.display = 'none';
+      }
+    });
+  </script>
+</header>

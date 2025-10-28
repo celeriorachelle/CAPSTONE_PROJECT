@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -10,139 +10,27 @@
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
-
-  <style>
-    /* --- Burial Records Table Design --- */
-    .records-table {
-      background: #fff;
-      margin: 30px;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      animation: fadeIn 0.5s ease-in;
-    }
-
-    .records-table h3 {
-      color: #2d4a24;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      font-size: 1.3em;
-    }
-
-    .records-table h3 i {
-      margin-right: 10px;
-      color: #2d4a24;
-    }
-
-    .table-container {
-      overflow-x: auto;
-      border-radius: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      font-size: 0.95rem;
-    }
-
-    thead {
-      background: #101b0d;
-      color: white;
-    }
-
-    thead th {
-      padding: 14px;
-      text-align: left;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid #eee;
-      transition: background 0.3s;
-    }
-
-    tbody tr:hover {
-      background-color: #f8f9fa;
-    }
-
-    tbody td {
-      padding: 12px 14px;
-      color: #333;
-    }
-
-    tbody td:first-child {
-      font-weight: 600;
-      color: #2d6a4f;
-    }
-
-    tbody td[colspan] {
-      text-align: center;
-      color: #999;
-      font-style: italic;
-      padding: 18px;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .records-table {
-        margin: 15px;
-        padding: 15px;
-      }
-
-      table {
-        font-size: 0.85rem;
-      }
-
-      thead th, tbody td {
-        padding: 10px;
-      }
-    }
-
-    /* Simple fade-in animation */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <link rel="stylesheet" href="/stylesheets/burialrecord.css" />
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="admin-header">
-    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
-    <h1>Burial Records</h1>
-    <nav>
-      <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i> Bookings</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <!-- Reusable topbar -->
+  <%- include('partials/admin/topbar', { activePage: 'burialRecord' }) %>
+  <script>
+    // alias legacy hamburger id to new sidebarToggle so older scripts keep working
+    document.addEventListener('DOMContentLoaded', () => {
+      const hb = document.getElementById('hamburger-btn');
+      const st = document.getElementById('sidebarToggle');
+      if (hb && st && !hb.dataset.mapped) {
+        hb.addEventListener('click', () => st.click());
+        hb.dataset.mapped = 'true';
+      }
+    });
+  </script>
 
   <main class="admin-main">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
-      <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Appointment</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Appointments</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i>Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
-      </ul>
-    </aside>
+    <%- include('partials/admin/sidebar', { activePage: 'burialRecord' }) %>
 
     <!-- Content Section -->
     <section class="content">
