@@ -261,9 +261,16 @@
           <td><%= p.status %></td>
           <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
           <td>
-            <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
-            <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
-          </td>
+  <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
+  <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
+  
+  <!-- 🟡 Warning (3 days left) -->
+  <button class="btn-primary" style="background:#ffc107;" onclick="sendWarning(<%= p.id %>)">Final Warning</button>
+
+  <!-- 🔴 Final Warning (7 days overdue) -->
+  <button class="btn-primary" style="background:#dc3545;" onclick="sendFinalWarning(<%= p.id %>)">Removed</button>
+</td>
+
         </tr>
       <% }) %>
     <% } else { %>
@@ -576,6 +583,22 @@ function sendSMS(paymentId, btn) {
       })
       .catch(() => alert("Error updating due date."));
     }
+    function sendWarning(paymentId) {
+  if (!confirm("Send WARNING (3 days left) notification to client?")) return;
+  fetch(`/staff_installments/send_warning/${paymentId}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => alert(data.message || "Warning sent successfully."))
+    .catch(() => alert("Failed to send warning notification."));
+}
+
+function sendFinalWarning(paymentId) {
+  if (!confirm("Send FINAL WARNING (7 days overdue) notification to client?")) return;
+  fetch(`/staff_installments/send_final_warning/${paymentId}`, { method: "POST" })
+    .then(res => res.json())
+    .then(data => alert(data.message || "Final warning sent successfully."))
+    .catch(() => alert("Failed to send final warning notification."));
+}
+
   </script>
 </body>
 </html>

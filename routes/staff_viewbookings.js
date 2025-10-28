@@ -101,58 +101,94 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
   const staffId = req.session.user.id;
 
   try {
-    // Update booking status
-    await db.query(
-      `UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`,
-      [bookingId]
-    );
+    // 1️⃣ Update booking status
+    await db.query(`UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`, [bookingId]);
 
-    // Get client info
+    // 2️⃣ Fetch booking details
     const [rows] = await db.query(`
-      SELECT COALESCE(u.email, b.email) AS email,
-             COALESCE(u.firstname, b.firstname) AS firstname,
-             COALESCE(u.lastname, b.lastname) AS lastname,
-             b.user_id
+      SELECT 
+        COALESCE(u.email, b.email) AS email,
+        COALESCE(u.firstname, b.firstname) AS firstname,
+        COALESCE(u.lastname, b.lastname) AS lastname,
+        b.user_id,
+        b.service_type,
+        b.deceased_firstName,
+        b.deceased_lastName,
+        b.birth_date,
+        b.death_date,
+        b.item_id,
+        b.plot_number,
+        b.location,
+        b.type,
+        b.price
       FROM booking_tbl b
       LEFT JOIN user_tbl u ON b.user_id = u.user_id
       WHERE b.booking_id = ?
     `, [bookingId]);
 
-    let clientName = 'Client';
-    if (rows.length > 0) {
-      const client = rows[0];
-      clientName = `${client.firstname || ''} ${client.lastname || ''}`.trim();
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Booking not found' });
 
-      const message = `Hello ${client.firstname || 'Client'}, your booking #${bookingId} has been approved.`;
+    const booking = rows[0];
+    const clientName = `${booking.firstname || ''} ${booking.lastname || ''}`.trim();
 
-      // Send notification to DB
-      if (client.user_id) {
-        await db.query(`
-          INSERT INTO notification_tbl (user_id, booking_id, message)
-          VALUES (?, ?, ?)
-        `, [client.user_id, bookingId, message]);
-      }
-
-      // Send email
-      if (client.email) {
-        await transporter.sendMail({
-          from: 'Everlasting Peace Memorial Park <rheachellegutierrez17@gmail.com>',
-          to: client.email,
-          subject: 'Booking Approved',
-          text: message
-        });
-      }
+    // 3️⃣ Insert deceased info into plot_map_tbl for burial services
+    if (booking.service_type && booking.service_type.toLowerCase().includes('burial')) {
+      await db.query(`
+        INSERT INTO plot_map_tbl (
+          plot_number,
+          location,
+          type,
+          price,
+          deceased_firstName,
+          deceased_lastName,
+          birth_date,
+          death_date,
+          item_id,
+          availability,
+          user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'occupied', ?)
+      `, [
+        booking.plot_number || 'Unassigned',
+        booking.location || 'Unassigned',
+        booking.type || 'Standard',
+        booking.price || 0,
+        booking.deceased_firstName || 'Unknown',
+        booking.deceased_lastName || 'Unknown',
+        booking.birth_date || null,
+        booking.death_date || null,
+        booking.item_id || 1,
+        booking.user_id || null
+      ]);
     }
 
-    // Add log for staff action with client name
+    // 4️⃣ Send notifications (same as before)
+    const message = `Hello ${booking.firstname || 'Client'}, your booking #${bookingId} has been approved.`;
+
+    if (booking.user_id) {
+      await db.query(`INSERT INTO notification_tbl (user_id, booking_id, message) VALUES (?, ?, ?)`,
+        [booking.user_id, bookingId, message]);
+    }
+
+    if (booking.email) {
+      await transporter.sendMail({
+        from: 'Everlasting Peace Memorial Park <rheachellegutierrez17@gmail.com>',
+        to: booking.email,
+        subject: 'Booking Approved',
+        text: message
+      });
+    }
+
+    // 5️⃣ Log staff action
     await addLog({
       user_id: staffId,
       user_role: 'staff',
       action: 'Approved Booking',
-      details: `Booking ID ${bookingId} approved by staff (Client: ${clientName})`
+      details: `Booking ID ${bookingId} approved by staff (Client: ${clientName})${booking.service_type.toLowerCase().includes('burial') ? ' — Deceased info saved in plot_map_tbl' : ''}`
     });
 
-    res.json({ success: true });
+    res.json({ success: true, deceasedSaved: booking.service_type.toLowerCase().includes('burial') });
+
+
   } catch (err) {
     console.error("Error approving booking:", err);
     res.status(500).json({ success: false, error: 'Failed to approve booking' });

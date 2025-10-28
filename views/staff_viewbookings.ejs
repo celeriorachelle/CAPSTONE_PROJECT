@@ -433,8 +433,14 @@ async function updateStatus(bookingId, newStatus) {
     const endpoint = newStatus === 'approved' 
       ? `/staff_viewbookings/approve/${bookingId}` 
       : `/staff_viewbookings/reject/${bookingId}`;
-    const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' } });
+
+    const res = await fetch(endpoint, { 
+      method: 'POST', 
+      headers: { 'Content-Type':'application/json' } 
+    });
+
     const data = await res.json();
+
     if (data.success) {
       const idx = bookingManager.bookings.findIndex(a => (''+a.id) === (''+bookingId));
       if (idx !== -1) {
@@ -443,7 +449,16 @@ async function updateStatus(bookingId, newStatus) {
       } else {
         location.reload();
       }
-      showToast("User notified");
+
+      // Show toast
+      if (newStatus === 'approved' && data.deceasedSaved) {
+        showToast(`Booking approved ✅ Deceased info saved in plot map.`);
+      } else if (newStatus === 'approved') {
+        showToast(`Booking approved ✅`);
+      } else {
+        showToast(`Booking status updated to ${newStatus}`);
+      }
+
     } else {
       alert('Failed to update status');
     }
@@ -453,9 +468,7 @@ async function updateStatus(bookingId, newStatus) {
   }
 }
 
-// ================================
-// Toast notification
-// ================================
+// Toast function (already in your file)
 function showToast(message) {
   let toast = document.createElement('div');
   toast.textContent = message;
@@ -479,7 +492,6 @@ function showToast(message) {
     setTimeout(() => document.body.removeChild(toast), 300);
   }, 2500);
 }
-
 </script>
 </body>
 </html>
