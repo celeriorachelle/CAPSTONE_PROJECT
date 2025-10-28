@@ -52,85 +52,87 @@ router.get("/", requireAdmin, async (req, res) => {
 });
 
 // ✅ Notification count (recent 24 hours)
+// ✅ Notification count (real unread count)
 router.get("/notification/count", requireAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT COUNT(*) AS count 
-      FROM booking_tbl
-      WHERE generated_at >= NOW() - INTERVAL 1 DAY
+      FROM notification_tbl n
+      LEFT JOIN booking_tbl b ON n.booking_id = b.booking_id
+      LEFT JOIN payment_tbl p ON n.payment_id = p.payment_id
+      WHERE n.is_read = 0
     `);
-
-    const [payments] = await db.query(`
-      SELECT COUNT(*) AS count
-      FROM payment_tbl
-      WHERE paid_at >= NOW() - INTERVAL 1 DAY
-    `);
-
-    res.json({ count: rows[0].count + payments[0].count });
+    res.json({ count: rows[0].count || 0 });
   } catch (err) {
     console.error("Error fetching notification count:", err);
     res.status(500).json({ count: 0 });
   }
 });
 
+
+
+
 // ✅ Latest bookings & downpayments (for dropdown)
+// ✅ Combined notification list (booking + payments)
 router.get("/notification/list", requireAdmin, async (req, res) => {
   try {
     const [bookings] = await db.query(`
       SELECT 
-        b.booking_id AS id,
+        n.notif_id AS id,
+        n.is_read,
         CONCAT(b.firstname, ' ', b.lastname) AS full_name,
         b.booking_date,
         b.service_type,
         b.status,
-        b.generated_at AS created_at,
+        n.datestamp AS created_at,
         'booking' AS type,
         NULL AS amount
-      FROM booking_tbl b
-      ORDER BY b.generated_at DESC
-      LIMIT 5
+      FROM notification_tbl n
+      LEFT JOIN booking_tbl b ON n.booking_id = b.booking_id
+      WHERE n.booking_id IS NOT NULL
     `);
 
     const [payments] = await db.query(`
       SELECT 
-        p.payment_id AS id,
+        n.notif_id AS id,
+        n.is_read,
         CONCAT(u.firstName, ' ', u.lastName) AS full_name,
         p.paid_at AS created_at,
         p.status,
         p.amount,
-        'downpayment' AS type
-      FROM payment_tbl p
-      JOIN user_tbl u ON p.user_id = u.user_id
-      WHERE p.payment_type = 'downpayment'
-      ORDER BY p.paid_at DESC
-      LIMIT 5
+        CASE 
+          WHEN p.payment_type = 'downpayment' THEN 'downpayment'
+          ELSE 'fullpayment'
+        END AS type
+      FROM notification_tbl n
+      LEFT JOIN payment_tbl p ON n.payment_id = p.payment_id
+      LEFT JOIN user_tbl u ON p.user_id = u.user_id
+      WHERE n.payment_id IS NOT NULL
     `);
 
-    // Combine and sort both lists (latest first)
     const combined = [...bookings, ...payments].sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 
-    // Limit to 5 most recent combined notifications
-    const recent = combined.slice(0, 5);
-
-    res.json(recent);
+    res.json(combined.slice(0, 10)); // return latest 10
   } catch (err) {
     console.error("Error fetching notification list:", err);
     res.status(500).json([]);
   }
 });
-// ✅ Mark specific notification as read (for admin)
+
+// ✅ Mark notification as read
 router.post("/notification/mark-read/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    await db.query(`UPDATE notification_tbl SET is_read = 1 WHERE notif_id = ?`, [id]);
+    await db.query("UPDATE notification_tbl SET is_read = 1 WHERE notif_id = ?", [id]);
     res.json({ success: true });
   } catch (err) {
     console.error("Error marking as read:", err);
     res.status(500).json({ success: false });
   }
 });
+
 
 // ✅ Mark specific notification as unread (optional)
 router.post("/notification/mark-unread/:id", requireAdmin, async (req, res) => {
