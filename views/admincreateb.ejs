@@ -14,40 +14,13 @@
 </head>
 <body>
   <!-- ===== HEADER (Topbar + Hamburger) ===== -->
-  <header class="admin-header">
-    <div class="header-left">
-      <button id="sidebarToggle" aria-label="Toggle menu" class="hamburger-btn">
-        <i class="fas fa-bars"></i>
-      </button>
-      <h1>Admin Dashboard</h1>
-    </div>
-    <nav>
-      <ul>
-        <li><a href="/admin">Home</a></li>
-        <li><a href="/adminviewapp">Appointments</a></li>
-        <li><a href="/adminviewbookings">Bookings</a></li>
-        <li><a href="/reports">Reports</a></li>
-        <li><a href="/login/logout">Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <%- include('partials/admin/topbar', { activePage: 'createAppointment' }) %>
+  <div style="height: 120px;"></div> <!-- Spacer for fixed header -->
 
   <!-- ===== MAIN LAYOUT ===== -->
   <main class="admin-main">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <h3>Dashboard Menu</h3>
-      <ul>
-        <li><a href="/admin">Dashboard Home</a></li>
-        <li><a href="/admincreateb" class="active">Create Appointment</a></li>
-        <li><a href="/adminviewapp">View Appointments</a></li>
-        <li><a href="/burialrecord">Burial Records</a></li>
-        <li><a href="/maps">Cemetery Map</a></li>
-        <li><a href="/adminviewbookings">Client Transactions</a></li>
-        <li><a href="/admin_inventory">Inventory</a></li>
-        <li><a href="/admin_logs">Logs</a></li>
-      </ul>
-    </aside>
+    <%- include('partials/admin/sidebar', { activePage: 'createAppointment' }) %>
 
     <!-- ===== CONTENT AREA ===== -->
     <section class="content">

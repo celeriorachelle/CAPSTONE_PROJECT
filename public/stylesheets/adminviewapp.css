@@ -48,6 +48,23 @@
       padding: 2rem;
       background: transparent;
       overflow-y: auto;
+      min-height: calc(100vh - 120px);
+      margin-top: 60px; /* Reduced top margin to account for header */
+      position: relative;
+      z-index: 1;
+    }
+
+    /* offset main area for fixed sidebar */
+    .admin-main {
+      margin-left: 270px; /* match sidebar width */
+      transition: margin-left 0.25s ease;
+      padding-top: 60px; /* Reduced padding to prevent double spacing */
+      position: relative;
+      z-index: 1;
+    }
+
+    .admin-main.collapsed {
+      margin-left: 0;
     }
 
     .content-header {
@@ -191,6 +208,8 @@
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       overflow: hidden;
+      position: relative; /* for proper header stacking */
+      margin-top: 1rem; /* add space between content header and table */
     }
 
     .table-header {
@@ -226,7 +245,7 @@
       font-weight: 600;
       color: #2d4a24;
       position: sticky;
-      top: 0;
+      top: 0; /* stick to container top since parent is already offset */
       z-index: 10;
     }
 

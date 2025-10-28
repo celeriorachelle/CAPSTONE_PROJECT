@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Appointments | Everlasting Peace Memorial Park</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/stylesheets/admin.css" />
   <link rel="stylesheet" href="/stylesheets/adminviewapp.css">
   <script src="/JS/hamburger-menu.js" defer></script>
@@ -28,56 +28,22 @@
   </style>
 </head>
 <body>
-  <header class="admin-header">
-    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
-    <h1>Admin Dashboard</h1>
-    <nav>
-      <ul>
-       <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp" class="active"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <!-- reusable topbar -->
+  <%- include('partials/admin/topbar', { activePage: 'viewAppointments' }) %>
+  <script>
+    // alias legacy hamburger id to new sidebarToggle so older scripts keep working
+    document.addEventListener('DOMContentLoaded', () => {
+      const hb = document.getElementById('hamburger-btn');
+      const st = document.getElementById('sidebarToggle');
+      if (hb && st && !hb.dataset.mapped) {
+        hb.addEventListener('click', () => st.click());
+        hb.dataset.mapped = 'true';
+      }
+    });
+  </script>
 
   <main class="admin-main">
-    <aside class="sidebar">
-      <h3><i class="fas fa-calendar-check"></i> View Schedule</h3>
-      <ul>
-       <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
-        <li><a href="/adminviewapp" class="active"><i class="fas fa-list"></i> View Booking</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
-      </ul>
-
-      <h3><i class="fas fa-filter"></i> Filter by Status</h3>
-      <div class="filters">
-        <button onclick="filterStatus('all')" class="active" id="filter-all">
-          <i class="fas fa-list"></i> All Bookings
-        </button>
-        <button onclick="filterStatus('pending')" id="filter-pending">
-          <i class="fas fa-clock"></i> Pending
-        </button>
-        <button onclick="filterStatus('approved')" id="filter-approved">
-          <i class="fas fa-check-circle"></i> Approved
-        </button>
-        <button onclick="filterStatus('ongoing')" id="filter-ongoing">
-          <i class="fas fa-spinner"></i> Ongoing
-        </button>
-        <button onclick="filterStatus('completed')" id="filter-completed">
-          <i class="fas fa-check-double"></i> Completed
-        </button>
-        <button onclick="filterStatus('cancelled')" id="filter-cancelled">
-          <i class="fas fa-times-circle"></i> Cancelled
-        </button>
-      </div>
-    </aside>
+    <%- include('partials/admin/sidebar', { activePage: 'viewAppointments' }) %>
 
     <section class="content">
       <div class="content-header">
@@ -123,7 +89,7 @@
           <div class="spinner"></div>
         </div>
 
-        <div id="appointmentsTableContainer" style="display: none;">
+        <div id="appointmentsTableContainer">
           <table class="appointments-table">
             <thead>
               <tr>
@@ -200,8 +166,9 @@
   </div>
 
 <script>
-  // appointments passed from server
-  window.appointments = <%- JSON.stringify(appointments) %>;
+  // appointments passed from server (safely default to empty array if undefined)
+  <% var __appts = (typeof appointments !== 'undefined') ? appointments : []; %>
+  window.appointments = <%- JSON.stringify(__appts) %>;
 
   class AppointmentManager {
     constructor() {

@@ -5,227 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plot Inventory | Everlasting Peace Memorial Park</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="/stylesheets/admin.css" />
-  <style>
-    /* Inventory-specific styling */
-    .main-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      margin-top: 1rem;
-    }
-
-    .main-content .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .main-content .header h1 {
-      color: #2d4a24;
-      font-size: 1.8rem;
-    }
-
-    .main-content .header button {
-      background: linear-gradient(135deg, #8aac7c, #6b915e);
-      border: none;
-      padding: 0.7rem 1.2rem;
-      border-radius: 10px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .main-content .header button:hover {
-      transform: scale(1.05);
-      background: linear-gradient(135deg, #769c68, #587c4d);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fafafa;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    thead {
-      background: #8aac7c;
-      color: white;
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-
-    tbody tr:hover {
-      background: #f4f8f2;
-    }
-
-    .actions button {
-      border: none;
-      padding: 0.5rem 0.9rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      margin: 0 3px;
-      transition: 0.3s;
-    }
-
-    .edit-btn {
-      background: #5c7c4d;
-      color: white;
-    }
-
-    .edit-btn:hover {
-      background: #49643d;
-    }
-
-    .delete-btn {
-      background: #c65353;
-      color: white;
-    }
-
-    .delete-btn:hover {
-      background: #9b3d3d;
-    }
-
-    /* Popup styling */
-    .popup {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
-      justify-content: center;
-      align-items: center;
-      z-index: 200;
-    }
-
-    .popup-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      width: 400px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease;
-    }
-
-    .popup-content h2 {
-      text-align: center;
-      margin-bottom: 1rem;
-      color: #2d4a24;
-    }
-
-    .popup-content label {
-      display: block;
-      margin-top: 1rem;
-      color: #2d4a24;
-      font-weight: 600;
-    }
-
-    .popup-content input {
-      width: 100%;
-      padding: 0.7rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 0.3rem;
-    }
-
-    .popup-actions {
-      margin-top: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .save-btn {
-      background: #5c7c4d;
-      color: white;
-    }
-
-    .cancel-btn {
-      background: #999;
-      color: white;
-    }
-
-    .save-btn, .cancel-btn {
-      padding: 0.7rem 1.2rem;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .save-btn:hover {
-      background: #49643d;
-    }
-
-    .cancel-btn:hover {
-      background: #777;
-    }
-
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(-10px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-  </style>
+  <link rel="stylesheet" href="/stylesheets/admin_inventory.css" />
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="admin-header">
-    <button class="hamburger-btn" id="hamburger-btn">&#9776;</button>
-    <h1>Admin Dashboard</h1>
-    <nav>
-      <ul>
-        <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <%- include('./partials/admin/topbar', { activePage: 'inventory' }) %>
 
   <main class="admin-main">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
-      <ul>
-       <li><a href="/admin"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory" class="active"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
-      </ul>
-    </aside>
+    <%- include('./partials/admin/sidebar', { activePage: 'inventory' }) %>
 
-    <!-- Main Content -->
     <section class="content">
-      <header class="topbar">
-        <div class="topbar-left">
-          <h2>Plot Inventory</h2>
-          <div class="date-time" id="currentDateTime"></div>
+      <div class="content-header">
+        <h2><i class="fas fa-boxes"></i> Plot Inventory</h2>
+        <div class="header-actions">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search inventory...">
+          </div>
+          <button onclick="openPopup(false)" class="btn-action btn-add">
+            <i class="fas fa-plus"></i> Add Plot
+          </button>
         </div>
-      </header>
+      </div>
 
-      <div class="main-content">
-        <div class="header">
-          <h1>Plot Inventory</h1>
-          <button onclick="openPopup()">+ Add New Plot</button>
+      <div class="inventory-container">
+        <div class="content-controls">
+          <div class="table-header">
+            <h3><i class="fas fa-list"></i> Inventory Overview</h3>
+          </div>
+          <div class="records-limit">
+            <label for="recordsPerPage">Records per page:</label>
+            <select id="recordsPerPage" class="filter-select">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
         </div>
 
-        <div class="content-area">
-          <table id="inventoryTable">
+        <div class="table-wrapper">
+          <table class="inventory-table" id="inventoryTable">
             <thead>
               <tr>
                 <th>Item Name</th>
@@ -234,28 +54,54 @@
                 <th>Available Plots</th>
                 <th>Price</th>
                 <th>Last Update</th>
-                <th>Actions</th>
+                <th class="actions-column">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <% plots.forEach(plot => { %>
-                <tr>
-                  <td><%= plot.item_name %></td>
-                  <td><%= plot.category %></td>
-                  <td><%= plot.total_plots %></td>
-                  <td><%= plot.available_plots %></td>
-                  <td>₱<%= plot.default_price.toLocaleString() %></td>
-                  <td><%= plot.last_update ? new Date(plot.last_update).toLocaleString() : '-' %></td>
-                  <td class="actions">
-                    <button type="button" class="edit-btn" onclick='openPopup(true, <%- JSON.stringify(plot) %>)'>Edit</button>
-                    <form method="POST" action="/admin_inventory/delete/<%= plot.item_id %>" style="display:inline">
-                      <button type="submit" class="delete-btn">Delete</button>
-                    </form>
+              <% if (plots.length === 0) { %>
+                <tr class="empty-state-row">
+                  <td colspan="7" class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No Plots Found</h3>
                   </td>
                 </tr>
-              <% }); %>
+              <% } else { %>
+                <% plots.forEach(plot => { %>
+                  <tr>
+                    <td><%= plot.item_name %></td>
+                    <td><%= plot.category %></td>
+                    <td><%= plot.total_plots %></td>
+                    <td><%= plot.available_plots %></td>
+                    <td>₱<%= plot.default_price.toLocaleString() %></td>
+                    <td><%= plot.last_update ? new Date(plot.last_update).toLocaleString() : '-' %></td>
+                    <td class="actions-column">
+                      <div class="action-buttons">
+                        <button type="button" class="btn-action btn-edit" onclick='openPopup(true, <%- JSON.stringify(plot) %>)'>
+                          <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <form method="POST" action="/admin_inventory/delete/<%= plot.item_id %>" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this plot?')">
+                          <button type="submit" class="btn-action btn-delete">
+                            <i class="fas fa-trash"></i> Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } %>
             </tbody>
           </table>
+
+          <!-- Pagination Controls -->
+          <div class="pagination">
+            <button id="prevPage" class="btn-page" disabled>
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div id="pageNumbers" class="page-numbers"></div>
+            <button id="nextPage" class="btn-page">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -264,6 +110,7 @@
   <!-- Popup -->
   <div class="popup" id="plotPopup">
     <div class="popup-content">
+      <span class="close-btn" onclick="closePopup()">&times;</span>
       <h2 id="popupTitle">Add New Plot</h2>
       <form id="plotForm" method="POST" action="/admin_inventory/add">
         <input type="hidden" name="item_id" id="itemId">
@@ -292,11 +139,8 @@
   </div>
 
   <script>
-    // Date/Time updater
-    setInterval(() => {
-      const now = new Date();
-      document.getElementById("currentDateTime").textContent = now.toLocaleString();
-    }, 1000);
+    let currentPage = 1;
+    let filteredRows = [];
 
     // Popup functions
     function openPopup(edit = false, plot = null) {
@@ -306,6 +150,7 @@
       if (edit && plot) {
         document.getElementById("popupTitle").innerText = "Edit Plot";
         document.getElementById("popupSubmitBtn").innerText = "Update Plot";
+        document.getElementById("plotForm").action = "/admin_inventory/edit/" + plot.item_id;
         document.getElementById("itemId").value = plot.item_id;
         document.getElementById("itemName").value = plot.item_name;
         document.getElementById("category").value = plot.category;
@@ -315,6 +160,7 @@
       } else {
         document.getElementById("popupTitle").innerText = "Add New Plot";
         document.getElementById("popupSubmitBtn").innerText = "Add Plot";
+        document.getElementById("plotForm").action = "/admin_inventory/add";
       }
     }
 
@@ -322,6 +168,103 @@
       document.getElementById("plotPopup").style.display = "none";
       document.getElementById("plotForm").reset();
     }
+
+    // Search and Filter
+    const searchInput = document.getElementById('searchInput');
+    const recordsPerPageSelect = document.getElementById('recordsPerPage');
+
+    function filterTable() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const allRows = Array.from(document.querySelectorAll('.inventory-table tbody tr'))
+        .filter(row => !row.classList.contains('empty-state-row'));
+
+      filteredRows = allRows.filter(row => {
+        const rowText = row.textContent.toLowerCase();
+        return rowText.includes(searchTerm);
+      });
+
+      currentPage = 1;
+      updatePagination();
+      displayCurrentPage();
+    }
+
+    function updatePagination() {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+      const pageNumbers = document.getElementById('pageNumbers');
+      pageNumbers.innerHTML = '';
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      
+      if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.classList.toggle('active', i === currentPage);
+        btn.onclick = () => {
+          currentPage = i;
+          updatePagination();
+          displayCurrentPage();
+        };
+        pageNumbers.appendChild(btn);
+      }
+
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    function displayCurrentPage() {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageRows = filteredRows.slice(start, end);
+
+      document.querySelectorAll('.inventory-table tbody tr').forEach(row => {
+        if (!row.classList.contains('empty-state-row')) {
+          row.style.display = 'none';
+        }
+      });
+
+      pageRows.forEach(row => row.style.display = '');
+
+      const emptyState = document.querySelector('.empty-state-row');
+      if (emptyState) {
+        emptyState.style.display = filteredRows.length === 0 ? '' : 'none';
+      }
+    }
+
+    // Event Listeners
+    searchInput.addEventListener('keyup', filterTable);
+    recordsPerPageSelect.addEventListener('change', () => {
+      currentPage = 1;
+      updatePagination();
+      displayCurrentPage();
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+        displayCurrentPage();
+      }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+        displayCurrentPage();
+      }
+    });
+
+    // Initialize
+    filterTable();
   </script>
 </body>
 </html>

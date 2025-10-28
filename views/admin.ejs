@@ -9,6 +9,34 @@
   <link rel="stylesheet" href="/stylesheets/admin.css" />
   <style>
     /* =====================================
+       Layout Adjustments
+    ====================================== */
+    body {
+      padding-top: 0; /* Remove any top padding */
+    }
+
+    .admin-main {
+      margin-left: 270px; /* Match sidebar width */
+      min-height: calc(100vh - 60px); /* Adjust for header height */
+      transition: margin-left 0.3s ease;
+    }
+
+    .admin-main.collapsed {
+      margin-left: 0;
+    }
+
+    .content {
+      padding: 2rem;
+      width: 100%;
+    }
+
+    @media (max-width: 992px) {
+      .admin-main {
+        margin-left: 0;
+      }
+    }
+
+    /* =====================================
        Notification Dropdown (Refined Style)
     ====================================== */
     .notification-dropdown {
@@ -133,38 +161,12 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="admin-header">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <button id="sidebarToggle" aria-label="Toggle menu" style="background:transparent;border:none;color:var(--white);font-size:1.2rem;cursor:pointer;padding:6px 8px;border-radius:6px;">
-        <i class="fas fa-bars"></i>
-      </button>
-      <h1>Admin Dashboard</h1>
-    </div>
-    <nav>
-      <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-calendar-alt"></i> View Bookings</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-book"></i>Transactions</a></li>
-        <li><a href="/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-        <li><a href="/login/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-      </ul>
-    </nav>
-  </header>
+  <!-- Include Admin Topbar -->
+  <%- include('partials/admin/topbar', { activePage: 'dashboard' }) %>
+  <div style="height: 100px;"></div> <!-- Spacer for fixed header -->
   <main class="admin-main">
-    <aside class="sidebar">
-      <h3>Dashboard Menu</h3>
-      <ul>
-        <li><a href="/admin" class="active"><i class="fas fa-home"></i> Dashboard Home</a></li>
-        <li><a href="/admincreateb"><i class="fas fa-plus-circle"></i> Create Booking</a></li>
-        <li><a href="/adminviewapp"><i class="fas fa-list"></i> View Booking</a></li>
-        <li><a href="/burialrecord"><i class="fas fa-book"></i> Burial Records</a></li>
-        <li><a href="/maps"><i class="fas fa-map"></i> Cemetery Map</a></li>
-        <li><a href="/adminviewbookings"><i class="fas fa-list"></i> Client Transactions</a></li>
-        <li><a href="/admin_inventory"><i class="fas fa-clipboard-list"></i> Inventory</a></li>
-        <li><a href="/admin_logs"><i class="fas fa-clipboard-list"></i> Logs</a></li>
-      </ul>
-    </aside>
+    <!-- Include Admin Sidebar -->
+    <%- include('partials/admin/sidebar', { activePage: 'dashboard' }) %>
 
     <section class="content">
       <header class="topbar">
@@ -236,11 +238,6 @@
       </section>
     </section>
   </main>
-
-  <!-- Side Toast -->
-  <div class="side-toast" id="sideToast">
-    <span>New booking received!</span>
-  </div>
 
   <!-- Scripts -->
   <script>
