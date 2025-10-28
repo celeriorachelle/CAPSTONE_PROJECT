@@ -133,43 +133,60 @@ router.post('/add', requireAdmin, async (req, res) => {
   }
 });
 
-// ---------------- DELETE ITEM ----------------
-router.post('/delete/:id', requireAdmin, async (req, res) => {
-  const { id } = req.params;
-  const adminId = req.session.user.user_id;
-
+// ---------------- GET plots by partial location (for modal) ----------------
+router.get('/plots/:itemName', requireAdmin, async (req, res) => {
+  const { itemName } = req.params;
   try {
-    // Check if any plots are referenced in notification_tbl
-    const [referenced] = await db.query(
-      `SELECT COUNT(*) AS count 
-       FROM plot_map_tbl p
-       JOIN notification_tbl n ON p.plot_id = n.plot_id
-       WHERE p.item_id = ?`,
-      [id]
+    const [plots] = await db.query(
+      `SELECT * FROM plot_map_tbl WHERE location LIKE ?`,
+      [`%${itemName}%`]
     );
-    if (referenced[0].count > 0) return res.status(400).send('Cannot delete: some plots are referenced in notifications.');
-
-    // Delete plots
-    await db.query('DELETE FROM plot_map_tbl WHERE item_id = ?', [id]);
-
-    // Get item name for logging
-    const [rows] = await db.query('SELECT item_name FROM inventory_tbl WHERE item_id = ?', [id]);
-    const itemName = rows.length ? rows[0].item_name : 'Unknown';
-
-    // Delete inventory
-    await db.query('DELETE FROM inventory_tbl WHERE item_id = ?', [id]);
-
-    await addLog({
-      user_id: adminId,
-      user_role: 'admin',
-      action: 'Delete Inventory',
-      details: `Admin deleted inventory item: ${itemName} (ID: ${id})`
-    });
-
-    res.redirect('/admin_inventory');
+    res.json({ plots });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Failed to delete item');
+    res.status(500).json({ error: 'Failed to fetch plots' });
+  }
+});
+
+// ---------------- Add Plot (API) ----------------
+router.post('/plot', requireAdmin, async (req, res) => {
+  try {
+    const { plot_number, location, type, price } = req.body;
+    if (!plot_number || !location || !type || !price) {
+      return res.json({ success: false, error: 'Missing required fields' });
+    }
+    // Map location to item_id
+    const locationMap = {
+      'Veterans Memorial': 1,
+      'Memorial Chapel Level 1': 2,
+      'Memorial Chapel Level 2': 3,
+      'Memorial Chapel Level 3': 4,
+      'Serenity Columbarium': 5,
+      'Heritage Gardens': 6,
+      'Family Estates': 7
+    };
+    const item_id = locationMap[location] || null;
+    if (!item_id) return res.json({ success: false, error: 'Invalid location' });
+    await db.query(
+      `INSERT INTO plot_map_tbl (plot_number, location, type, price, item_id, availability) VALUES (?, ?, ?, ?, ?, 'available')`,
+      [plot_number, location, type, price, item_id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, error: 'Failed to add plot' });
+  }
+});
+
+// ---------------- Delete Plot (API) ----------------
+router.delete('/plot/:plot_id', requireAdmin, async (req, res) => {
+  try {
+    const { plot_id } = req.params;
+    await db.query('DELETE FROM plot_map_tbl WHERE plot_id = ?', [plot_id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, error: 'Failed to delete plot' });
   }
 });
 

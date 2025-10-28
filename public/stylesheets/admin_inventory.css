@@ -324,8 +324,8 @@
   padding: 2rem;
   border-radius: 20px;
   width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
+  max-width: 900px;
+  max-height: 95vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   animation: modalSlideIn 0.3s ease;

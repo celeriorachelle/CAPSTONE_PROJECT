@@ -19,9 +19,8 @@
                     <img src="/images/system.png" alt="Memorial Services Logo" class="logo-img" style="height:50px;">
                 </div>
                 <nav class="nav-links">
-        <a href="#support">ABOUT US</a>
-        <a href="#support">SUPPORT</a>
-        <a href="#contact">CONTACT US</a>
+        <a href="#services">SERVICES</a>
+        <a href="#footer">CONTACT</a>
         <a href="/maps">MAP</a>
                 <% if (user) { %>
                     <a href="/userdashboard">DASHBOARD</a>
@@ -62,7 +61,7 @@
     </div>
     <main class="main-container" style="display: flex; flex-direction: column; width: 100%; padding: 7%;">
         <!-- Services Section -->
-        <div class="services-section">
+        <div class="services-section" id="services">
             <h2 class="services-title">Our Services</h2>
             <div class="services-grid">
                 <div class="service-card">
@@ -122,6 +121,18 @@
                 dropdownToggle.classList.remove("active");
             }
         });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#services"], a[href^="#footer"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
     });
 </script>
 
@@ -130,7 +141,7 @@
     <!-- map CTA removed as requested -->
 </div>
 
-        <footer class="footer-info">
+        <footer class="footer-info" id="footer">
     <div class="footer-content">
         
         <div class="footer-section">
