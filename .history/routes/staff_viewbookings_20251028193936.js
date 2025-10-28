@@ -140,7 +140,6 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
       [bookingId]
     );
 
-
     if (bookingRows.length > 0) {
       const bk = bookingRows[0];
       const userId = bk.user_id;
@@ -156,7 +155,7 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
 
       // 4️⃣ If it's a burial booking, insert deceased info into plot_map_tbl
     // 4️⃣ If it's a burial booking, insert deceased info into plot_map_tbl
-    if (service.toLowerCase().includes("burial")) {
+if (service.toLowerCase().includes("burial")) {
   // Check if the plot already exists and is linked to this user (avoid duplicates)
   const [existing] = await db.query(
     `SELECT plot_id FROM plot_map_tbl WHERE user_id = ? AND availability = 'occupied'`,
@@ -164,39 +163,34 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
   );
 
   if (existing.length === 0) {
-        // When creating a plot for a burial booking, ensure `type` is set to
-        // 'Ossuary' (or honor provided type for non-burial flows). Some UI
-        // callers accidentally pass location into the `type` field; setting
-        // this explicitly prevents the plot_type showing as the location.
-        const plotTypeValue = 'Ossuary';
-        await db.query(
-          `INSERT INTO plot_map_tbl (
-            plot_number,
-            location,
-            type,
-            price,
-            deceased_firstName,
-            deceased_lastName,
-            birth_date,
-            death_date,
-            item_id,
-            availability,
-            user_id
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'occupied', ?)
-          `,
-          [
-            plot_number || "Unassigned",
-            location || "Unassigned",
-            plotTypeValue,
-            price || 0.0,
-            deceased_firstName || "Unknown",
-            deceased_lastName || "Unknown",
-            birth_date || null,
-            death_date || null,
-            item_id || 1,
-            userId || null
-          ]
-        );
+    await db.query(
+      `INSERT INTO plot_map_tbl (
+        plot_number,
+        location,
+        type,
+        price,
+        deceased_firstName,
+        deceased_lastName,
+        birth_date,
+        death_date,
+        item_id,
+        availability,
+        user_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'occupied', ?)
+      `,
+      [
+        plot_number || "Unassigned",
+        location || "Unassigned",
+        type || "Standard",
+        price || 0.0,
+        deceased_firstName || "Unknown",
+        deceased_lastName || "Unknown",
+        birth_date || null,
+        death_date || null,
+        item_id || 1,
+        userId || null
+      ]
+    );
   }
 }
 
@@ -363,3 +357,53 @@ router.post("/notify/:id", requireStaff, async (req, res) => {
 });
 
 module.exports = router;
+
+// ---------------------------
+// POST /staff_viewbookings/record-cash - Record offline cash payment for a booking
+// ---------------------------
+router.post('/record-cash', requireStaff, async (req, res) => {
+  try {
+    const { booking_id, amount, payment_type, months, monthly_amount, transaction_id } = req.body || {};
+    const bookingId = Number(booking_id || 0);
+    if (!bookingId || !amount || !payment_type) return res.status(400).json({ success: false, message: 'Missing fields' });
+
+    // Fetch booking to know user and plot
+    const [bkRows] = await db.query('SELECT user_id, plot_id FROM booking_tbl WHERE booking_id = ? LIMIT 1', [bookingId]);
+    if (!bkRows.length) return res.status(404).json({ success: false, message: 'Booking not found' });
+    const bk = bkRows[0];
+
+    const tx = transaction_id || `CASH-${bookingId}-${Date.now()}`;
+
+    // Insert payment row
+    const monthsNum = months ? parseInt(months, 10) : null;
+    const monthlyNum = monthly_amount ? parseFloat(monthly_amount) : null;
+    const amt = parseFloat(amount);
+
+    const status = (payment_type === 'fullpayment') ? 'paid' : 'active';
+
+    await db.query(
+      `INSERT INTO payment_tbl (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount, total_paid)
+       VALUES (?, ?, ?, ?, 'cash', ?, ?, NOW(), NULL, ?, ?, ?, ?)`,
+      [bookingId, bk.user_id || null, bk.plot_id || null, amt, tx, status, payment_type, monthsNum, monthlyNum, amt]
+    );
+
+    // Update plot availability depending on full/downpayment
+    if (bk.plot_id) {
+      if (payment_type === 'fullpayment') {
+        await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', ['occupied', bk.user_id || null, bk.plot_id]);
+      } else if (payment_type === 'downpayment') {
+        await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', ['reserved', bk.user_id || null, bk.plot_id]);
+      }
+    }
+
+    // Notification + log
+    const msg = `Staff recorded ${payment_type} cash payment of ₱${amt.toFixed(2)} for booking #${bookingId}`;
+    await db.query('INSERT INTO notification_tbl (user_id, booking_id, title, message, created_at) VALUES (?, ?, ?, ?, NOW())', [bk.user_id || null, bookingId, 'Payment recorded', msg]);
+    await addLog({ user_id: req.session.user.user_id, user_role: req.session.user.role, action: 'Record Cash Payment', details: msg });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error recording cash payment (staff):', err);
+    res.status(500).json({ success: false });
+  }
+});

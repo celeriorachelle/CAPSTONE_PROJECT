@@ -27,9 +27,10 @@ router.get('/', requireLogin, async (req, res) => {
         DATE_FORMAT(p.death_date, '%M %d, %Y') AS death_date,
         p.availability,
         i.item_name,
-        CONCAT(COALESCE(u.firstname, u.firstName, ''), ' ', COALESCE(u.lastname, u.lastName, '')) AS booked_by,
+        -- Prefer user_tbl name, otherwise fall back to booking's recorded name
+        COALESCE(CONCAT(u.firstName, ' ', u.lastName), CONCAT(b.firstname, ' ', b.lastname)) AS booked_by,
         (
-          SELECT CONCAT(COALESCE(uu.firstname, uu.firstName, ''), ' ', COALESCE(uu.lastname, uu.lastName, ''))
+          SELECT CONCAT(COALESCE(uu.firstName, ''), ' ', COALESCE(uu.lastName, ''))
           FROM logs_tbl l
           LEFT JOIN user_tbl uu ON l.user_id = uu.user_id
           WHERE l.details LIKE CONCAT('%Booking ID ', b.booking_id, '%')

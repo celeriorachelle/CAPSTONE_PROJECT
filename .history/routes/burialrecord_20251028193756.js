@@ -19,7 +19,15 @@ router.get('/', requireLogin, async (req, res) => {
         p.plot_id,
         p.plot_number,
         p.location,
-        p.type AS plot_type,
+      -- Prefer the explicit plot type stored on the plot; if it's missing
+      -- but the linked booking is a burial, treat it as an 'Ossuary'. This
+      -- prevents admin-created burial bookings from showing the wrong type
+      -- when the plot row wasn't updated for some reason.
+      CASE
+        WHEN COALESCE(p.type, '') <> '' THEN p.type
+        WHEN b.service_type = 'burial' THEN 'Ossuary'
+        ELSE p.type
+      END AS plot_type,
         p.price,
         p.deceased_firstName,
         p.deceased_lastName,

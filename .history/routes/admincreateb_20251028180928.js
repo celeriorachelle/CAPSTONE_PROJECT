@@ -113,23 +113,21 @@ router.post('/', requireAdmin, async (req, res) => {
     const bookingId = result.insertId;
 
     // If a plot was selected but no cash workflow updated availability yet,
-    // ensure the plot is at least marked 'occupied' and linked to the user (if any).
-    // Admin-created bookings are auto-approved so we treat the plot as occupied
-    // by default. If you prefer the 'reserved' policy instead, we can change it.
+    // ensure the plot is at least marked 'reserved' and linked to the user (if any).
     if (plotId) {
       try {
         const [cur] = await db.query('SELECT availability FROM plot_map_tbl WHERE plot_id = ? LIMIT 1', [plotId]);
         if (Array.isArray(cur) && cur.length > 0) {
           const avail = cur[0].availability;
-          if (avail !== 'occupied') {
-            await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', ['occupied', userId || null, plotId]);
-          } else {
-            // Ensure occupied plot points to this user when possible
+          if (avail !== 'occupied' && avail !== 'reserved') {
+            await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', ['reserved', userId || null, plotId]);
+          } else if (avail === 'reserved') {
+            // Make sure reserved plot points to this user when possible
             await db.query('UPDATE plot_map_tbl SET user_id = ? WHERE plot_id = ? AND (user_id IS NULL OR user_id = "")', [userId || null, plotId]);
           }
         }
       } catch (e) {
-        console.warn('admincreateb: failed to mark plot occupied after booking insert', e);
+        console.warn('admincreateb: failed to mark plot reserved after booking insert', e);
       }
     }
 
@@ -223,20 +221,6 @@ router.post('/', requireAdmin, async (req, res) => {
       });
     } catch (e) {
       console.warn('admincreateb: failed to write log', e);
-    }
-
-    // Since admin-created bookings are auto-approved, insert an explicit
-    // approval log so `burialrecord` and other report pages can locate who
-    // approved the booking. This mirrors staff approval logs.
-    try {
-      await addLog({
-        user_id: req.session.user.user_id,
-        user_role: req.session.user.role,
-        action: 'Approved Booking',
-        details: `Booking ID ${bookingId} approved by admin ${req.session.user.fullname || req.session.user.user_id}`
-      });
-    } catch (e) {
-      console.warn('admincreateb: failed to write approval log', e);
     }
 
     // Redirect admin to the bookings list

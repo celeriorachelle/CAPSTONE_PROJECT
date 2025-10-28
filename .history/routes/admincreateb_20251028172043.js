@@ -35,11 +35,10 @@ router.get('/', requireAdmin, async (req, res) => {
 // Handle admin-created appointment submissions
 router.post('/', requireAdmin, async (req, res) => {
   try {
-  const { fullname, phone, email, service, date, time, notes, plot_id, payment_method, cash_amount, monthly_amount, months, payment_option, deceased_firstName, deceased_lastName, birth_date, death_date } = req.body || {};
+      const { fullname, phone, email, service, date, time, notes, plot_id, payment_method, cash_amount, monthly_amount, months, payment_option } = req.body || {};
 
-    // Require time only for memorial and burial
-    if (!fullname || !phone || !service || !date || ((service === 'memorial' || service === 'burial') && !time)) {
-      return res.status(400).render('admincreateb', { error: 'Please fill required fields.', plots: await (async () => { const [ps] = await db.query(`SELECT plot_id, plot_number, location, price, availability FROM plot_map_tbl WHERE availability != 'occupied' ORDER BY location, plot_number`); return ps; })(), form: req.body });
+    if (!fullname || !phone || !service || !date || !time) {
+      return res.status(400).render('admincreateb', { error: 'Please fill required fields.' });
     }
 
     // Split fullname into firstname / lastname
@@ -47,9 +46,23 @@ router.post('/', requireAdmin, async (req, res) => {
     const firstname = parts.shift() || '';
     const lastname = parts.join(' ') || '';
 
-    // Keep date and time separately; time only applies to memorial/burial
-    const bookingDate = date || null; // YYYY-MM-DD
-    const visitTime = time || null; // HH:MM
+    // Combine date and time into a single datetime string if possible
+    let bookingDate = null;
+    try {
+      // Expecting date like YYYY-MM-DD and time like HH:MM
+      bookingDate = new Date(`${date}T${time}:00`);
+      // Format to MySQL DATETIME 'YYYY-MM-DD HH:MM:SS'
+      const pad = (n) => String(n).padStart(2, '0');
+      const y = bookingDate.getFullYear();
+      const m = pad(bookingDate.getMonth() + 1);
+      const d = pad(bookingDate.getDate());
+      const hh = pad(bookingDate.getHours());
+      const mm = pad(bookingDate.getMinutes());
+      const ss = pad(bookingDate.getSeconds());
+      bookingDate = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+    } catch (e) {
+      bookingDate = date; // fallback
+    }
 
     // Try to resolve a user by email so we can link the booking
     let userId = null;
@@ -62,7 +75,7 @@ router.post('/', requireAdmin, async (req, res) => {
       }
     }
 
-  // Validate plot_id if provided
+    // Validate plot_id if provided
     let plotId = null;
     if (req.body.plot_id) {
       const pid = Number(req.body.plot_id);
@@ -72,66 +85,24 @@ router.post('/', requireAdmin, async (req, res) => {
         if (pRows.length && pRows[0].availability !== 'occupied') {
           plotId = pid;
         } else {
-          return res.status(400).render('admincreateb', { error: 'Selected plot is not available.', plots: await (async () => { const [ps] = await db.query(`SELECT plot_id, plot_number, location, price, availability FROM plot_map_tbl WHERE availability != 'occupied' ORDER BY location, plot_number`); return ps; })(), form: req.body });
+          return res.status(400).render('admincreateb', { error: 'Selected plot is not available.', plots: [] });
         }
       }
     }
 
     // Enforce: burial service must have a plot
     if (service === 'burial' && !plotId) {
-      return res.status(400).render('admincreateb', { error: 'Burial service requires selecting an available plot.', plots: await (async () => { const [ps] = await db.query(`SELECT plot_id, plot_number, location, price, availability FROM plot_map_tbl WHERE availability != 'occupied' ORDER BY location, plot_number`); return ps; })(), form: req.body });
+      return res.status(400).render('admincreateb', { error: 'Burial service requires selecting an available plot.', plots: await (async () => { const [ps] = await db.query(`SELECT plot_id, plot_number, location, price, availability FROM plot_map_tbl WHERE availability != 'occupied' ORDER BY location, plot_number`); return ps; })() });
     }
 
-    // If burial, require deceased details
-    if (service === 'burial') {
-      if (!deceased_firstName || !deceased_lastName || !birth_date || !death_date) {
-        return res.status(400).render('admincreateb', { error: 'Please provide deceased details for burial.', plots: await (async () => { const [ps] = await db.query(`SELECT plot_id, plot_number, location, price, availability FROM plot_map_tbl WHERE availability != 'occupied' ORDER BY location, plot_number`); return ps; })(), form: req.body });
-      }
-    }
-
-    // If burial and plot selected, update plot with deceased info (similar to user flow)
-    if (service === 'burial' && plotId) {
-      try {
-        await db.query(
-          `UPDATE plot_map_tbl
-           SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?
-           WHERE plot_id = ?`,
-          [deceased_firstName, deceased_lastName, birth_date, death_date, plotId]
-        );
-      } catch (e) {
-        console.warn('admincreateb: failed to update plot with deceased info', e);
-      }
-    }
-
-    // Insert booking as approved (admin-created). Include visit_time for memorial/burial.
+    // Insert booking as approved (admin-created)
     const [result] = await db.query(
-      `INSERT INTO booking_tbl (user_id, firstname, lastname, email, phone, booking_date, visit_time, service_type, notes, plot_id, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')`,
-      [userId, firstname, lastname, email || null, phone, bookingDate, visitTime, service, notes || null, plotId]
+      `INSERT INTO booking_tbl (user_id, firstname, lastname, email, phone, booking_date, service_type, notes, plot_id, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')`,
+      [userId, firstname, lastname, email || null, phone, bookingDate, service, notes || null, plotId]
     );
 
     const bookingId = result.insertId;
-
-    // If a plot was selected but no cash workflow updated availability yet,
-    // ensure the plot is at least marked 'occupied' and linked to the user (if any).
-    // Admin-created bookings are auto-approved so we treat the plot as occupied
-    // by default. If you prefer the 'reserved' policy instead, we can change it.
-    if (plotId) {
-      try {
-        const [cur] = await db.query('SELECT availability FROM plot_map_tbl WHERE plot_id = ? LIMIT 1', [plotId]);
-        if (Array.isArray(cur) && cur.length > 0) {
-          const avail = cur[0].availability;
-          if (avail !== 'occupied') {
-            await db.query('UPDATE plot_map_tbl SET availability = ?, user_id = ? WHERE plot_id = ?', ['occupied', userId || null, plotId]);
-          } else {
-            // Ensure occupied plot points to this user when possible
-            await db.query('UPDATE plot_map_tbl SET user_id = ? WHERE plot_id = ? AND (user_id IS NULL OR user_id = "")', [userId || null, plotId]);
-          }
-        }
-      } catch (e) {
-        console.warn('admincreateb: failed to mark plot occupied after booking insert', e);
-      }
-    }
 
     // Create notification for the user if we can associate one
     try {
@@ -156,8 +127,8 @@ router.post('/', requireAdmin, async (req, res) => {
 
       if (option === 'fullpayment') {
         // Insert a paid payment row
-  const insertPaySql = `INSERT INTO payment_tbl (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'paid', NOW(), NULL, ?, NULL, NULL, ?)`;
-  await db.query(insertPaySql, [bookingId, userId || null, plotId || null, cashAmountFloat, 'cash', txId, 'fullpayment', cashAmountFloat]);
+        const insertPaySql = `INSERT INTO payment_tbl (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at) VALUES (?, ?, ?, ?, ?, ?, 'paid', NOW())`;
+        await db.query(insertPaySql, [bookingId, userId || null, plotId || null, cashAmountFloat, 'cash', txId]);
 
         // if plot exists, mark occupied
         if (plotId) {
@@ -175,8 +146,8 @@ router.post('/', requireAdmin, async (req, res) => {
         const numMonths = parseInt(months, 10) || 0;
 
         // Insert installment payment as 'active'
-    const insertActiveSql = `INSERT INTO payment_tbl (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, due_date, payment_type, months, monthly_amount, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'active', NOW(), NULL, ?, ?, ?, ?)`;
-  await db.query(insertActiveSql, [bookingId, userId || null, plotId || null, cashAmountFloat, 'cash', txId, 'downpayment', numMonths, monthly, cashAmountFloat]);
+        const insertActiveSql = `INSERT INTO payment_tbl (booking_id, user_id, plot_id, amount, method, transaction_id, status, paid_at, monthly_amount, months, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'active', NOW(), ?, ?, ?)`;
+  await db.query(insertActiveSql, [bookingId, userId || null, plotId || null, cashAmountFloat, 'cash', txId, monthly, numMonths, cashAmountFloat]);
 
         // mark plot as reserved when downpayment is given
         if (plotId) {
@@ -223,20 +194,6 @@ router.post('/', requireAdmin, async (req, res) => {
       });
     } catch (e) {
       console.warn('admincreateb: failed to write log', e);
-    }
-
-    // Since admin-created bookings are auto-approved, insert an explicit
-    // approval log so `burialrecord` and other report pages can locate who
-    // approved the booking. This mirrors staff approval logs.
-    try {
-      await addLog({
-        user_id: req.session.user.user_id,
-        user_role: req.session.user.role,
-        action: 'Approved Booking',
-        details: `Booking ID ${bookingId} approved by admin ${req.session.user.fullname || req.session.user.user_id}`
-      });
-    } catch (e) {
-      console.warn('admincreateb: failed to write approval log', e);
     }
 
     // Redirect admin to the bookings list

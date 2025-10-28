@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>View Your Bookings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/viewbooking.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <%- include('partials/sidebar') %>
+
+  <div class="main" id="main">
+    <!-- Topbar -->
+    <%- include('partials/topbar', { title: "View Your Bookings" }) %>
+
+    <div class="main-content">
+      <!-- Filter -->
+      <div class="filters">
+        <div class="segmented" id="statusFilter">
+          <button type="button" class="seg-btn active" data-status="all">All</button>
+          <button type="button" class="seg-btn" data-status="pending">Pending</button>
+          <button type="button" class="seg-btn" data-status="done">Done</button>
+        </div>
+        <form method="GET" action="/viewbooking" class="type-filter">
+          <label for="type">Type:</label>
+          <select name="type" id="type" onchange="this.form.submit()">
+            <option value="" <%= !filterType ? 'selected' : '' %>>All</option>
+            <option value="plot-booking" <%= filterType === 'plot-booking' ? 'selected' : '' %>>Plot Booking</option>
+            <option value="memorial" <%= filterType === 'memorial' ? 'selected' : '' %>>Memorial</option>
+            <option value="burial" <%= filterType === 'burial' ? 'selected' : '' %>>Burial</option>
+          </select>
+          <input type="hidden" name="limit" value="<%= limit %>">
+        </form>
+      </div>
+
+      <% const types = ['plot-booking', 'memorial', 'burial']; %>
+
+      <% types.forEach(type => { %>
+        <section class="section-card" data-type="<%= type %>">
+          <h3 class="section-title"><%= type.replace('-', ' ') %></h3>
+
+        <% if (bookingsGrouped[type] && bookingsGrouped[type].length > 0) { %>
+          <table class="booking-table">
+            <thead>
+              <tr>
+                <th>Booking Date</th>
+                <th>Visit Time</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <% if (type === 'plot-booking') { %>
+                  <th>Plot Info</th>
+                <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% bookingsGrouped[type].forEach(b => { %>
+                <tr data-status="<%= (b.status || '').toLowerCase() %>">
+                  <td data-label="Booking Date"><%= b.booking_date ? new Date(b.booking_date).toLocaleDateString() : '-' %></td>
+                  <td data-label="Visit Time"><%= b.visit_time || '-' %></td>
+                  <td data-label="Status"><span class="badge <%= ((b.status||'').toLowerCase()==='pending') ? 'badge-pending' : (['approved','completed','done','paid','finished'].includes((b.status||'').toLowerCase()) ? 'badge-done' : 'badge-cancelled') %>"><%= b.status ? (b.status.charAt(0).toUpperCase() + b.status.slice(1)) : '-' %></span></td>
+                  <td data-label="Notes"><%= b.notes || '-' %></td>
+                  <% if (type === 'plot-booking') { %>
+                    <td data-label="Plot Info">
+                      <div><strong><%= b.plot_type || '-' %></strong> - <%= b.plot_number || '-' %> (<%= b.location || '-' %>)</div>
+                      <div style="margin-top:6px;font-size:0.95em;color:#444">Payment: <%= (b.payment_method ? b.payment_method.toUpperCase() : '-') %> / <%= b.payment_type || '-' %> — ₱<%= b.total_paid ? parseFloat(b.total_paid).toFixed(2) : '0.00' %></div>
+                    </td>
+                  <% } %>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <p class="empty-filter" style="display:none;">No <%= type.replace('-', ' ') %> bookings for selected status.</p>
+        <% } else { %>
+          <p>No <%= type.replace('-', ' ') %> bookings found.</p>
+        <% } %>
+      </section>
+      <% }) %>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+        <div class="pagination" style="margin-top:20px;">
+          <% if (page > 1) { %>
+            <a href="/viewbooking?page=<%= page - 1 %>&limit=<%= limit %>&type=<%= filterType %>">Previous</a>
+          <% } %>
+
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/viewbooking?page=<%= i %>&limit=<%= limit %>&type=<%= filterType %>" 
+               class="<%= i === page ? 'active' : '' %>">
+              <%= i %>
+            </a>
+          <% } %>
+
+          <% if (page < totalPages) { %>
+            <a href="/viewbooking?page=<%= page + 1 %>&limit=<%= limit %>&type=<%= filterType %>">Next</a>
+          <% } %>
+        </div>
+      <% } %>
+
+          </div>
+
+    <footer class="footer">
+      <%- include('partials/footer') %>
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const doneStatuses = ['approved','completed','done','paid','finished'];
+        const buttons = Array.from(document.querySelectorAll('#statusFilter .seg-btn'));
+
+        function applyStatusFilter(status) {
+          document.querySelectorAll('.booking-table tbody tr').forEach(tr => {
+            const st = (tr.dataset.status || '').toLowerCase();
+            let show = true;
+            if (status === 'pending') show = (st === 'pending');
+            else if (status === 'done') show = doneStatuses.includes(st);
+            tr.style.display = show ? '' : 'none';
+          });
+
+          document.querySelectorAll('.section-card').forEach(section => {
+            const rows = Array.from(section.querySelectorAll('.booking-table tbody tr'));
+            const anyVisible = rows.some(r => r.style.display !== 'none');
+            const emptyFilter = section.querySelector('.empty-filter');
+            if (emptyFilter) emptyFilter.style.display = anyVisible ? 'none' : 'block';
+          });
+        }
+
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyStatusFilter(btn.dataset.status);
+          });
+        });
+
+        applyStatusFilter('all');
+      });
+    </script>
+  </div>
+</body>
+</html>

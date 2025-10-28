@@ -154,7 +154,7 @@
             </div>
 
             <!-- Deceased info for burial (only shown when service=burial) -->
-            <div class="form-group" id="deceasedFields" style="<% if (F.service === 'burial') { %>display:block<% } else { %>display:none<% } %>">
+            <div class="form-group" id="deceasedFields" style="<%= (F.service === 'burial') ? 'display:block' : 'display:none' %>">
               <label>Deceased Details (for Burial)</label>
               <input type="text" id="deceased_firstName" name="deceased_firstName" placeholder="Deceased First Name" value="<%= F.deceased_firstName || '' %>" />
               <input type="text" id="deceased_lastName" name="deceased_lastName" placeholder="Deceased Last Name" style="margin-top:6px" value="<%= F.deceased_lastName || '' %>" />

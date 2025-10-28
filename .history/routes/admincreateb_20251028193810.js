@@ -92,11 +92,13 @@ router.post('/', requireAdmin, async (req, res) => {
     // If burial and plot selected, update plot with deceased info (similar to user flow)
     if (service === 'burial' && plotId) {
       try {
+        // Also set the plot type to 'Ossuary' for burial bookings so reports
+        // and the burial record UI reflect the correct type.
         await db.query(
           `UPDATE plot_map_tbl
-           SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?
+           SET deceased_firstName = ?, deceased_lastName = ?, birth_date = ?, death_date = ?, type = ?
            WHERE plot_id = ?`,
-          [deceased_firstName, deceased_lastName, birth_date, death_date, plotId]
+          [deceased_firstName, deceased_lastName, birth_date, death_date, 'Ossuary', plotId]
         );
       } catch (e) {
         console.warn('admincreateb: failed to update plot with deceased info', e);

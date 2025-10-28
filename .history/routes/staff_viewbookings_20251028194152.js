@@ -140,7 +140,6 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
       [bookingId]
     );
 
-
     if (bookingRows.length > 0) {
       const bk = bookingRows[0];
       const userId = bk.user_id;
@@ -156,7 +155,7 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
 
       // 4️⃣ If it's a burial booking, insert deceased info into plot_map_tbl
     // 4️⃣ If it's a burial booking, insert deceased info into plot_map_tbl
-    if (service.toLowerCase().includes("burial")) {
+if (service.toLowerCase().includes("burial")) {
   // Check if the plot already exists and is linked to this user (avoid duplicates)
   const [existing] = await db.query(
     `SELECT plot_id FROM plot_map_tbl WHERE user_id = ? AND availability = 'occupied'`,
@@ -164,39 +163,34 @@ router.post("/approve/:id", requireStaff, async (req, res) => {
   );
 
   if (existing.length === 0) {
-        // When creating a plot for a burial booking, ensure `type` is set to
-        // 'Ossuary' (or honor provided type for non-burial flows). Some UI
-        // callers accidentally pass location into the `type` field; setting
-        // this explicitly prevents the plot_type showing as the location.
-        const plotTypeValue = 'Ossuary';
-        await db.query(
-          `INSERT INTO plot_map_tbl (
-            plot_number,
-            location,
-            type,
-            price,
-            deceased_firstName,
-            deceased_lastName,
-            birth_date,
-            death_date,
-            item_id,
-            availability,
-            user_id
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'occupied', ?)
-          `,
-          [
-            plot_number || "Unassigned",
-            location || "Unassigned",
-            plotTypeValue,
-            price || 0.0,
-            deceased_firstName || "Unknown",
-            deceased_lastName || "Unknown",
-            birth_date || null,
-            death_date || null,
-            item_id || 1,
-            userId || null
-          ]
-        );
+    await db.query(
+      `INSERT INTO plot_map_tbl (
+        plot_number,
+        location,
+        type,
+        price,
+        deceased_firstName,
+        deceased_lastName,
+        birth_date,
+        death_date,
+        item_id,
+        availability,
+        user_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'occupied', ?)
+      `,
+      [
+        plot_number || "Unassigned",
+        location || "Unassigned",
+        type || "Standard",
+        price || 0.0,
+        deceased_firstName || "Unknown",
+        deceased_lastName || "Unknown",
+        birth_date || null,
+        death_date || null,
+        item_id || 1,
+        userId || null
+      ]
+    );
   }
 }
 

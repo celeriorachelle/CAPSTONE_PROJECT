@@ -60,14 +60,15 @@
           <div class="error-message" style="display:block;margin-bottom:1rem;color:#b00020;"><%= error %></div>
         <% } %>
 
-        <% const F = (typeof form !== 'undefined') ? form : {}; %>
-
         <form id="appointmentForm" method="POST" action="/admincreateb">
           <div class="form-grid">
             <div class="form-group">
-              <label for="fullname">Full Name *</label>
-              <input type="text" id="fullname" name="fullname" required placeholder="Enter full name" value="<%= F.fullname || '' %>" />
-              <div class="error-message" id="fullnameError"></div>
+          // Sidebar toggle (guarded in case partial doesn't include the toggle element)
+          if (sidebarToggle && adminMain) {
+            sidebarToggle.addEventListener('click', () => {
+              adminMain.classList.toggle('collapsed');
+            });
+          }
             </div>
 
             <div class="form-group">
@@ -78,13 +79,18 @@
 
             <div class="form-group">
               <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" placeholder="your.email@example.com" value="<%= F.email || '' %>" />
+              <input type="email" id="email" name="email" placeholder="your.email@example.com" />
               <div class="error-message" id="emailError"></div>
+          if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener("click", () => {
+              notificationDropdown.classList.toggle("active");
+            });
+          }
               <label for="service">Service Type *</label>
               <select id="service" name="service" required>
-                <option value="" disabled <%= !F.service ? 'selected' : '' %>>Select Service</option>
-                <option value="burial" <%= (F.service === 'burial') ? 'selected' : '' %>>Burial Service</option>
-                <option value="memorial" <%= (F.service === 'memorial') ? 'selected' : '' %>>Memorial Service</option>
+                <option value="" disabled selected>Select Service</option>
+                <option value="burial">Burial Service</option>
+                <option value="memorial">Memorial Service</option>
               </select>
               <div class="error-message" id="serviceError"></div>
             </div>
@@ -92,10 +98,10 @@
             <div class="form-group">
               <label for="plot_id">Link to Plot (optional)</label>
               <select id="plot_id" name="plot_id">
-                <option value="" <%= !F.plot_id ? 'selected' : '' %>>-- No plot --</option>
+                <option value="" selected>-- No plot --</option>
                 <% if (typeof plots !== 'undefined' && Array.isArray(plots)) { %>
                   <% plots.forEach(p => { %>
-                    <option value="<%= p.plot_id %>" <%= (Number(F.plot_id) === p.plot_id) ? 'selected' : '' %>>Plot <%= p.plot_number %> — <%= p.location %> (₱<%= p.price %>)</option>
+                    <option value="<%= p.plot_id %>">Plot <%= p.plot_number %> — <%= p.location %> (₱<%= p.price %>)</option>
                   <% }) %>
                 <% } %>
               </select>
@@ -105,8 +111,8 @@
             <div class="form-group">
               <label for="payment_method">Payment Received?</label>
               <select id="payment_method" name="payment_method">
-                <option value="none" <%= (!F.payment_method || F.payment_method === 'none') ? 'selected' : '' %>>No (record later)</option>
-                <option value="cash" <%= (F.payment_method === 'cash') ? 'selected' : '' %>>Cash (record now)</option>
+                <option value="none" selected>No (record later)</option>
+                <option value="cash">Cash (record now)</option>
               </select>
             </div>
 
@@ -117,57 +123,57 @@
                 <option value="downpayment">Downpayment (installment)</option>
               </select>
 
-                <div id="fullFields">
+              <div id="fullFields">
                 <label for="cash_amount">Amount Received (₱)</label>
-                <input type="number" step="0.01" min="0" id="cash_amount" name="cash_amount" placeholder="0.00" value="<%= F.cash_amount || '' %>" />
+                <input type="number" step="0.01" min="0" id="cash_amount" name="cash_amount" placeholder="0.00" />
                 <div class="error-message" id="cashError"></div>
               </div>
 
               <div id="downFields" style="display:none;margin-top:8px">
                 <label for="monthly_amount">Monthly Amount (₱)</label>
-                <input type="number" step="0.01" min="0" id="monthly_amount" name="monthly_amount" placeholder="0.00" value="<%= F.monthly_amount || '' %>" />
+                <input type="number" step="0.01" min="0" id="monthly_amount" name="monthly_amount" placeholder="0.00" />
                 <label for="months">Months</label>
-                <input type="number" min="1" id="months" name="months" placeholder="e.g., 12" value="<%= F.months || '' %>" />
+                <input type="number" min="1" id="months" name="months" placeholder="e.g., 12" />
                 <div class="error-message" id="downError"></div>
               </div>
             </div>
 
             <div class="form-group">
               <label for="date">Date of Appointment *</label>
-              <input type="date" id="date" name="date" required value="<%= F.date || '' %>" />
+              <input type="date" id="date" name="date" required />
               <div class="error-message" id="dateError"></div>
             </div>
 
             <div class="form-group">
               <label for="time">Preferred Time *</label>
               <select id="time" name="time" required>
-                <option value="" disabled <%= !F.time ? 'selected' : '' %>>Select Time</option>
-                <option value="09:00" <%= (F.time === '09:00') ? 'selected' : '' %>>9:00 AM</option>
-                <option value="10:00" <%= (F.time === '10:00') ? 'selected' : '' %>>10:00 AM</option>
-                <option value="11:00" <%= (F.time === '11:00') ? 'selected' : '' %>>11:00 AM</option>
-                <option value="13:00" <%= (F.time === '13:00') ? 'selected' : '' %>>1:00 PM</option>
-                <option value="14:00" <%= (F.time === '14:00') ? 'selected' : '' %>>2:00 PM</option>
-                <option value="15:00" <%= (F.time === '15:00') ? 'selected' : '' %>>3:00 PM</option>
-                <option value="16:00" <%= (F.time === '16:00') ? 'selected' : '' %>>4:00 PM</option>
+                <option value="" disabled selected>Select Time</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
               </select>
               <div class="error-message" id="timeError"></div>
             </div>
 
             <!-- Deceased info for burial (only shown when service=burial) -->
-            <div class="form-group" id="deceasedFields" style="<% if (F.service === 'burial') { %>display:block<% } else { %>display:none<% } %>">
+            <div class="form-group" id="deceasedFields" style="display:none">
               <label>Deceased Details (for Burial)</label>
-              <input type="text" id="deceased_firstName" name="deceased_firstName" placeholder="Deceased First Name" value="<%= F.deceased_firstName || '' %>" />
-              <input type="text" id="deceased_lastName" name="deceased_lastName" placeholder="Deceased Last Name" style="margin-top:6px" value="<%= F.deceased_lastName || '' %>" />
+              <input type="text" id="deceased_firstName" name="deceased_firstName" placeholder="Deceased First Name" />
+              <input type="text" id="deceased_lastName" name="deceased_lastName" placeholder="Deceased Last Name" style="margin-top:6px" />
               <label for="birth_date">Birth Date</label>
-              <input type="date" id="birth_date" name="birth_date" value="<%= F.birth_date || '' %>" />
+              <input type="date" id="birth_date" name="birth_date" />
               <label for="death_date">Death Date</label>
-              <input type="date" id="death_date" name="death_date" value="<%= F.death_date || '' %>" />
+              <input type="date" id="death_date" name="death_date" />
               <div class="error-message" id="deceasedError"></div>
             </div>
 
             <div class="form-group full-width">
               <label for="notes">Additional Notes</label>
-              <textarea id="notes" name="notes" rows="4" placeholder="Any special requests or details..."><%= F.notes || '' %></textarea>
+              <textarea id="notes" name="notes" rows="4" placeholder="Any special requests or details..."></textarea>
             </div>
           </div>
 
@@ -188,14 +194,12 @@
 
   <!-- ===== SCRIPTS ===== -->
   <script>
-    // Sidebar toggle (guarded)
+    // Sidebar toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
     const adminMain = document.querySelector('.admin-main');
-    if (sidebarToggle && adminMain) {
-      sidebarToggle.addEventListener('click', () => {
-        adminMain.classList.toggle('collapsed');
-      });
-    }
+    sidebarToggle.addEventListener('click', () => {
+      adminMain.classList.toggle('collapsed');
+    });
 
     // Update date/time
     function updateDateTime() {
@@ -205,14 +209,13 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
-    // Notification toggle (guarded)
+    // Notification toggle
     const notificationBtn = document.getElementById("notificationBtn");
     const notificationDropdown = document.getElementById("notificationDropdown");
-    if (notificationBtn && notificationDropdown) {
-      notificationBtn.addEventListener("click", () => {
-        notificationDropdown.classList.toggle("active");
-      });
-    }
+
+    notificationBtn.addEventListener("click", () => {
+      notificationDropdown.classList.toggle("active");
+    });
 
     // Toast Notification Logic
     const toast = document.getElementById("toast");
@@ -246,14 +249,10 @@
 
     setTimeout(loadNotifications, 2000);
 
-    // Clear form (guarded)
-    const clearBtnEl = document.getElementById("clearBtn");
-    const appointmentFormEl = document.getElementById("appointmentForm");
-    if (clearBtnEl && appointmentFormEl) {
-      clearBtnEl.addEventListener("click", () => {
-        appointmentFormEl.reset();
-      });
-    }
+    // Clear form
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      document.getElementById("appointmentForm").reset();
+    });
 
     // Client-side validation before submit
     // Toggle plot requirement when service=burial and toggle cash fields
@@ -320,8 +319,7 @@
 
     updateFormState();
 
-    if (appointmentFormEl) {
-      appointmentFormEl.addEventListener('submit', function (e) {
+    document.getElementById('appointmentForm').addEventListener('submit', function (e) {
       // Clear previous errors
       ['fullnameError','phoneError','emailError','serviceError','dateError','timeError','plotError'].forEach(id => {
         const el = document.getElementById(id);
@@ -390,12 +388,11 @@
         }
       }
 
-        if (!valid) {
-          e.preventDefault();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-    }
+      if (!valid) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   </script>
 </body>
 </html>

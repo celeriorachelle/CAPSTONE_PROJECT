@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings & Payments | Everlasting Peace Memorial Park</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/stylesheets/adminviewbookings.css" />
+</head>
+
+<body>
+    <%- include('./partials/admin/topbar', { activePage: 'clientTransactions' }) %>
+
+  <main class="admin-main">
+    <%- include('./partials/admin/sidebar', { activePage: 'clientTransactions' }) %>
+
+    <section class="content">
+      <div class="content-header">
+        <h2>All Bookings & Payments</h2>
+        <div class="search-controls">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search bookings...">
+          </div>
+
+          <select id="paymentFilter" class="filter-select">
+            <option value="">All Payment Types</option>
+            <option value="downpayment">Downpayment</option>
+            <option value="fullpayment">Full Payment</option>
+          </select>
+
+          <input type="date" id="dateFilter" class="filter-select">
+        </div>
+      </div>
+
+      <div class="appointments-container">
+        <div class="content-controls">
+          <div class="table-header">
+            <h3><i class="fas fa-list"></i> Bookings Overview</h3>
+          </div>
+          <div class="records-limit">
+            <label for="recordsPerPage">Records per page:</label>
+            <select id="recordsPerPage" class="filter-select">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="appointments-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Client Name</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Service</th>
+                <th>Booking Date</th>
+                <th>Booking Status</th>
+                <th>Payment Type</th>
+                <th>Payment Status</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (bookings.length === 0) { %>
+                <tr>
+                  <td colspan="12" class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No Bookings Found</h3>
+                  </td>
+                </tr>
+              <% } else { %>
+                <% bookings.forEach(b => { %>
+                  <tr>
+                    <td><%= b.id %></td>
+                    <td><%= (b.lastName || '') + (b.firstName ? ', ' + b.firstName : '') %></td>
+                    <td><%= b.phone || '—' %></td>
+                    <td><%= b.email || '—' %></td>
+                    <td><%= b.service || '—' %></td>
+                    <td><%= b.bookingDate ? new Date(b.bookingDate).toLocaleDateString() : '—' %></td>
+                    <td><%= b.bookingStatus || 'N/A' %></td>
+                    <td><%= b.paymentType || '—' %></td>
+                    <td><%= b.paymentStatus || 'N/A' %></td>
+                    <td>₱<%= b.amount ? parseFloat(b.amount).toFixed(2) : '0.00' %></td>
+                    <td><%= b.dueDate ? new Date(b.dueDate).toLocaleDateString() : '—' %></td>
+                    <td class="actions-column">
+                      <div class="action-buttons">
+                        <button onclick="openViewModal('<%= b.plotNumber %>', '<%= b.location %>', '<%= b.plotType %>', '<%= b.firstName %>', '<%= b.lastName %>', '<%= b.paymentType %>')" class="btn-action btn-view">
+                          <i class="fas fa-eye"></i> View
+                        </button>
+
+                        <button onclick="sendAutoReminder(<%= b.id %>)" class="btn-action btn-auto">
+                          <i class="fas fa-robot"></i> Auto Email
+                        </button>
+
+                        <button onclick="openEmailModal(<%= b.id %>, '<%= b.email %>')" class="btn-action btn-edit">
+                          <i class="fas fa-envelope"></i> Manual Email
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+          <!-- Pagination Controls -->
+          <div class="pagination">
+            <button id="prevPage" class="btn-page" disabled>
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div id="pageNumbers" class="page-numbers"></div>
+            <button id="nextPage" class="btn-page">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- VIEW MODAL -->
+  <div class="modal" id="viewModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('viewModal')">&times;</span>
+      <h3>Booking Details</h3>
+      <p><b>Plot Number:</b> <span id="viewPlot"></span></p>
+      <p><b>Location:</b> <span id="viewLocation"></span></p>
+      <p><b>Type:</b> <span id="viewType"></span></p>
+      <p><b>Client:</b> <span id="viewName"></span></p>
+      <p><b>Payment Type:</b> <span id="viewPayment"></span></p>
+    </div>
+  </div>
+
+  <!-- EMAIL MODAL -->
+  <div class="modal" id="emailModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('emailModal')">&times;</span>
+      <h3>Send Reminder Email</h3>
+      <p><b>Recipient:</b> <span id="emailRecipient"></span></p>
+      <textarea id="emailMessage" placeholder="Type your message here..."></textarea>
+      <button class="btn-send" onclick="sendReminder()">Send Email</button>
+    </div>
+  </div>
+
+  <script>
+    let currentBookingId = null;
+
+    function openViewModal(plot, location, type, fname, lname, payment) {
+      document.getElementById('viewPlot').innerText = plot || '—';
+      document.getElementById('viewLocation').innerText = location || '—';
+      document.getElementById('viewType').innerText = type || '—';
+      document.getElementById('viewName').innerText = lname + ', ' + fname;
+      document.getElementById('viewPayment').innerText = payment || '—';
+      document.getElementById('viewModal').style.display = 'flex';
+    }
+
+    function openEmailModal(id, email) {
+      currentBookingId = id;
+      document.getElementById('emailRecipient').innerText = email;
+      document.getElementById('emailMessage').value = `We are Everlasting Peace Memorial Park Cemetery.\n\nDear client, this is a gentle reminder regarding your booking.`;
+      document.getElementById('emailModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function sendReminder() {
+      const message = document.getElementById('emailMessage').value;
+      fetch(`/adminviewbookings/send-reminder/${currentBookingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.success ? 'Email sent successfully!' : 'Failed to send email.');
+        closeModal('emailModal');
+      })
+      .catch(() => alert('Error sending email.'));
+    }
+
+    function sendAutoReminder(bookingId) {
+      if (!confirm('Send automatic due date reminder?')) return;
+      fetch(`/adminviewbookings/send-auto-reminder/${bookingId}`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.success ? 'Automatic reminder sent successfully!' : 'Failed to send automatic reminder.');
+      })
+      .catch(() => alert('Error sending automatic reminder.'));
+    }
+
+    // Table Filtering and Pagination
+    const searchInput = document.getElementById('searchInput');
+    const paymentFilter = document.getElementById('paymentFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const recordsPerPageSelect = document.getElementById('recordsPerPage');
+    let currentPage = 1;
+    let filteredRows = [];
+
+    function filterTable() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const selectedPayment = paymentFilter.value.toLowerCase();
+      const selectedDate = dateFilter.value;
+
+      const allRows = Array.from(document.querySelectorAll('.appointments-table tbody tr'))
+        .filter(row => !row.classList.contains('empty-state') && !row.querySelector('.empty-state'));
+
+      filteredRows = allRows.filter(row => {
+        const rowText = row.textContent.toLowerCase();
+        const paymentType = row.children[7]?.textContent.toLowerCase() || '';
+        const bookingDate = row.children[5]?.textContent.trim();
+
+        const matchesSearch = rowText.includes(searchTerm);
+        const matchesPayment = !selectedPayment || paymentType.includes(selectedPayment);
+        const matchesDate = !selectedDate || (bookingDate && new Date(bookingDate).toLocaleDateString() === new Date(selectedDate).toLocaleDateString());
+
+        return matchesSearch && matchesPayment && matchesDate;
+      });
+
+      currentPage = 1;
+      updatePagination();
+      displayCurrentPage();
+    }
+
+    function updatePagination() {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+      const pageNumbers = document.getElementById('pageNumbers');
+      pageNumbers.innerHTML = '';
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      
+      if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.classList.toggle('active', i === currentPage);
+        btn.onclick = () => {
+          currentPage = i;
+          updatePagination();
+          displayCurrentPage();
+        };
+        pageNumbers.appendChild(btn);
+      }
+
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages;
+    }
+
+    function displayCurrentPage() {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageRows = filteredRows.slice(start, end);
+
+      document.querySelectorAll('.appointments-table tbody tr').forEach(row => {
+        if (!row.classList.contains('empty-state')) {
+          row.style.display = 'none';
+        }
+      });
+
+      pageRows.forEach(row => row.style.display = '');
+
+      const emptyState = document.querySelector('.empty-state')?.parentElement;
+      if (emptyState) {
+        emptyState.style.display = filteredRows.length === 0 ? '' : 'none';
+      }
+    }
+
+    searchInput.addEventListener('keyup', filterTable);
+    paymentFilter.addEventListener('change', filterTable);
+    dateFilter.addEventListener('change', filterTable);
+    recordsPerPageSelect.addEventListener('change', () => {
+      currentPage = 1;
+      updatePagination();
+      displayCurrentPage();
+    });
+    document.getElementById('prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+        displayCurrentPage();
+      }
+    });
+    document.getElementById('nextPage').addEventListener('click', () => {
+      const itemsPerPage = parseInt(recordsPerPageSelect.value);
+      const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+        displayCurrentPage();
+      }
+    });
+
+    filterTable();
+  </script>
+</body>
+</html>

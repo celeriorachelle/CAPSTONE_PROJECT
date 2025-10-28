@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Appointment | Everlasting Peace Memorial Park</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Main Admin CSS -->
+  <link rel="stylesheet" href="/stylesheets/admin.css" />
+  <link rel="stylesheet" href="/stylesheets/admincreateb.css" />
+</head>
+<body>
+  <!-- ===== HEADER (Topbar + Hamburger) ===== -->
+  <%- include('partials/admin/topbar', { activePage: 'createAppointment' }) %>
+  <div style="height: 120px;"></div> <!-- Spacer for fixed header -->
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <main class="admin-main">
+    <!-- Sidebar -->
+    <%- include('partials/admin/sidebar', { activePage: 'createAppointment' }) %>
+
+    <!-- ===== CONTENT AREA ===== -->
+    <section class="content">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Create New Appointment</h2>
+          <div class="date-time" id="currentDateTime"></div>
+        </div>
+        <div class="icons">
+          <!-- Notification Bell -->
+          <button class="notification-btn" id="notificationBtn">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationCount">0</span>
+          </button>
+
+          <!-- Notification Dropdown -->
+          <div class="notification-dropdown" id="notificationDropdown">
+            <header>Notifications</header>
+            <ul id="notificationList">
+              <li>Loading notifications...</li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== FORM SECTION ===== -->
+      <div class="form-card">
+        <p class="form-subtitle">Please fill in the details below to book an appointment.</p>
+
+        <% if (typeof success !== 'undefined' && success) { %>
+          <div class="success-message" id="successMessage">Appointment successfully created! Booking ID: <%= bookingId %></div>
+        <% } else { %>
+          <div class="success-message" id="successMessage" style="display:none;">Appointment successfully created!</div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="error-message" style="display:block;margin-bottom:1rem;color:#b00020;"><%= error %></div>
+        <% } %>
+
+        <form id="appointmentForm" method="POST" action="/admincreateb">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="fullname">Full Name *</label>
+              <input type="text" id="fullname" name="fullname" required placeholder="Enter full name" />
+              <div class="error-message" id="fullnameError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number *</label>
+              <input type="tel" id="phone" name="phone" required placeholder="(123) 456-7890" />
+              <div class="error-message" id="phoneError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="your.email@example.com" />
+              <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="service">Service Type *</label>
+              <select id="service" name="service" required>
+                <option value="" disabled selected>Select Service</option>
+                <option value="burial">Burial Service</option>
+                <option value="memorial">Memorial Service</option>
+              </select>
+              <div class="error-message" id="serviceError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="plot_id">Link to Plot (optional)</label>
+              <select id="plot_id" name="plot_id">
+                <option value="" selected>-- No plot --</option>
+                <% if (typeof plots !== 'undefined' && Array.isArray(plots)) { %>
+                  <% plots.forEach(p => { %>
+                    <option value="<%= p.plot_id %>">Plot <%= p.plot_number %> — <%= p.location %> (₱<%= p.price %>)</option>
+                  <% }) %>
+                <% } %>
+              </select>
+              <div class="error-message" id="plotError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="payment_method">Payment Received?</label>
+              <select id="payment_method" name="payment_method">
+                <option value="none" selected>No (record later)</option>
+                <option value="cash">Cash (record now)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="cashFields" style="display:none">
+              <label for="cash_amount">Amount Received (₱)</label>
+              <input type="number" step="0.01" min="0" id="cash_amount" name="cash_amount" placeholder="0.00" />
+              <div class="error-message" id="cashError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="date">Date of Appointment *</label>
+              <input type="date" id="date" name="date" required />
+              <div class="error-message" id="dateError"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="time">Preferred Time *</label>
+              <select id="time" name="time" required>
+                <option value="" disabled selected>Select Time</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+              </select>
+              <div class="error-message" id="timeError"></div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="notes">Additional Notes</label>
+              <textarea id="notes" name="notes" rows="4" placeholder="Any special requests or details..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="clearBtn">Clear Form</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Create Appointment</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== TOAST NOTIFICATION ===== -->
+  <div id="toast" class="toast">
+    <i class="fas fa-bell"></i>
+    <span id="toastMessage">New Notification</span>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script>
+    // Sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const adminMain = document.querySelector('.admin-main');
+    sidebarToggle.addEventListener('click', () => {
+      adminMain.classList.toggle('collapsed');
+    });
+
+    // Update date/time
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("currentDateTime").textContent = now.toLocaleString();
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Notification toggle
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationDropdown = document.getElementById("notificationDropdown");
+
+    notificationBtn.addEventListener("click", () => {
+      notificationDropdown.classList.toggle("active");
+    });
+
+    // Toast Notification Logic
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
+
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4000);
+    }
+
+    // Simulated Notifications (replace with fetch from backend if needed)
+    const notificationList = document.getElementById("notificationList");
+    const notificationCount = document.getElementById("notificationCount");
+
+    function loadNotifications() {
+      const sampleNotifications = [
+        "New booking request received.",
+        "Appointment confirmed for Oct 30.",
+        "System backup completed successfully.",
+      ];
+      notificationList.innerHTML = "";
+      sampleNotifications.forEach(msg => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        notificationList.appendChild(li);
+      });
+      notificationCount.textContent = sampleNotifications.length;
+      showToast("You have new notifications!");
+    }
+
+    setTimeout(loadNotifications, 2000);
+
+    // Clear form
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      document.getElementById("appointmentForm").reset();
+    });
+
+    // Client-side validation before submit
+    document.getElementById('appointmentForm').addEventListener('submit', function (e) {
+      // Clear previous errors
+      ['fullnameError','phoneError','emailError','serviceError','dateError','timeError','plotError'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+
+      const fullname = document.getElementById('fullname').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const service = document.getElementById('service').value;
+      const date = document.getElementById('date').value;
+      const time = document.getElementById('time').value;
+      let valid = true;
+
+      if (!fullname) { document.getElementById('fullnameError').textContent = 'Full name is required.'; valid = false; }
+      const phoneRe = /^[0-9\-\s\(\)\+]{7,20}$/;
+      if (!phone || !phoneRe.test(phone)) { document.getElementById('phoneError').textContent = 'Enter a valid phone number.'; valid = false; }
+      if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { document.getElementById('emailError').textContent = 'Enter a valid email.'; valid = false; }
+      if (!service) { document.getElementById('serviceError').textContent = 'Please select a service.'; valid = false; }
+      if (!date) { document.getElementById('dateError').textContent = 'Please select a date.'; valid = false; }
+      if (!time) { document.getElementById('timeError').textContent = 'Please select a time.'; valid = false; }
+
+      // Prevent past dates
+      if (date) {
+        const sel = new Date(date + 'T' + (time || '00:00') + ':00');
+        const now = new Date();
+        if (sel < now) { document.getElementById('dateError').textContent = 'Date/time must be in the future.'; valid = false; }
+      }
+
+      if (!valid) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>
