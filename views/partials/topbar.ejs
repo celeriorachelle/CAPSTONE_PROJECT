@@ -55,17 +55,25 @@
     }
 
     /* 🔢 Badge */
-    .notif-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #9dab6c;
-      color: #fff;
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      border-radius: 10px;
-      display: none;
-    }
+   /* 🔢 Badge (Centered and Balanced) */
+.notif-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #a81212;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: 22px;                 /* fixed width for perfect circle */
+  height: 22px;                /* fixed height for perfect circle */
+  display: none;
+  border-radius: 50%;          /* makes it round */
+  display: flex;               /* centers the text */
+  align-items: center;         /* vertical center */
+  justify-content: center;     /* horizontal center */
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
 
     /* ✨ Glow & Shake Animation for New Notifications */
     @keyframes bellShake {
@@ -283,7 +291,7 @@
           // 🔥 Animate if new notification appears
           if (count > lastUnreadCount) {
             notifBtn.classList.add("new");
-              showToast("<i class='fas fa-bell'></i>&nbsp; New notification received!");
+              showToast("New notification received!");
             setTimeout(() => notifBtn.classList.remove("new"), 1200);
           }
 
