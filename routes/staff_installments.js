@@ -374,5 +374,252 @@ Everlasting Peace Memorial Park`;
     return res.status(500).json({ success: false, message: "Failed to send SMS.", error: error.message });
   }
 });
+// ⚠️ 3-DAY WARNING
+// 🟠 3-DAY WARNING (Email + SMS with same message)
+router.post("/send_warning/:id", requireStaff, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT u.user_id, u.email, u.contact_number, CONCAT(u.firstName, ' ', u.lastName) AS name,
+             p.booking_id, p.payment_id, p.amount, p.due_date
+      FROM payment_tbl p
+      JOIN user_tbl u ON p.user_id = u.user_id
+      WHERE p.payment_id = ?`, [req.params.id]);
+
+    if (!rows.length) return res.json({ success: false, message: "Payment not found." });
+    const c = rows[0];
+
+    // 📨 Message Content (same for Email & SMS)
+    const subject = "⚠️ PAYMENT REMINDER: 3 Days Remaining to Avoid Revocation";
+    const message = `
+Dear ${c.name},
+
+This is a reminder that your installment payment of PHP${Number(c.amount).toLocaleString()} is now overdue by **3 days**.
+
+Please settle your payment immediately to avoid release of your plot reservation.
+
+If payment is not received within 7 days, your plot reservation will be revoked as per Everlasting Peace Memorial Park's policy.
+
+Sincerely,  
+Everlasting Peace Memorial Park
+`;
+
+    // ✅ Send EMAIL
+    await transporter.sendMail({
+      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      to: c.email,
+      subject,
+      text: message,
+    });
+
+    // ✅ Send SMS (same message)
+    let phoneNumber = c.contact_number.replace(/\s+/g, "");
+    if (phoneNumber.startsWith("0")) phoneNumber = "+63" + phoneNumber.slice(1);
+
+    try {
+      const response = await axios.post(
+        TRACCAR_SMS_BASE_URL,
+        { to: phoneNumber, message },
+        {
+          headers: {
+            Authorization: TRACCAR_SMS_TOKEN,
+            "Content-Type": "application/json",
+          },
+          timeout: SMS_TIMEOUT,
+        }
+      );
+      console.log("✅ 3-Day Warning SMS sent:", response.data);
+    } catch (smsErr) {
+      console.error("❌ SMS sending error (3-Day Warning):", smsErr.message);
+    }
+
+    // ✅ Save Notification & Log
+    await db.query(`
+      INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
+      VALUES (?, ?, ?, ?, 0, NOW())`,
+      [c.user_id, c.booking_id, c.payment_id, message]
+    );
+
+    await db.query(`
+      INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+      VALUES (?, 'staff', '3-Day Warning Sent', ?, NOW())`,
+      [req.session.user.user_id, `3-Day Warning sent to ${c.name} (Email + SMS)`]
+    );
+
+    res.json({ success: true, message: "⚠️ 3-Day Warning (Email + SMS) sent successfully!" });
+  } catch (err) {
+    console.error("❌ Warning error:", err);
+    res.json({ success: false, message: "Failed to send 3-day warning." });
+  }
+});
+
+
+// 🔴 7-DAY FINAL WARNING
+// 🔴 7-DAY FINAL WARNING (Email + SMS)
+// 🔴 7-DAY FINAL WARNING (Email + SMS with same message)
+router.post("/send_final_warning/:id", requireStaff, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT u.user_id, u.email, u.contact_number, CONCAT(u.firstName, ' ', u.lastName) AS name,
+             p.booking_id, p.payment_id, p.amount, p.due_date
+      FROM payment_tbl p
+      JOIN user_tbl u ON p.user_id = u.user_id
+      WHERE p.payment_id = ?`, [req.params.id]);
+
+    if (!rows.length) return res.json({ success: false, message: "Payment not found." });
+    const c = rows[0];
+
+    // 📨 Message Content (same for Email & SMS)
+    const subject = "❗ NOTICE: Plot Reservation Revoked";
+    const message = `
+Dear ${c.name},
+
+We regret to inform you that your installment payment of PHP${Number(c.amount).toLocaleString()} was not received within the required time frame.
+
+As a result, your plot reservation has been **revoked** in accordance with Everlasting Peace Memorial Park's policy.
+
+If you wish to reinstate or apply for a new plot, please visit our office to discuss available options.
+
+Sincerely,  
+Everlasting Peace Memorial Park
+`;
+
+    // ✅ Send EMAIL
+    await transporter.sendMail({
+      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      to: c.email,
+      subject,
+      text: message,
+    });
+
+    // ✅ Send SMS (same message)
+    let phoneNumber = c.contact_number.replace(/\s+/g, "");
+    if (phoneNumber.startsWith("0")) phoneNumber = "+63" + phoneNumber.slice(1);
+
+    try {
+      const response = await axios.post(
+        TRACCAR_SMS_BASE_URL,
+        { to: phoneNumber, message },
+        {
+          headers: {
+            Authorization: TRACCAR_SMS_TOKEN,
+            "Content-Type": "application/json",
+          },
+          timeout: SMS_TIMEOUT,
+        }
+      );
+      console.log("✅ Final Warning SMS sent:", response.data);
+    } catch (smsErr) {
+      console.error("❌ SMS sending error (Final Warning):", smsErr.message);
+    }
+
+    // ✅ Save Notification & Log
+    await db.query(`
+      INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
+      VALUES (?, ?, ?, ?, 0, NOW())`,
+      [c.user_id, c.booking_id, c.payment_id, message]
+    );
+
+    await db.query(`
+      INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+      VALUES (?, 'staff', 'Final Warning Sent', ?, NOW())`,
+      [req.session.user.user_id, `Final Warning sent to ${c.name} (Email + SMS)`]
+    );
+
+    res.json({ success: true, message: "🚨 Final Warning (Email + SMS) sent successfully!" });
+  } catch (err) {
+    console.error("❌ Final warning error:", err);
+    res.json({ success: false, message: "Failed to send final warning." });
+  }
+});
+
+// ✅ FIXED: Merge all duplicate downpayments before updating due date
+router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
+  const paymentId = req.params.id;
+  const staff = req.session.user;
+
+  try {
+    // Get main payment info
+    const [payments] = await db.query(
+      `SELECT payment_id, user_id, amount, payment_type, due_date, status
+       FROM payment_tbl
+       WHERE payment_id = ?`,
+      [paymentId]
+    );
+
+    if (!payments.length)
+      return res.json({ success: false, message: "Payment not found." });
+
+    const payment = payments[0];
+
+    // 🟢 Find all downpayments of this user that are still active
+    const [duplicates] = await db.query(
+      `SELECT payment_id, amount, due_date
+       FROM payment_tbl
+       WHERE user_id = ? AND payment_type = 'downpayment' AND status != 'Completed'
+       ORDER BY due_date ASC`,
+      [payment.user_id]
+    );
+
+    if (duplicates.length > 1) {
+      // Merge all duplicate amounts
+      const totalAmount = duplicates.reduce((sum, p) => sum + Number(p.amount), 0);
+      const keepId = duplicates[0].payment_id; // Keep the oldest one
+      const deleteIds = duplicates.slice(1).map(p => p.payment_id);
+
+      // Extend due date 1 month from now
+      const newDueDate = new Date();
+      newDueDate.setMonth(newDueDate.getMonth() + 1);
+
+      // Update the oldest payment record
+      await db.query(
+        `UPDATE payment_tbl 
+         SET amount = ?, due_date = ?, status = 'Pending' 
+         WHERE payment_id = ?`,
+        [totalAmount, newDueDate, keepId]
+      );
+
+      // Delete the extra duplicates
+      if (deleteIds.length > 0) {
+        await db.query(
+          `DELETE FROM payment_tbl WHERE payment_id IN (?)`,
+          [deleteIds]
+        );
+      }
+
+      // Log
+      await db.query(
+        `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+         VALUES (?, 'staff', 'Merged Duplicate Downpayments', ?, NOW())`,
+        [staff.user_id, `Merged ${duplicates.length} payments for user ${payment.user_id}`]
+      );
+
+      return res.json({
+        success: true,
+        message: `Merged ${duplicates.length} duplicate downpayments into one record.`,
+      });
+    } else {
+      // No duplicates — just extend due date
+      const newDueDate = new Date();
+      newDueDate.setMonth(newDueDate.getMonth() + 1);
+
+      await db.query(
+        `UPDATE payment_tbl SET due_date = ?, status = 'Ongoing' WHERE payment_id = ?`,
+        [newDueDate, paymentId]
+      );
+
+      await db.query(
+        `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+         VALUES (?, 'staff', 'Marked as Paid', ?, NOW())`,
+        [staff.user_id, `Marked payment #${paymentId} as paid`]
+      );
+
+      res.json({ success: true, message: "Due date updated successfully!" });
+    }
+  } catch (err) {
+    console.error("❌ Error merging payments:", err);
+    res.json({ success: false, message: "Server error while merging payments." });
+  }
+});
+
 
 module.exports = router;
