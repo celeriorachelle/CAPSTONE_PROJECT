@@ -102,7 +102,7 @@
       top: -6px;
       right: -6px;
       background: #ef4453;
-      color: #fff;
+      color: #ffffff;
       font-size: 0.72rem;
       min-width: 20px;
       height: 20px;
@@ -119,7 +119,7 @@
       position: absolute;
       top: 80px;
       right: 0;
-      background: #ffffff;
+      background: #e7ebe5;
       border-radius: 12px;
       width: 330px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
@@ -169,11 +169,11 @@
     }
 
     .notification-dropdown ul li:hover {
-      background: #f7fdf5;
+      background: #c0ddae;
     }
 
     .notification-dropdown ul li.unread {
-      background: #f0f7ec;
+      background: #82a071;
       font-weight: 600;
     }
 
@@ -284,125 +284,127 @@
     <span>New notification received!</span>
   </div>
 
-  <script>
-    // Display real-time date and time
-    let lastUnreadCount = 0;
+<script>
+  // ==========================
+  // DATE & TIME DISPLAY
+  // ==========================
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById("currentDateTime").textContent = now.toLocaleString();
+  }
+  updateDateTime();
+  setInterval(updateDateTime, 60000);
 
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById("currentDateTime").textContent = now.toLocaleString();
-    }
-    updateDateTime();
-    setInterval(updateDateTime, 60000);
+  // ==========================
+  // SIDE TOAST (POP-UP)
+  // ==========================
+  function showSideToast(message) {
+    const toast = document.getElementById("sideToast");
+    if (!toast) return;
+    toast.querySelector("span").textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 4000);
+  }
 
-    function showSideToast(message) {
-      const toast = document.getElementById('sideToast');
-      toast.querySelector('span').textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4000);
-    }
+  // ==========================
+  // FETCH NOTIFICATION LIST
+  // ==========================
+  let lastUnreadCount = 0;
 
-    function getReadNotifications() {
-      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    }
+  async function fetchNotificationList() {
+    try {
+      const response = await fetch("/admin/notification/list");
+      const data = await response.json();
 
-    function markAsRead(id) {
-      let read = getReadNotifications();
-      if (!read.includes(id)) {
-        read.push(id);
-        localStorage.setItem('readNotifications', JSON.stringify(read));
+      const listContainer = document.getElementById("notificationList");
+      const badge = document.getElementById("notificationCount");
+
+      if (!data || data.length === 0) {
+        listContainer.innerHTML = "<li>No recent notifications</li>";
+        badge.textContent = "";
+        return;
       }
-      fetchNotificationList();
-      fetchNotifications();
-    }
 
-    function getUnreadCount() {
-      const read = getReadNotifications();
-      const allItems = JSON.parse(localStorage.getItem('latestNotifications') || '[]');
-      return allItems.filter(item => !read.includes(item.booking_id)).length;
-    }
+      // Render notifications
+      listContainer.innerHTML = data
+        .map((item) => {
+          const created = new Date(item.created_at).toLocaleString();
+          const isUnread = item.is_read === 0;
+          const label =
+            item.type === "booking"
+              ? `${item.full_name} - ${item.service_type} (${item.status})`
+              : `${item.full_name} - ₱${item.amount} (${item.status})`;
 
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/admin/notification/count');
-        const data = await res.json();
-        const badge = document.getElementById('notificationCount');
-        const unread = getUnreadCount();
+          return `
+            <li class="${isUnread ? "unread" : ""}" 
+                onclick="markAsRead(${item.id}, '${item.type}')">
+              ${label}
+              <small>${created}</small>
+            </li>`;
+        })
+        .join("");
 
-        badge.textContent = unread > 0 ? unread : 0;
-        badge.style.display = unread > 0 ? 'inline' : 'none';
+      // Update unread badge
+      const unreadCount = data.filter((n) => n.is_read === 0).length;
+      badge.textContent = unreadCount > 0 ? unreadCount : "";
+      badge.style.display = unreadCount > 0 ? "inline-flex" : "none";
 
-        if (unread > lastUnreadCount) {
-          showSideToast('New notification received!');
-        }
-        lastUnreadCount = unread;
-      } catch (err) {
-        console.error('Error fetching notification count:', err);
+      // Side toast if new notification came in
+      if (unreadCount > lastUnreadCount) {
+        showSideToast("New notification received!");
       }
+      lastUnreadCount = unreadCount;
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
     }
+  }
 
-    async function fetchNotificationList() {
-      try {
-        const res = await fetch('/admin/notification/list');
-        const list = await res.json();
-        localStorage.setItem('latestNotifications', JSON.stringify(list));
-
-        const read = getReadNotifications();
-        const container = document.getElementById('notificationList');
-
-        if (list.length === 0) {
-          container.innerHTML = '<li>No recent activity</li>';
-        } else {
-          container.innerHTML = list.map(item => {
-            const isRead = read.includes(item.booking_id);
-            return `
-              <li class="${isRead ? '' : 'unread'}" onclick="openBooking('${item.booking_id}')">
-                ${item.message}
-                <small>${new Date(item.created_at).toLocaleString()}</small>
-              </li>`;
-          }).join('');
-        }
-
-        fetchNotifications();
-      } catch (err) {
-        console.error('Error fetching notification list:', err);
+  // ==========================
+  // MARK AS READ + REDIRECT
+  // ==========================
+  async function markAsRead(id, type) {
+    try {
+      await fetch(`/admin/notification/mark-read/${id}`, { method: "POST" });
+      if (type === "booking") {
+        window.location.href = "/adminviewapp";
+      } else if (type === "downpayment" || type === "fullpayment") {
+        window.location.href = "/adminviewbookings";
       }
+    } catch (err) {
+      console.error("Error marking as read:", err);
     }
+  }
 
-    function openBooking(id) {
-      markAsRead(id);
-      window.location.href = '/adminviewapp';
+  // ==========================
+  // INITIAL LOAD + REFRESH
+  // ==========================
+  fetchNotificationList();
+  setInterval(fetchNotificationList, 10000);
+
+  // ==========================
+  // DROPDOWN & SIDEBAR TOGGLE
+  // ==========================
+  const notifBtn = document.getElementById("notificationBtn");
+  const notifDropdown = document.getElementById("notificationDropdown");
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const adminMain = document.querySelector(".admin-main");
+
+  notifBtn.addEventListener("click", () => {
+    notifDropdown.style.display =
+      notifDropdown.style.display === "block" ? "none" : "block";
+  });
+
+  sidebarToggle.addEventListener("click", () => {
+    adminMain.classList.toggle("collapsed");
+    const sidebar = document.querySelector(".sidebar");
+    sidebar.classList.toggle("active");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+      notifDropdown.style.display = "none";
     }
+  });
+</script>
 
-    function openDownpayment(id) {
-      markAsRead(id);
-      window.location.href = '/adminviewbookings';
-    }
-
-    fetchNotificationList();
-    setInterval(fetchNotificationList, 10000);
-
-    // Toggle dropdown and sidebar
-    const notifBtn = document.getElementById('notificationBtn');
-    const notifDropdown = document.getElementById('notificationDropdown');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const adminMain = document.querySelector('.admin-main');
-
-    notifBtn.addEventListener('click', () => {
-      notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';
-      fetchNotificationList();
-    });
-
-    sidebarToggle.addEventListener('click', () => {
-      adminMain.classList.toggle('collapsed');
-      const sidebar = document.querySelector('.sidebar');
-      sidebar.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-        notifDropdown.style.display = 'none';
-      }
-    });
-  </script>
 </header>

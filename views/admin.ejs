@@ -174,19 +174,6 @@
           <h2>Dashboard Overview</h2>
           <div class="date-time" id="currentDateTime"></div>
         </div>
-        <div class="icons">
-          <button class="notification-btn" id="notificationBtn"><i class="fas fa-bell"></i>
-            <span class="notification-badge" id="notificationCount">0</span>
-          </button>
-
-          <!-- Notification Dropdown -->
-          <div class="notification-dropdown" id="notificationDropdown">
-            <header>Notifications</header>
-            <ul id="notificationList">
-              <li>Loading notifications...</li>
-            </ul>
-          </div>
-        </div>
       </header>
 
       <section class="dashboard-welcome">
@@ -239,137 +226,58 @@
     </section>
   </main>
 
-  <!-- Scripts -->
-  <script>
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById("currentDateTime").textContent = now.toLocaleString();
-    }
-    updateDateTime();
-    setInterval(updateDateTime, 60000);
+<script>
+  // ================================
+  // DATE & TIME DISPLAY
+  // ================================
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById("currentDateTime").textContent = now.toLocaleString();
+  }
+  updateDateTime();
+  setInterval(updateDateTime, 60000);
 
-    let lastUnreadCount = 0;
+  let lastUnreadCount = 0;
 
-    function showSideToast(message) {
-      const toast = document.getElementById('sideToast');
-      toast.querySelector('span').textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4000);
-    }
-
-    function getReadNotifications() {
-      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    }
-
-    function markAsRead(id) {
-      let read = getReadNotifications();
-      if (!read.includes(id)) {
-        read.push(id);
-        localStorage.setItem('readNotifications', JSON.stringify(read));
-      }
-      fetchNotificationList();
-      fetchNotifications();
-    }
-
-    function getUnreadCount() {
-      const read = getReadNotifications();
-      const allItems = JSON.parse(localStorage.getItem('latestNotifications') || '[]');
-      return allItems.filter(item => !read.includes(item.booking_id)).length;
-    }
-
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/admin/notification/count');
-        const data = await res.json();
-        const badge = document.getElementById('notificationCount');
-        const unread = getUnreadCount();
-
-        badge.textContent = unread > 0 ? unread : 0;
-        badge.style.display = unread > 0 ? 'inline' : 'none';
-
-        if (unread > lastUnreadCount) {
-          showSideToast("New booking received!");
-        }
-        lastUnreadCount = unread;
-      } catch (err) {
-        console.error('Error fetching notification count:', err);
-      }
-    }
-
- async function fetchNotificationList() {
-    try {
-      const res = await fetch('/admin/notification/list');
-      const list = await res.json();
-      localStorage.setItem('latestNotifications', JSON.stringify(list));
-
-      const read = getReadNotifications();
-      const container = document.getElementById('notificationList');
-
-      if (list.length === 0) {
-        container.innerHTML = '<li>No recent activity</li>';
-      } else {
-        container.innerHTML = list.map(item => {
-          const isRead = read.includes(item.id);
-          if (item.type === 'booking') {
-            return `
-              <li class="${isRead ? '' : 'unread'}" onclick="openBooking(${item.id})">
-                <strong>${item.full_name}</strong> booked a ${item.service_type || 'service'}
-                <small>Status: ${item.status}</small>
-                <small>Booking Date: ${new Date(item.booking_date).toLocaleDateString()}</small>
-                <small>Submitted: ${new Date(item.created_at).toLocaleString()}</small>
-              </li>`;
-          } else if (item.type === 'downpayment') {
-            return `
-              <li class="${isRead ? '' : 'unread'}" onclick="openDownpayment(${item.id})">
-                <strong>${item.full_name}</strong> made a <b>downpayment</b>
-                <small>Amount: ₱${item.amount}</small>
-                <small>Status: ${item.status}</small>
-                <small>Paid: ${new Date(item.created_at).toLocaleString()}</small>
-              </li>`;
-          }
-        }).join('');
-      }
-
-      fetchNotifications();
-    } catch (err) {
-      console.error('Error fetching notification list:', err);
-    }
+  // ================================
+  // SIDE TOAST
+  // ================================
+  function showSideToast(message) {
+    const toast = document.getElementById('sideToast');
+    if (!toast) return;
+    toast.querySelector('span').textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
   }
 
-  function openBooking(id) {
-    markAsRead(id);
-    window.location.href = '/adminviewapp';
-  }
-
-  function openDownpayment(id) {
-    markAsRead(id);
-    window.location.href = '/adminviewbookings';
-  }
-
-  fetchNotificationList();
-  setInterval(fetchNotificationList, 10000);
+  // ================================
+  // FETCH NOTIFICATION COUNT (from DB)
+  // ================================
   
-    const notifBtn = document.getElementById('notificationBtn');
-    const notifDropdown = document.getElementById('notificationDropdown');
 
-    // Sidebar toggle (hamburger)
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const adminMain = document.querySelector('.admin-main');
-    sidebarToggle.addEventListener('click', () => {
-      adminMain.classList.toggle('collapsed');
-    });
+  // ================================
+  // FETCH NOTIFICATION LIST
+  // ================================
+  
 
-    notifBtn.addEventListener('click', () => {
-      notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';
-      fetchNotificationList();
-    });
+  // ================================
+  // MARK AS READ & OPEN PAGES
+  // ================================
 
-    document.addEventListener('click', (e) => {
-      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-        notifDropdown.style.display = 'none';
-      }
-    });
-  </script>
+
+
+  // ================================
+  // INIT LOAD + AUTO REFRESH
+  // ================================
+  
+  // ================================
+  // DROPDOWN & SIDEBAR TOGGLE
+  // ================================
+  
+
+
+</script>
+
 </body>
 </html>
 
