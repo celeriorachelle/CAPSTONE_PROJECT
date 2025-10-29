@@ -245,31 +245,30 @@
   <% } else { %>
 
     <!-- 🔹 ACTIVE / DUE / OVERDUE PAYMENTS -->
-    <% const activeList = installments.filter(p => p.status !== 'Completed'); %>
+    <% const activeList = installments.filter(p => (p.display_status || p.status) !== 'Completed'); %>
     <% if (activeList.length > 0) { %>
       <% activeList.forEach(p => { %>
         <tr 
-          class="<%= p.status === 'Completed' 
+          class="<%= (p.display_status || p.status) === 'Completed' 
             ? 'completed' 
             : (p.days_left < 0 ? 'overdue' : (p.days_left <= 3 ? 'due-soon' : '')) %>" 
           data-payment-id="<%= p.id %>">
 
           <td><%= p.id %></td>
           <td><%= p.clientName %></td>
-          <td>₱<%= Number(p.amount).toLocaleString() %></td>
+          <td title="Total: ₱<%= Number(p.total_amount||0).toLocaleString() %> • Paid: ₱<%= Number(p.total_paid||0).toLocaleString() %>">
+            ₱<%= Number(p.remaining || 0).toLocaleString() %>
+          </td>
           <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }) %></td>
-          <td><%= p.status %></td>
+          <td><%= p.display_status || p.status %></td>
           <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
           <td>
-  <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
-  <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
-  
-  <!-- 🟡 Warning (3 days left) -->
-  <button class="btn-primary" style="background:#ffc107;" onclick="sendWarning(<%= p.id %>)">Final Warning</button>
-
-  <!-- 🔴 Final Warning (7 days overdue) -->
-  <button class="btn-primary" style="background:#dc3545;" onclick="sendFinalWarning(<%= p.id %>)">Removed</button>
-</td>
+            <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
+            <!-- 🟡 Warning (3 days left) -->
+            <button class="btn-primary" style="background:#ffc107;" onclick="sendWarning(<%= p.id %>)">Final Warning</button>
+            <!-- 🔴 Final Warning (7 days overdue) -->
+            <button class="btn-primary" style="background:#dc3545;" onclick="sendFinalWarning(<%= p.id %>)">Removed</button>
+          </td>
 
         </tr>
       <% }) %>
@@ -278,7 +277,7 @@
     <% } %>
 
     <!-- 🌿 DIVIDER: COMPLETED PAYMENTS -->
-    <% const completedList = installments.filter(p => p.status === 'Completed'); %>
+    <% const completedList = installments.filter(p => (p.display_status || p.status) === 'Completed'); %>
     <% if (completedList.length > 0) { %>
       <!-- Fancy Divider -->
       <tr class="divider-row">
@@ -295,14 +294,13 @@
   <tr class="completed styled-completed" data-payment-id="<%= p.id %>">
     <td><%= p.id %></td>
     <td><%= p.clientName %></td>
-    <td>₱<%= Number(p.amount).toLocaleString() %></td>
+    <td>₱<%= Number(p.total_paid || p.total_amount || 0).toLocaleString() %></td>
     <td><%= new Date(p.due_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }) %></td>
     <td>
       <span class="status-badge">✔ Completed</span>
     </td>
     <td>—</td>
     <td>
-      <!-- ✅ Replace this disabled button -->
       <button class="btn-primary" style="background:#28a745;" onclick="openCompletedNotify(<%= p.id %>)">
         Notify User
       </button>
@@ -570,19 +568,6 @@ function sendSMS(paymentId, btn) {
       subj.style.backgroundColor = isManual ? 'white' : '#f3f3f3';
     }
 
-    function markAsPaid(paymentId) {
-      if (!confirm("Confirm payment received? This will update the next due date.")) return;
-
-      fetch(`/staff_installments/updateDueDate/${paymentId}`, {
-        method: 'POST'
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        location.reload();
-      })
-      .catch(() => alert("Error updating due date."));
-    }
     function sendWarning(paymentId) {
   if (!confirm("Send WARNING (3 days left) notification to client?")) return;
   fetch(`/staff_installments/send_warning/${paymentId}`, { method: "POST" })
@@ -595,7 +580,7 @@ function sendFinalWarning(paymentId) {
   if (!confirm("Send FINAL WARNING (7 days overdue) notification to client?")) return;
   fetch(`/staff_installments/send_final_warning/${paymentId}`, { method: "POST" })
     .then(res => res.json())
-    .then(data => alert(data.message || "Final warning sent successfully."))
+    .then data => alert(data.message || "Final warning sent successfully."))
     .catch(() => alert("Failed to send final warning notification."));
 }
 
