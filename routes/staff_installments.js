@@ -20,64 +20,42 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ---------------- GET all installments (one latest active downpayment per user) ----------------
+// ✅ Get all installments
 router.get("/", requireStaff, async (req, res) => {
   try {
-    // Active (non-completed) latest per user
-    const [active] = await db.query(`
-      SELECT p.payment_id AS id,
-             CONCAT(u.firstName, ' ', u.lastName) AS clientName,
-             u.email AS email,
-             p.amount AS total_amount,
-             p.total_paid,
-             (p.amount - COALESCE(p.total_paid,0)) AS remaining,
-             p.status AS display_status,
-             p.payment_type,
-             p.due_date,
-             DATEDIFF(p.due_date, CURDATE()) AS days_left,
-             p.user_id
+    // 🟢 Fetch only the latest 'active' payment record for each plot to represent the current installment status.
+    const [installments] = await db.query(`
+      SELECT
+        p.payment_id AS id,
+        p.booking_id,
+        p.user_id,
+        p.amount,
+        p.method,
+        p.transaction_id,
+        p.status,
+        p.paid_at,
+        p.due_date,
+        p.payment_type,
+        p.months,
+        p.monthly_amount,
+        p.plot_id,
+        p.total_paid,
+        CONCAT(u.firstName, ' ', u.lastName) AS clientName,
+        u.email,
+        DATEDIFF(p.due_date, CURDATE()) AS days_left
       FROM payment_tbl p
-      JOIN (
-        SELECT user_id, MAX(payment_id) AS keep_id  
+      INNER JOIN (
+        SELECT plot_id, MAX(paid_at) AS max_paid_at 
         FROM payment_tbl
-        WHERE payment_type = 'downpayment' 
-        AND status NOT IN ('Completed', 'Paid')
-        GROUP BY user_id
-      ) latest ON p.user_id = latest.user_id 
-      AND p.payment_id = latest.keep_id
+        WHERE status = 'active' AND plot_id IS NOT NULL
+        GROUP BY plot_id
+      ) AS latest ON p.plot_id = latest.plot_id AND p.paid_at = latest.max_paid_at
       JOIN user_tbl u ON p.user_id = u.user_id
-      WHERE p.payment_type = 'downpayment'
+      WHERE p.status = 'active'
       ORDER BY p.due_date ASC
     `);
 
-    // Completed payments - only keep final completed payment per user
-    const [completed] = await db.query(`
-      SELECT p.payment_id AS id,
-             CONCAT(u.firstName, ' ', u.lastName) AS clientName, 
-             u.email AS email,
-             p.amount AS total_amount,
-             p.total_paid,
-             0 AS remaining,
-             'Completed' AS display_status,
-             p.payment_type,
-             p.due_date,
-             DATEDIFF(p.due_date, CURDATE()) AS days_left,
-             p.user_id
-      FROM payment_tbl p
-      JOIN (
-        SELECT user_id, MAX(payment_id) AS last_payment_id
-        FROM payment_tbl 
-        WHERE status IN ('Completed', 'Paid')
-        AND payment_type = 'downpayment'
-        GROUP BY user_id
-      ) latest ON p.payment_id = latest.last_payment_id
-      JOIN user_tbl u ON p.user_id = u.user_id
-      ORDER BY p.paid_at DESC
-    `);
-
-    const installments = active.concat(completed);
     res.render("staff_installments", { staff: req.session.user, installments });
-
   } catch (err) {
     console.error("❌ Error loading installments:", err);
     res.render("staff_installments", { staff: req.session.user, installments: [] });
@@ -233,7 +211,7 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
     const dueDate = new Date(client.due_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
     const mailOptions = {
-      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER || "rheachelgutierrez17@gmail.com"}>`,
+      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER || "rheachellegutierrez17@gmail.com"}>`,
       to: to || client.email,
       subject: subject || `Payment Reminder: ${client.payment_type} due ${dueDate}`,
       html: html || `
@@ -271,67 +249,70 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
   }
 });
 
-// 🆕 AUTO UPDATE: record only latest payment
+// 🆕 AUTO UPDATE NEXT DUE DATE LOGIC
 router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
-  const paymentId = parseInt(req.params.id, 10);
+  const paymentId = req.params.id;
   const staff = req.session.user;
-  const providedAmount = req.body && req.body.amount ? Number(req.body.amount) : null;
 
   try {
-    // Load payment details
     const [rows] = await db.query(
-      `SELECT payment_id, user_id, amount, total_paid, due_date 
+      `SELECT payment_id, booking_id, user_id, due_date, months, monthly_amount, total_paid, amount
        FROM payment_tbl WHERE payment_id = ?`,
       [paymentId]
     );
-    if (!rows.length) return res.json({ success: false, message: "Payment not found" });
-    
+
+    if (!rows.length) return res.json({ success: false, message: "Payment not found." });
+
     const payment = rows[0];
-    const isComplete = payment.total_paid >= payment.amount;
+    const newTotal = Number(payment.total_paid || 0) + Number(payment.amount);
+    let nextDueDate = new Date(payment.due_date);
+    nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+    const fullAmount = payment.monthly_amount * payment.months;
+    const isComplete = newTotal >= fullAmount;
 
     if (isComplete) {
-      // Delete older payment records for this user
+      await db.query(`UPDATE payment_tbl SET status = 'Completed' WHERE payment_id = ?`, [paymentId]);
       await db.query(
-        `DELETE FROM payment_tbl 
-         WHERE user_id = ? AND payment_id != ? 
-         AND payment_type = 'downpayment'`,
-        [payment.user_id, paymentId]
+        `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
+         VALUES (?, ?, ?, ?, 0, NOW())`,
+        [
+          payment.user_id,
+          payment.booking_id,
+          payment.payment_id,
+          `Congratulations! Your installment plan is now fully paid.`,
+        ]
       );
-
-      // Update final payment as completed
       await db.query(
-        `UPDATE payment_tbl 
-         SET status = 'Completed', 
-             paid_at = NOW()
-         WHERE payment_id = ?`,
-        [paymentId]
+        `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+         VALUES (?, 'staff', 'Installment Completed', ?, NOW())`,
+        [staff.user_id, `Client has completed all installment payments.`]
       );
-
-      await db.query(
-        `INSERT INTO notification_tbl (user_id, payment_id, message, is_read, datestamp)
-         VALUES (?, ?, 'Payment completed successfully', 0, NOW())`,
-        [payment.user_id, paymentId]
-      );
-
+      return res.json({ success: true, message: "Installment completed successfully!" });
     } else {
-      // Just update the payment status
       await db.query(
-        `UPDATE payment_tbl 
-         SET status = 'Ongoing',
-             due_date = DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
-         WHERE payment_id = ?`,
-        [paymentId]  
+        `UPDATE payment_tbl SET due_date = ?, total_paid = ?, status = 'Ongoing' WHERE payment_id = ?`,
+        [nextDueDate, newTotal, paymentId]
       );
+      await db.query(
+        `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
+         VALUES (?, ?, ?, ?, 0, NOW())`,
+        [
+          payment.user_id,
+          payment.booking_id,
+          payment.payment_id,
+          `Thank you for your payment! Your next due date is on ${nextDueDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.`,
+        ]
+      );
+      await db.query(
+        `INSERT INTO logs_tbl (user_id, user_role, action, details, timestamp)
+         VALUES (?, 'staff', 'Installment Updated', ?, NOW())`,
+        [staff.user_id, `Updated next due date for Payment ID ${paymentId}`]
+      );
+      return res.json({ success: true, message: "Next due date updated successfully!" });
     }
-
-    return res.json({
-      success: true,
-      message: isComplete ? 'Payment completed.' : 'Payment recorded.'
-    });
-
   } catch (err) {
-    console.error("❌ Error updating payment:", err);
-    return res.status(500).json({ success: false, message: "Server error updating payment" });
+    console.error("❌ Error updating due date:", err);
+    res.json({ success: false, message: "Failed to update due date." });
   }
 });
 
