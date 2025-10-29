@@ -69,6 +69,9 @@
           <label for="phone">Phone Number</label>
           <input type="text" id="phone" name="phone" value="<%= formData.phone %>" required pattern="[0-9]{11}" title="Please enter a valid 11-digit phone number">
           
+          <label for="address">Complete Address</label>
+          <textarea id="address" name="address" rows="3" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;"><%= formData.address %></textarea>
+          
           <label for="password">New Password (optional)</label>
           <input type="password" id="password" name="password" minlength="6">
           

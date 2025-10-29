@@ -63,7 +63,7 @@ router.post('/', requireLogin, async (req, res) => {
   
   try {
     // Validate inputs
-    if (!firstname || !lastname || !email) {
+    if (!firstname || !lastname || !email || !phone) {
       return res.render('accountsettings', {
         formData: { firstname, lastname, email, phone, address },
         error: 'Name and email are required',
@@ -95,7 +95,7 @@ router.post('/', requireLogin, async (req, res) => {
           address = ?
       WHERE user_id = ?
     `;
-    let params = [firstname, lastname, email, phone || null, address || null, userId];
+    let params = [firstname, lastname, email, phone, address || null, userId];
 
     // Handle password update if provided
     if (password || confirm_password) {
@@ -127,7 +127,7 @@ router.post('/', requireLogin, async (req, res) => {
             password_hash = ?
         WHERE user_id = ?
       `;
-      params = [firstname, lastname, email, phone || null, address || null, hashedPassword, userId];
+      params = [firstname, lastname, email, phone, address || null, hashedPassword, userId];
     }
 
     // Execute update
@@ -143,7 +143,7 @@ router.post('/', requireLogin, async (req, res) => {
       address
     };
 
-    // Fetch updated user data to display
+    // Fetch updated user data for display
     const [rows] = await db.query(
       'SELECT firstName, lastName, email, contact_number, address, avatar FROM user_tbl WHERE user_id = ?',
       [userId]
