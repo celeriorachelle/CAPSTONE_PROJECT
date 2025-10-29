@@ -23,16 +23,35 @@ const transporter = nodemailer.createTransport({
 // ✅ Get all installments
 router.get("/", requireStaff, async (req, res) => {
   try {
+    // 🟢 Fetch only the latest 'active' payment record for each plot to represent the current installment status.
     const [installments] = await db.query(`
-      SELECT 
+      SELECT
         p.payment_id AS id,
+        p.booking_id,
+        p.user_id,
+        p.amount,
+        p.method,
+        p.transaction_id,
+        p.status,
+        p.paid_at,
+        p.due_date,
+        p.payment_type,
+        p.months,
+        p.monthly_amount,
+        p.plot_id,
+        p.total_paid,
         CONCAT(u.firstName, ' ', u.lastName) AS clientName,
-        u.email AS email,
-        p.amount, p.status, p.payment_type, p.due_date,
+        u.email,
         DATEDIFF(p.due_date, CURDATE()) AS days_left
       FROM payment_tbl p
+      INNER JOIN (
+        SELECT plot_id, MAX(paid_at) AS max_paid_at 
+        FROM payment_tbl
+        WHERE status = 'active' AND plot_id IS NOT NULL
+        GROUP BY plot_id
+      ) AS latest ON p.plot_id = latest.plot_id AND p.paid_at = latest.max_paid_at
       JOIN user_tbl u ON p.user_id = u.user_id
-      WHERE p.payment_type = 'downpayment'
+      WHERE p.status = 'active'
       ORDER BY p.due_date ASC
     `);
 
