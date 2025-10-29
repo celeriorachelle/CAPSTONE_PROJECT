@@ -262,7 +262,8 @@
           <td><%= p.days_left >= 0 ? p.days_left + ' days' : 'Overdue' %></td>
           <td>
   <button class="btn-remind" onclick="openRemindModal(<%= p.id %>)">Send Reminder</button>
- 
+  <button class="btn-primary" style="background:#198754;" onclick="markAsPaid(<%= p.id %>)">Mark as Paid</button>
+  
   <!-- 🟡 Warning (3 days left) -->
   <button class="btn-primary" style="background:#ffc107;" onclick="sendWarning(<%= p.id %>)">Final Warning</button>
 

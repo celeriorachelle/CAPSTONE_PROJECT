@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const nodemailer = require("nodemailer");
-const axios = require("axios"); // moved here so routes can use it immediately
+
 
 require("dotenv").config(); // ✅ load environment variables from .env
 
@@ -10,11 +10,6 @@ require("dotenv").config(); // ✅ load environment variables from .env
 const TRACCAR_SMS_BASE_URL = process.env.TRACCAR_SMS_BASE_URL;
 const TRACCAR_SMS_TOKEN = process.env.TRACCAR_SMS_TOKEN;
 const SMS_TIMEOUT = parseInt(process.env.TRACCAR_SMS_TIMEOUT_MS) || 15000;
-
-// ⚠️ Optional: para makita mo kung loaded talaga
-if (!TRACCAR_SMS_BASE_URL) console.error("⚠️ Missing TRACCAR_SMS_BASE_URL in .env");
-if (!TRACCAR_SMS_TOKEN) console.error("⚠️ Missing TRACCAR_SMS_TOKEN in .env");
-
 
 // Middleware: staff only
 function requireStaff(req, res, next) {
@@ -24,12 +19,13 @@ function requireStaff(req, res, next) {
   next();
 }
 
+
 // Gmail transporter setup
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER || process.env.SMTP_USER || "rheachellegutierrez17@gmail.com",
-    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS || "cpflmrprhngxnsxo", // app password
+    user: process.env.SMTP_USER || "rheachellegutierrez17@gmail.com",
+    pass: process.env.SMTP_PASS || "cpflmrprhngxnsxo", // App password
   },
 });
 
@@ -332,6 +328,11 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
 // ==========================
 // 📱 TRACCAR SMS REMINDER FEATURE
 // ==========================
+const axios = require("axios");
+const TRACCAR_SMS_BASE_URL = process.env.TRACCAR_SMS_BASE_URL;
+const TRACCAR_SMS_TOKEN = process.env.TRACCAR_SMS_TOKEN;
+const SMS_TIMEOUT = process.env.TRACCAR_SMS_TIMEOUT_MS || 15000;
+
 // ✅ Send SMS reminder via Traccar
 router.post("/sms/:id", requireStaff, async (req, res) => {
   try {
@@ -436,7 +437,7 @@ Everlasting Peace Memorial Park
       to: c.email,
       subject,
       text: message,
-    }); 
+    });
 
     // ✅ Send SMS (same message)
     let phoneNumber = c.contact_number.replace(/\s+/g, "");

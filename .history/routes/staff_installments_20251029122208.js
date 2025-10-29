@@ -112,10 +112,10 @@ router.post("/completed_notify/:id", requireStaff, async (req, res) => {
     const client = rows[0];
 
     await transporter.sendMail({
-      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      from: "Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>,
       to,
       subject,
-      html: `<p>${message.replace(/\n/g, "<br>")}</p>`,
+      html: <p>${message.replace(/\n/g, "<br>")}</p>,
     });
 
     await db.query(
@@ -224,9 +224,9 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
     const dueDate = new Date(client.due_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
     const mailOptions = {
-      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER || "rheachellegutierrez17@gmail.com"}>`,
+      from: "Everlasting Peace Memorial Park" <${process.env.SMTP_USER || "rheachellegutierrez17@gmail.com"}>,
       to: to || client.email,
-      subject: subject || `Payment Reminder: ${client.payment_type} due ${dueDate}`,
+      subject: subject || Payment Reminder: ${client.payment_type} due ${dueDate},
       html: html || `
         <p>Dear ${client.name},</p>
         <p>This is a reminder that your <strong>${client.payment_type}</strong> of ₱${Number(client.amount).toLocaleString()} is due on ${dueDate}.</p>
@@ -245,7 +245,7 @@ router.post("/remind/:id", requireStaff, async (req, res) => {
         client.user_id,
         client.booking_id,
         client.payment_id,
-        `Reminder: Your ${client.payment_type} of ₱${Number(client.amount).toLocaleString()} is due on ${dueDate}.`,
+        Reminder: Your ${client.payment_type} of ₱${Number(client.amount).toLocaleString()} is due on ${dueDate}.,
       ]
     );
 
@@ -284,7 +284,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
     const isComplete = newTotal >= fullAmount;
 
     if (isComplete) {
-      await db.query(`UPDATE payment_tbl SET status = 'Completed' WHERE payment_id = ?`, [paymentId]);
+      await db.query(UPDATE payment_tbl SET status = 'Completed' WHERE payment_id = ?, [paymentId]);
       await db.query(
         `INSERT INTO notification_tbl (user_id, booking_id, payment_id, message, is_read, datestamp)
          VALUES (?, ?, ?, ?, 0, NOW())`,
@@ -292,7 +292,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
           payment.user_id,
           payment.booking_id,
           payment.payment_id,
-          `Congratulations! Your installment plan is now fully paid.`,
+          Congratulations! Your installment plan is now fully paid.,
         ]
       );
       await db.query(
@@ -303,7 +303,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
       return res.json({ success: true, message: "Installment completed successfully!" });
     } else {
       await db.query(
-        `UPDATE payment_tbl SET due_date = ?, total_paid = ?, status = 'Ongoing' WHERE payment_id = ?`,
+        UPDATE payment_tbl SET due_date = ?, total_paid = ?, status = 'Ongoing' WHERE payment_id = ?,
         [nextDueDate, newTotal, paymentId]
       );
       await db.query(
@@ -313,7 +313,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
           payment.user_id,
           payment.booking_id,
           payment.payment_id,
-          `Thank you for your payment! Your next due date is on ${nextDueDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.`,
+          Thank you for your payment! Your next due date is on ${nextDueDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.,
         ]
       );
       await db.query(
@@ -420,7 +420,7 @@ router.post("/send_warning/:id", requireStaff, async (req, res) => {
     const message = `
 Dear ${c.name},
 
-This is a reminder that your installment payment of PHP${Number(c.amount).toLocaleString()} is now overdue by **3 days**.
+This is a reminder that your installment payment of PHP${Number(c.amount).toLocaleString()} is now overdue by *3 days*.
 
 Please settle your payment immediately to avoid release of your plot reservation.
 
@@ -432,7 +432,7 @@ Everlasting Peace Memorial Park
 
     // ✅ Send EMAIL
     await transporter.sendMail({
-      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      from: "Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>,
       to: c.email,
       subject,
       text: message,
@@ -502,7 +502,7 @@ Dear ${c.name},
 
 We regret to inform you that your installment payment of PHP${Number(c.amount).toLocaleString()} was not received within the required time frame.
 
-As a result, your plot reservation has been **revoked** in accordance with Everlasting Peace Memorial Park's policy.
+As a result, your plot reservation has been *revoked* in accordance with Everlasting Peace Memorial Park's policy.
 
 If you wish to reinstate or apply for a new plot, please visit our office to discuss available options.
 
@@ -512,7 +512,7 @@ Everlasting Peace Memorial Park
 
     // ✅ Send EMAIL
     await transporter.sendMail({
-      from: `"Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>`,
+      from: "Everlasting Peace Memorial Park" <${process.env.SMTP_USER}>,
       to: c.email,
       subject,
       text: message,
@@ -608,7 +608,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
       // Delete the extra duplicates
       if (deleteIds.length > 0) {
         await db.query(
-          `DELETE FROM payment_tbl WHERE payment_id IN (?)`,
+          DELETE FROM payment_tbl WHERE payment_id IN (?),
           [deleteIds]
         );
       }
@@ -622,7 +622,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
 
       return res.json({
         success: true,
-        message: `Merged ${duplicates.length} duplicate downpayments into one record.`,
+        message: Merged ${duplicates.length} duplicate downpayments into one record.,
       });
     } else {
       // No duplicates — just extend due date
@@ -630,7 +630,7 @@ router.post("/updateDueDate/:id", requireStaff, async (req, res) => {
       newDueDate.setMonth(newDueDate.getMonth() + 1);
 
       await db.query(
-        `UPDATE payment_tbl SET due_date = ?, status = 'Ongoing' WHERE payment_id = ?`,
+        UPDATE payment_tbl SET due_date = ?, status = 'Ongoing' WHERE payment_id = ?,
         [newDueDate, paymentId]
       );
 
