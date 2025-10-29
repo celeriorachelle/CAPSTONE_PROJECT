@@ -228,21 +228,38 @@ router.get("/success", async (req, res) => {
           plot_number: booking.plot_number,
           plot_location: booking.location,
           amount: paymentData.amount || paymentData.monthly_amount,
-          payment_type: paymentData.payment_type,
+          payment_type: paymentData.payment_type || (paymentData.option === "downpayment" ? "downpayment" : "fullpayment"),
           date: new Date().toLocaleDateString("en-PH"),
         };
 
         // Render receipt EJS (the template expects a `booking` object)
         const receiptHtml = await ejs.renderFile(
           path.join(__dirname, "../views/receipt.ejs"),
-          { booking }
+          { 
+            booking,
+            amount: receiptData.amount,
+            payment_type: receiptData.payment_type
+          }
         );
 
         // Send receipt via email (attach generated PDF)
         const pdfBuffer = await generateReceiptPdf(receiptData);
         const token = generateReceiptToken(receiptData.booking_id);
         const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
-        const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+        const emailContent = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+
+        // Send email with PDF receipt
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: receiptData.user_email,
+          subject: `Receipt for your ${receiptData.payment_type} - Plot #${receiptData.plot_number}`,
+          html: fullHtml,
+          attachments: [{
+            filename: `receipt-${receiptData.booking_id}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }]
+        });
 
         await transporter.sendMail({
           from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
@@ -257,26 +274,6 @@ router.get("/success", async (req, res) => {
             }
           ]
         });
-        // Notify staff about this payment (create table if not exists then insert)
-        try {
-          await db.query(`
-            CREATE TABLE IF NOT EXISTS staff_notifications (
-              id INT AUTO_INCREMENT PRIMARY KEY,
-              ref_id INT,
-              user_id INT,
-              message VARCHAR(255),
-              datestamp DATETIME,
-              is_read BOOLEAN DEFAULT 0
-            )
-          `);
-          const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'payment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-          await db.query(
-            `INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`,
-            [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]
-          );
-        } catch (staffNotifyErr) {
-          console.error('Failed to insert staff notification (success):', staffNotifyErr);
-        }
         }
 
       // Prepare locals for template (defensive: ensure amount/tx/paid_at are provided)
@@ -487,10 +484,31 @@ router.get("/installment-success", async (req, res) => {
             date: new Date().toLocaleDateString('en-PH')
           };
 
-          const receiptHtml = await ejs.renderFile(path.join(__dirname, '../views/receipt.ejs'), { booking });
+          const receiptHtml = await ejs.renderFile(
+            path.join(__dirname, '../views/receipt.ejs'),
+            { 
+              booking,
+              amount: receiptData.amount,
+              payment_type: receiptData.payment_type
+            }
+          );
           const pdfBuffer = await generateReceiptPdf(receiptData);
           const token = generateReceiptToken(receiptData.booking_id);
           const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
+          const emailContent = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+
+          // Send email with PDF receipt
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: receiptData.user_email,
+            subject: `Receipt for your ${receiptData.payment_type} - Plot #${receiptData.plot_number}`,
+            html: emailContent,
+            attachments: [{
+              filename: `receipt-${receiptData.booking_id}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf'
+            }]
+          });
           const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
           await transporter.sendMail({
             from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
@@ -499,23 +517,6 @@ router.get("/installment-success", async (req, res) => {
             html: fullHtml,
             attachments: [{ filename: `receipt-${receiptData.booking_id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
           });
-          // Notify staff about this installment payment
-          try {
-            await db.query(`
-              CREATE TABLE IF NOT EXISTS staff_notifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                ref_id INT,
-                user_id INT,
-                message VARCHAR(255),
-                datestamp DATETIME,
-                is_read BOOLEAN DEFAULT 0
-              )
-            `);
-            const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'installment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-            await db.query(`INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`, [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]);
-          } catch (sErr) {
-            console.error('Failed to insert staff notification (installment):', sErr);
-          }
         }
       } catch (mailErr) {
         console.error('Failed to generate/send installment receipt email:', mailErr);

@@ -11,7 +11,6 @@ const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
 const PDFDocument = require('pdfkit');
-const crypto = require('crypto');
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -20,49 +19,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS, // your app password
   },
 });
-
-// Helper: generate a simple PDF receipt buffer from receipt data
-const generateReceiptPdf = (data) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ size: 'A4', margin: 50 });
-      const chunks = [];
-      doc.on('data', (chunk) => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-
-      // Header
-      doc.fontSize(18).text('Everlasting Cemetery - Payment Receipt', { align: 'center' });
-      doc.moveDown(1);
-
-      // Receipt meta
-      doc.fontSize(12).text(`Receipt Date: ${data.date}`);
-      doc.text(`Receipt #: R-${data.booking_id}-${Date.now()}`);
-      doc.moveDown(0.5);
-
-      // User
-      doc.fontSize(13).text(`Billed To: ${data.user_name} <${data.user_email}>`);
-      doc.moveDown(0.5);
-
-      // Booking & plot
-      doc.fontSize(12).text(`Booking ID: ${data.booking_id}`);
-      doc.text(`Plot Number: ${data.plot_number}`);
-      if (data.plot_location) doc.text(`Plot Location: ${data.plot_location}`);
-      doc.moveDown(0.5);
-
-      // Amount table-like
-      doc.fontSize(12).text(`Payment Type: ${data.payment_type || 'N/A'}`);
-      doc.fontSize(14).text(`Amount Paid: ₱${Number(data.amount).toFixed(2)}`, { underline: true });
-      doc.moveDown(1);
-
-      // Footer / thank you
-      doc.fontSize(11).text('Thank you for your payment. Please keep this receipt for your records.', { align: 'left' });
-
-      doc.end();
-    } catch (err) {
-      reject(err);
-    }
-  });
-};
 
 // Checkout route
 router.post("/checkout", async (req, res) => {
@@ -209,7 +165,7 @@ router.get("/success", async (req, res) => {
       // -------------------- Generate and send receipt --------------------
       // Fetch booking and plot details
       const [bookingRows] = await db.query(
-        `SELECT b.*, CONCAT(u.firstName, ' ', u.lastName) AS user_name, u.email AS user_email, 
+        `SELECT b.booking_id, b.user_id, u.fullname AS user_name, u.email AS user_email, 
                 pm.plot_number, pm.location, pm.price 
          FROM booking_tbl b
          JOIN user_tbl u ON b.user_id = u.user_id
@@ -220,11 +176,10 @@ router.get("/success", async (req, res) => {
 
       if (bookingRows.length) {
         const booking = bookingRows[0];
-        // Build receipt data used for PDF/attachment
         const receiptData = {
           booking_id: booking.booking_id,
-          user_name: booking.user_name || `${booking.firstname || ''} ${booking.lastname || ''}`.trim(),
-          user_email: booking.email || booking.user_email,
+          user_name: booking.user_name,
+          user_email: booking.user_email,
           plot_number: booking.plot_number,
           plot_location: booking.location,
           amount: paymentData.amount || paymentData.monthly_amount,
@@ -232,51 +187,71 @@ router.get("/success", async (req, res) => {
           date: new Date().toLocaleDateString("en-PH"),
         };
 
-        // Render receipt EJS (the template expects a `booking` object)
+        // Render receipt EJS to HTML
         const receiptHtml = await ejs.renderFile(
           path.join(__dirname, "../views/receipt.ejs"),
-          { booking }
+          { receipt: receiptData }
         );
 
-        // Send receipt via email (attach generated PDF)
-        const pdfBuffer = await generateReceiptPdf(receiptData);
-        const token = generateReceiptToken(receiptData.booking_id);
-        const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
-        const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+        // Send receipt via email
+                // generate PDF buffer from receipt data
+                const generateReceiptPdf = (data) => {
+                  return new Promise((resolve, reject) => {
+                    try {
+                      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+                      const chunks = [];
+                      doc.on('data', (chunk) => chunks.push(chunk));
+                      doc.on('end', () => resolve(Buffer.concat(chunks)));
 
-        await transporter.sendMail({
-          from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
-          to: receiptData.user_email,
-          subject: `Receipt for Payment - Plot #${receiptData.plot_number}`,
-          html: fullHtml,
-          attachments: [
-            {
-              filename: `receipt-${receiptData.booking_id}.pdf`,
-              content: pdfBuffer,
-              contentType: 'application/pdf'
-            }
-          ]
-        });
-        // Notify staff about this payment (create table if not exists then insert)
-        try {
-          await db.query(`
-            CREATE TABLE IF NOT EXISTS staff_notifications (
-              id INT AUTO_INCREMENT PRIMARY KEY,
-              ref_id INT,
-              user_id INT,
-              message VARCHAR(255),
-              datestamp DATETIME,
-              is_read BOOLEAN DEFAULT 0
-            )
-          `);
-          const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'payment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-          await db.query(
-            `INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`,
-            [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]
-          );
-        } catch (staffNotifyErr) {
-          console.error('Failed to insert staff notification (success):', staffNotifyErr);
-        }
+                      // Header
+                      doc.fontSize(18).text('Everlasting Cemetery - Payment Receipt', { align: 'center' });
+                      doc.moveDown(1);
+
+                      // Receipt meta
+                      doc.fontSize(12).text(`Receipt Date: ${data.date}`);
+                      doc.text(`Receipt #: R-${data.booking_id}-${Date.now()}`);
+                      doc.moveDown(0.5);
+
+                      // User
+                      doc.fontSize(13).text(`Billed To: ${data.user_name} <${data.user_email}>`);
+                      doc.moveDown(0.5);
+
+                      // Booking & plot
+                      doc.fontSize(12).text(`Booking ID: ${data.booking_id}`);
+                      doc.text(`Plot Number: ${data.plot_number}`);
+                      if (data.plot_location) doc.text(`Plot Location: ${data.plot_location}`);
+                      doc.moveDown(0.5);
+
+                      // Amount table-like
+                      doc.fontSize(12).text(`Payment Type: ${data.payment_type || 'N/A'}`);
+                      doc.fontSize(14).text(`Amount Paid: ₱${Number(data.amount).toFixed(2)}`, { underline: true });
+                      doc.moveDown(1);
+
+                      // Footer / thank you
+                      doc.fontSize(11).text('Thank you for your payment. Please keep this receipt for your records.', { align: 'left' });
+
+                      doc.end();
+                    } catch (err) {
+                      reject(err);
+                    }
+                  });
+                };
+
+                const pdfBuffer = await generateReceiptPdf(receiptData);
+
+                await transporter.sendMail({
+                  from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
+                  to: receiptData.user_email,
+                  subject: `Receipt for Payment - Plot #${receiptData.plot_number}`,
+                  html: receiptHtml,
+                  attachments: [
+                    {
+                      filename: `receipt-${receiptData.booking_id}.pdf`,
+                      content: pdfBuffer,
+                      contentType: 'application/pdf'
+                    }
+                  ]
+                });
         }
 
       // Prepare locals for template (defensive: ensure amount/tx/paid_at are provided)
@@ -463,63 +438,6 @@ router.get("/installment-success", async (req, res) => {
           [paymentData.plot_id]
         );
       }
-
-      // Attempt to fetch booking/user/plot details and email a PDF receipt for the installment
-      try {
-        const [bookingRows] = await db.query(
-          `SELECT b.*, CONCAT(u.firstName, ' ', u.lastName) AS user_name, u.email AS user_email, pm.plot_number, pm.location, pm.price
-           FROM booking_tbl b
-           JOIN user_tbl u ON b.user_id = u.user_id
-           JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
-           WHERE b.booking_id = ? LIMIT 1`,
-          [paymentData.booking_id]
-        );
-        if (bookingRows.length) {
-          const booking = bookingRows[0];
-          const receiptData = {
-            booking_id: booking.booking_id,
-            user_name: booking.user_name || `${booking.firstname || ''} ${booking.lastname || ''}`.trim(),
-            user_email: booking.email || booking.user_email,
-            plot_number: booking.plot_number,
-            plot_location: booking.location,
-            amount: paymentData.monthly_amount || paymentData.amount,
-            payment_type: paymentData.payment_type || 'downpayment',
-            date: new Date().toLocaleDateString('en-PH')
-          };
-
-          const receiptHtml = await ejs.renderFile(path.join(__dirname, '../views/receipt.ejs'), { booking });
-          const pdfBuffer = await generateReceiptPdf(receiptData);
-          const token = generateReceiptToken(receiptData.booking_id);
-          const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
-          const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
-          await transporter.sendMail({
-            from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
-            to: receiptData.user_email,
-            subject: `Receipt for Payment - Plot #${receiptData.plot_number}`,
-            html: fullHtml,
-            attachments: [{ filename: `receipt-${receiptData.booking_id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
-          });
-          // Notify staff about this installment payment
-          try {
-            await db.query(`
-              CREATE TABLE IF NOT EXISTS staff_notifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                ref_id INT,
-                user_id INT,
-                message VARCHAR(255),
-                datestamp DATETIME,
-                is_read BOOLEAN DEFAULT 0
-              )
-            `);
-            const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'installment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-            await db.query(`INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`, [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]);
-          } catch (sErr) {
-            console.error('Failed to insert staff notification (installment):', sErr);
-          }
-        }
-      } catch (mailErr) {
-        console.error('Failed to generate/send installment receipt email:', mailErr);
-      }
       // Prepare locals for template
       let amountVal = paymentData.monthly_amount != null ? paymentData.monthly_amount : (paymentData.amount != null ? paymentData.amount : null);
       let txVal = req.query.session_id || null;
@@ -557,82 +475,3 @@ router.get("/installment-success", async (req, res) => {
 });
 
 module.exports = router;
-
-// Serve downloadable receipt PDF for a booking (authorized users only)
-router.get('/receipt/:booking_id', async (req, res) => {
-  try {
-    const bookingId = req.params.booking_id;
-    const [rows] = await db.query(
-      `SELECT b.booking_id, b.user_id, CONCAT(u.firstName, ' ', u.lastName) AS user_name, u.email AS user_email, pm.plot_number, pm.location
-       FROM booking_tbl b
-       JOIN user_tbl u ON b.user_id = u.user_id
-       JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
-       WHERE b.booking_id = ? LIMIT 1`,
-      [bookingId]
-    );
-    if (!rows.length) return res.status(404).send('Booking not found');
-    const booking = rows[0];
-
-    // Authorization: allow booking owner or admin, or allow a valid signed token
-    const sessionUser = req.session.user;
-    const token = req.query.token;
-    if (!sessionUser || (sessionUser.user_id !== booking.user_id && sessionUser.role !== 'admin')) {
-      // If token provided, verify it
-      if (!token) return res.status(403).send('Not authorized to download this receipt');
-      const vt = verifyReceiptToken(token);
-      if (!vt.ok || String(vt.bookingId) !== String(bookingId)) {
-        return res.status(403).send('Not authorized to download this receipt');
-      }
-    }
-
-    const receiptData = {
-      booking_id: booking.booking_id,
-      user_name: booking.user_name,
-      user_email: booking.user_email,
-      plot_number: booking.plot_number,
-      plot_location: booking.location,
-      amount: req.query.amount || null,
-      payment_type: req.query.payment_type || null,
-      date: new Date().toLocaleDateString('en-PH')
-    };
-
-    const pdfBuffer = await generateReceiptPdf(receiptData);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=receipt-${booking.booking_id}.pdf`);
-    res.send(pdfBuffer);
-  } catch (err) {
-    console.error('Error generating downloadable receipt:', err);
-    res.status(500).send('Failed to generate receipt');
-  }
-});
-
-// Token helpers for downloadable receipt links (signed, short-lived)
-const RECEIPT_TTL_SECONDS = 24 * 60 * 60; // 24 hours
-const getReceiptSecret = () => process.env.RECEIPT_TOKEN_SECRET || process.env.EMAIL_USER || 'change_this_secret';
-
-function generateReceiptToken(bookingId) {
-  const secret = getReceiptSecret();
-  const exp = Math.floor(Date.now() / 1000) + RECEIPT_TTL_SECONDS;
-  const data = `${bookingId}:${exp}`;
-  const sig = crypto.createHmac('sha256', secret).update(data).digest('hex');
-  const token = Buffer.from(data).toString('base64') + '.' + sig;
-  return token;
-}
-
-function verifyReceiptToken(token) {
-  try {
-    const secret = getReceiptSecret();
-    const parts = String(token).split('.');
-    if (parts.length !== 2) return { ok: false };
-    const data = Buffer.from(parts[0], 'base64').toString('utf8');
-    const sig = parts[1];
-    const expected = crypto.createHmac('sha256', secret).update(data).digest('hex');
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return { ok: false };
-    const [bookingId, expStr] = data.split(':');
-    const exp = parseInt(expStr, 10);
-    if (isNaN(exp) || Math.floor(Date.now() / 1000) > exp) return { ok: false };
-    return { ok: true, bookingId };
-  } catch (err) {
-    return { ok: false };
-  }
-}

@@ -1,6 +1,10 @@
 // ai.js
 const db = require('../db');
 
+/* helpers:
+   - normalize pref arrays (accepts array, comma-string, or JSON-string)
+   - token-based matching to allow partial & multi-word matches
+*/
 function normalizePrefArray(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.map(v => String(v || '').trim()).filter(Boolean);

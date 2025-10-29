@@ -21,6 +21,77 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Helper: generate payment notification message based on type
+function getPaymentNotification(paymentData, plotNumber, totalAmount) {
+  const amount = paymentData.amount || paymentData.monthly_amount;
+  if (paymentData.payment_type === 'downpayment') {
+    const nextDue = paymentData.due_date ? 
+      new Date(paymentData.due_date).toLocaleDateString('en-PH') :
+      'next month';
+    return `
+      <div style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #2196F3;">
+        <div style="margin-bottom: 15px;">
+          <h3 style="margin-top: 0; color: #2196F3; font-size: 24px;">Payment Details</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Plot Number:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">#${plotNumber}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Downpayment Amount:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">₱${amount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Monthly Payment:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">₱${paymentData.monthly_amount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Next Due Date:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">${nextDue}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Total Plot Price:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">₱${totalAmount}</td>
+            </tr>
+          </table>
+        </div>
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 4px; margin-top: 15px;">
+          <p style="margin: 0; color: #1565c0;">
+            <strong>Important:</strong> Please ensure timely monthly payments to maintain your plot reservation.
+            Mark your calendar for the next payment on ${nextDue}.
+          </p>
+        </div>
+      </div>`;
+  } else {
+    return `
+      <div style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #4CAF50;">
+        <div style="margin-bottom: 15px;">
+          <h3 style="margin-top: 0; color: #4CAF50; font-size: 24px;">Payment Details</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Plot Number:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">#${plotNumber}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Amount Paid:</td>
+              <td style="padding: 8px 0; font-weight: bold; text-align: right;">₱${amount}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;">Payment Status:</td>
+              <td style="padding: 8px 0; font-weight: bold; color: #4CAF50; text-align: right;">FULLY PAID</td>
+            </tr>
+          </table>
+        </div>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 4px; margin-top: 15px;">
+          <p style="margin: 0; color: #2e7d32;">
+            <strong>Congratulations!</strong> Your plot is now fully paid and secured. 
+            For any questions or assistance, please contact our cemetery office.
+          </p>
+        </div>
+      </div>`;
+  }
+}
+
 // Helper: generate a simple PDF receipt buffer from receipt data
 const generateReceiptPdf = (data) => {
   return new Promise((resolve, reject) => {
@@ -190,11 +261,25 @@ router.get("/success", async (req, res) => {
             `UPDATE booking_tbl SET status = 'approved' WHERE booking_id = ?`,
             [paymentData.booking_id]
           );
+          
+          // Add booking approval notification
           await db.query(
             `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
              VALUES (?, ?, ?, 0, NOW(), ?)`,
-            [paymentData.user_id, paymentData.booking_id, 'Your plot booking is approved! Thanks for choose Everlasting', paymentData.plot_id || null]
+            [paymentData.user_id, paymentData.booking_id, 'Your plot booking is approved! Thanks for choosing Everlasting', paymentData.plot_id || null]
           );
+
+          // Add payment notification
+          const paymentMsg = paymentData.payment_type === 'downpayment' 
+            ? `Your downpayment of ₱${paymentData.amount || paymentData.monthly_amount} has been received. Monthly payments are required to maintain your plot reservation.`
+            : `Full payment of ₱${paymentData.amount || paymentData.monthly_amount} received. Your plot purchase is now complete.`;
+            
+          await db.query(
+            `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+             VALUES (?, ?, ?, 0, NOW(), ?)`,
+            [paymentData.user_id, paymentData.booking_id, paymentMsg, paymentData.plot_id || null]
+          );
+
           await addLog({
             user_id: paymentData.user_id,
             user_role: req.session.user?.role || "user",
@@ -242,13 +327,43 @@ router.get("/success", async (req, res) => {
         const pdfBuffer = await generateReceiptPdf(receiptData);
         const token = generateReceiptToken(receiptData.booking_id);
         const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
-        const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+        // Add payment notification above receipt
+        const notificationHtml = getPaymentNotification(paymentData, receiptData.plot_number, booking.price);
+        const fullHtml = notificationHtml + receiptHtml + 
+          `<p style="text-align:center;margin:20px 0;">
+            <a href="${downloadUrl}" style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:4px;">
+              Download Receipt (PDF)
+            </a>
+          </p>`;
+
+        // Determine email subject based on payment type
+        const emailSubject = paymentData.payment_type === 'downpayment'
+          ? `Downpayment Confirmation - Plot #${receiptData.plot_number}`
+          : `Full Payment Confirmation - Plot #${receiptData.plot_number}`;
+
+        // Add a clear payment status banner at the top
+        const paymentStatusHtml = `
+          <div style="background-color: ${paymentData.payment_type === 'downpayment' ? '#2196F3' : '#4CAF50'}; color: white; padding: 20px; text-align: center; margin-bottom: 20px; border-radius: 8px;">
+            <h2 style="margin:0;color:white;">
+              ${paymentData.payment_type === 'downpayment' ? 'Downpayment Received' : 'Full Payment Complete'}
+            </h2>
+            <p style="margin:10px 0 0 0;font-size:18px;">Amount: ₱${paymentData.amount || paymentData.monthly_amount}</p>
+          </div>
+        `;
+
+        // Combine all HTML parts
+        const finalHtml = paymentStatusHtml + notificationHtml + receiptHtml + 
+          `<p style="text-align:center;margin:20px 0;">
+            <a href="${downloadUrl}" style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:4px;">
+              Download Receipt (PDF)
+            </a>
+          </p>`;
 
         await transporter.sendMail({
           from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
           to: receiptData.user_email,
-          subject: `Receipt for Payment - Plot #${receiptData.plot_number}`,
-          html: fullHtml,
+          subject: emailSubject,
+          html: finalHtml,
           attachments: [
             {
               filename: `receipt-${receiptData.booking_id}.pdf`,
@@ -257,26 +372,6 @@ router.get("/success", async (req, res) => {
             }
           ]
         });
-        // Notify staff about this payment (create table if not exists then insert)
-        try {
-          await db.query(`
-            CREATE TABLE IF NOT EXISTS staff_notifications (
-              id INT AUTO_INCREMENT PRIMARY KEY,
-              ref_id INT,
-              user_id INT,
-              message VARCHAR(255),
-              datestamp DATETIME,
-              is_read BOOLEAN DEFAULT 0
-            )
-          `);
-          const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'payment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-          await db.query(
-            `INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`,
-            [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]
-          );
-        } catch (staffNotifyErr) {
-          console.error('Failed to insert staff notification (success):', staffNotifyErr);
-        }
         }
 
       // Prepare locals for template (defensive: ensure amount/tx/paid_at are provided)
@@ -448,6 +543,19 @@ router.get("/installment-success", async (req, res) => {
         action: "Installment Payment Success",
         details: `User ${paymentData.user_email} completed an installment for Plot #${paymentData.plot_id} (₱${paymentData.monthly_amount}).`,
       });
+
+      // Add installment payment notification
+      await db.query(
+        `INSERT INTO notification_tbl (user_id, booking_id, message, is_read, datestamp, plot_id)
+         VALUES (?, ?, ?, 0, NOW(), ?)`,
+        [
+          paymentData.user_id,
+          paymentData.booking_id,
+          `Your monthly payment of ₱${paymentData.monthly_amount} has been received. Next payment is due on ${new Date(newDueDate).toLocaleDateString('en-PH')}.`,
+          paymentData.plot_id || null
+        ]
+      );
+
       // Check if total_paid equals price, then update status and availability
       const [checkRows] = await db.query(
         `SELECT pt.total_paid, pm.price FROM payment_tbl pt JOIN plot_map_tbl pm ON pt.plot_id = pm.plot_id WHERE pt.payment_id = ? LIMIT 1`,
@@ -491,7 +599,14 @@ router.get("/installment-success", async (req, res) => {
           const pdfBuffer = await generateReceiptPdf(receiptData);
           const token = generateReceiptToken(receiptData.booking_id);
           const downloadUrl = `${process.env.BASE_URL}/payment/receipt/${receiptData.booking_id}?token=${encodeURIComponent(token)}`;
-          const fullHtml = receiptHtml + `<p><a href="${downloadUrl}">Download receipt (PDF)</a></p>`;
+          // Add payment notification above receipt
+          const notificationHtml = getPaymentNotification(paymentData, receiptData.plot_number, booking.price);
+          const fullHtml = notificationHtml + receiptHtml + 
+            `<p style="text-align:center;margin:20px 0;">
+              <a href="${downloadUrl}" style="display:inline-block;padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:4px;">
+                Download Receipt (PDF)
+              </a>
+            </p>`;
           await transporter.sendMail({
             from: `"Everlasting Cemetery" <${process.env.EMAIL_USER}>`,
             to: receiptData.user_email,
@@ -499,23 +614,6 @@ router.get("/installment-success", async (req, res) => {
             html: fullHtml,
             attachments: [{ filename: `receipt-${receiptData.booking_id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
           });
-          // Notify staff about this installment payment
-          try {
-            await db.query(`
-              CREATE TABLE IF NOT EXISTS staff_notifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                ref_id INT,
-                user_id INT,
-                message VARCHAR(255),
-                datestamp DATETIME,
-                is_read BOOLEAN DEFAULT 0
-              )
-            `);
-            const staffMsg = `User ${receiptData.user_name || receiptData.user_email} paid ${receiptData.payment_type || 'installment'} for Plot #${receiptData.plot_number} (₱${Number(receiptData.amount).toFixed(2)})`;
-            await db.query(`INSERT INTO staff_notifications (ref_id, user_id, message, datestamp) VALUES (?, ?, ?, NOW())`, [receiptData.booking_id, booking.user_id || paymentData.user_id, staffMsg]);
-          } catch (sErr) {
-            console.error('Failed to insert staff notification (installment):', sErr);
-          }
         }
       } catch (mailErr) {
         console.error('Failed to generate/send installment receipt email:', mailErr);

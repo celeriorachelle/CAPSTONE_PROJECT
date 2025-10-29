@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin | Notification Logs</title>
+  <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+<style>
+  .unread { background-color: #fff3cd; }
+  .read { background-color: #e9ecef; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Notification Logs</title>
+  <link rel="stylesheet" href="/stylesheets/admin.css">
+  <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+  <style>
+    /* small tweaks for notification table inside admin layout */
+    .unread { background-color: #fff3cd; }
+    .read { background-color: #e9ecef; }
+    .btn-mark, .btn-all, .btn-filter {
+      background-color:  #4a6b46;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .btn-mark:hover, .btn-all:hover, .btn-filter:hover { background-color: #526D82; transform: scale(1.03); }
+    .filter-container { display:flex; align-items:center; gap:8px; }
+    .timestamp { font-size: 13px; color: #666; }
+    .small-id { font-size: 12px; color: #555; }
+    .content { padding: 2rem; }
+  </style>
+</head>
+<body>
+  <!-- Admin topbar + sidebar for consistent layout -->
+  <%- include('partials/admin/topbar', { activePage: 'notificationLogs' }) %>
+  <div style="height: 90px;"></div>
+
+  <main class="admin-main">
+    <%- include('partials/admin/sidebar', { activePage: 'notificationLogs' }) %>
+
+    <section class="content">
+      <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+        <h1>Notification Logs</h1>
+        <div class="actions">
+          <input id="searchInput" type="text" placeholder="🔍 Search notification...">
+
+          <div class="filter-container">
+            <label>From:</label>
+            <input type="date" id="startDate" value="<%= startDate %>">
+            <label>To:</label>
+            <input type="date" id="endDate" value="<%= endDate %>">
+            <button class="btn-filter" onclick="applyDateFilter()"><i class="fa-solid fa-filter"></i> Apply</button>
+          </div>
+
+          <button class="btn-all" onclick="markAllAsRead()">
+            <i class="fa-regular fa-envelope-open"></i> Mark All as Read
+          </button>
+        </div>
+      </header>
+
+      <table id="notifTable">
+        <thead>
+          <tr>
+            <th>Notif ID</th>
+            <th>User</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Booking ID</th>
+            <th>Payment ID</th>
+            <th>Plot ID</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (notifications.length === 0) { %>
+            <tr><td colspan="10">No notifications found.</td></tr>
+          <% } else { %>
+            <% notifications.forEach(n => { %>
+              <tr class="<%= n.is_read ? 'read' : 'unread' %>">
+                <td><%= n.notif_id %></td>
+                <td><%= n.fullName || 'Unknown User' %></td>
+                <td><%= n.email || '—' %></td>
+                <td><%= n.message %></td>
+                <td class="small-id"><%= n.booking_id || '—' %></td>
+                <td class="small-id"><%= n.payment_id || '—' %></td>
+                <td class="small-id"><%= n.plot_id || '—' %></td>
+                <td class="timestamp"><%= new Date(n.datestamp).toLocaleString() %></td>
+                <td><%= n.is_read ? 'Read' : 'Unread' %></td>
+                <td>
+                  <% if (!n.is_read) { %>
+                    <button class="btn-mark" onclick="markAsRead(<%= n.notif_id %>)">Mark as Read</button>
+                  <% } else { %>
+                    <span style="color: #888;">—</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    // 🔍 Search Function
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const term = this.value.toLowerCase();
+      document.querySelectorAll("#notifTable tbody tr").forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? "" : "none";
+      });
+    });
+
+    // 📅 Apply Date Filter
+    function applyDateFilter() {
+      const start = document.getElementById("startDate").value;
+      const end = document.getElementById("endDate").value;
+      if (!start || !end) {
+        alert("Please select both start and end dates.");
+        return;
+      }
+      window.location.href = `/admin/checknotificationlogs?startDate=${start}&endDate=${end}`;
+    }
+
+    // ✅ Mark Single Notification as Read
+    function markAsRead(id) {
+      if (!confirm("Mark this notification as read?")) return;
+      fetch(`/admin/notification/mark-read/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => { alert('Notification marked as read.'); location.reload(); })
+        .catch(() => alert("Error updating notification status."));
+    }
+
+    // ✅ Mark All as Read
+    function markAllAsRead() {
+      if (!confirm("Mark all notifications as read?")) return;
+      fetch(`/admin/notification/markAllAsRead`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => { alert(data.message); location.reload(); })
+        .catch(() => alert("Error updating all notifications."));
+    }
+  </script>
+</body>
+</html>
+      <tbody>

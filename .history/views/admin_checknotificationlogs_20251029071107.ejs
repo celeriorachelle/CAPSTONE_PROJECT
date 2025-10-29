@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Notification Logs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/stylesheets/admin.css">
+  <link rel="stylesheet" href="/stylesheets/staff_installments.css">
+  <style>
+    /* Layout tweaks for the notification logs inside admin layout */
+  .content { padding: 2rem 2.5rem; }
+
+    .table-card {
+      background: #fff8f3;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+      overflow: auto;
+      margin: 0 10px; /* give breathing room from the sidebar */
+    }
+
+    #notifTable {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 900px; /* keep columns readable */
+    }
+
+    #notifTable thead th {
+      background: linear-gradient(90deg, #4a6b46, #5c8754);
+      color: white;
+      font-weight: 600;
+      padding: 12px 14px;
+      text-align: left;
+      position: sticky;
+      top: 0; /* sticks under the page header */
+      z-index: 2;
+    }
+
+    #notifTable tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      vertical-align: middle;
+    }
+
+    .unread { background-color: #fff7dc; }
+    .read { background-color: #f6f8f7; }
+
+    .btn-mark {
+      background: #4a6b46;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-mark:hover { transform: translateY(-1px); }
+
+    .actions { display:flex; align-items:center; gap:10px; }
+    .filter-container { display:flex; align-items:center; gap:8px; }
+
+    @media (max-width: 1100px) {
+      #notifTable { min-width: 700px; }
+    }
+
+    @media (max-width: 700px) {
+      .actions { flex-direction: column; align-items: stretch; }
+      #notifTable { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/admin/topbar', { activePage: 'notificationLogs' }) %>
+  <div style="height: 90px;"></div>
+
+  <main class="admin-main">
+    <%- include('partials/admin/sidebar', { activePage: 'notificationLogs' }) %>
+
+    <section class="content">
+      <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+        <h1>Notification Logs</h1>
+        <div class="actions">
+          <input id="searchInput" type="text" placeholder="🔍 Search notification...">
+
+          <div class="filter-container">
+            <label>From:</label>
+            <input type="date" id="startDate" value="<%= startDate %>">
+            <label>To:</label>
+            <input type="date" id="endDate" value="<%= endDate %>">
+            <button class="btn-filter" onclick="applyDateFilter()"><i class="fa-solid fa-filter"></i> Apply</button>
+          </div>
+
+          <label for="recordsPerPage">Records per page:</label>
+          <select id="recordsPerPage" class="filter-select">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+
+          <button class="btn-all" onclick="markAllAsRead()">
+            <i class="fa-regular fa-envelope-open"></i> Mark All as Read
+          </button>
+        </div>
+      </header>
+
+      <div class="table-card">
+        <table id="notifTable">
+          <thead>
+            <tr>
+              <th style="width:70px">Notif ID</th>
+              <th>User</th>
+              <th style="width:220px">Email</th>
+              <th>Message</th>
+              <th style="width:90px">Booking ID</th>
+              <th style="width:90px">Payment ID</th>
+              <th style="width:90px">Plot ID</th>
+              <th style="width:160px">Date</th>
+              <th style="width:80px">Status</th>
+              <th style="width:120px">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (notifications.length === 0) { %>
+              <tr><td colspan="10">No notifications found.</td></tr>
+            <% } else { %>
+              <% notifications.forEach(n => { %>
+                <tr class="<%= n.is_read ? 'read' : 'unread' %>">
+                  <td><%= n.notif_id %></td>
+                  <td><%= n.fullName || 'Unknown User' %></td>
+                  <td><%= n.email || '—' %></td>
+                  <td><%= n.message %></td>
+                  <td class="small-id"><%= n.booking_id || '—' %></td>
+                  <td class="small-id"><%= n.payment_id || '—' %></td>
+                  <td class="small-id"><%= n.plot_id || '—' %></td>
+                  <td class="timestamp"><%= new Date(n.datestamp).toLocaleString() %></td>
+                  <td><%= n.is_read ? 'Read' : 'Unread' %></td>
+                  <td>
+                    <% if (!n.is_read) { %>
+                      <button class="btn-mark" onclick="markAsRead('<%= n.notif_id %>')">Mark as Read</button>
+                    <% } else { %>
+                      <span style="color: #888;">—</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 🔍 Search Function
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const term = this.value.toLowerCase();
+      document.querySelectorAll("#notifTable tbody tr").forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? "" : "none";
+      });
+    });
+
+    // 📅 Apply Date Filter
+    function applyDateFilter() {
+      const start = document.getElementById("startDate").value;
+      const end = document.getElementById("endDate").value;
+      if (!start || !end) {
+        alert("Please select both start and end dates.");
+        return;
+      }
+      window.location.href = `/admin/checknotificationlogs?startDate=${start}&endDate=${end}`;
+    }
+
+    // ✅ Mark Single Notification as Read
+    function markAsRead(id) {
+      if (!confirm("Mark this notification as read?")) return;
+      fetch(`/admin/notification/mark-read/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => { alert('Notification marked as read.'); location.reload(); })
+        .catch(() => alert("Error updating notification status."));
+    }
+
+    // ✅ Mark All as Read
+    function markAllAsRead() {
+      if (!confirm("Mark all notifications as read?")) return;
+      fetch(`/admin/notification/markAllAsRead`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => { alert(data.message); location.reload(); })
+        .catch(() => alert("Error updating all notifications."));
+    }
+  </script>
+</body>
+</html>
+      <tbody>

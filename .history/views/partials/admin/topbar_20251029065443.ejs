@@ -182,37 +182,6 @@
       color: #555;
       font-size: 0.8rem;
       margin-top: 3px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .notification-dropdown ul li i {
-      margin-right: 8px;
-      color: #2d4a24;
-    }
-
-    .status-badge {
-      padding: 2px 6px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: capitalize;
-    }
-
-    .status-badge.pending {
-      background: #ffd700;
-      color: #000;
-    }
-
-    .status-badge.approved {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .status-badge.reserved {
-      background: #2196F3;
-      color: white;
     }
 
     .admin-profile {
@@ -361,26 +330,16 @@
         .map((item) => {
           const created = new Date(item.created_at).toLocaleString();
           const isUnread = item.is_read === 0;
-          let label = '';
-          let icon = '';
-          
-          if (item.type === "booking") {
-            icon = '<i class="fas fa-book-open"></i>';
-            label = `New booking: ${item.full_name} - Plot #${item.plot_number}`;
-          } else if (item.type === "payment") {
-            icon = '<i class="fas fa-money-bill-wave"></i>';
-            const paymentType = item.payment_type === 'fullpayment' ? 'Full payment' : 'Down payment';
-            label = `${paymentType} received: Plot #${item.plot_number} - ₱${parseFloat(item.amount).toLocaleString('en-PH')}`;
-          }
+          const label =
+            item.type === "booking"
+              ? `${item.full_name} - ${item.service_type} (${item.status})`
+              : `${item.full_name} - ₱${item.amount} (${item.status})`;
 
           return `
             <li class="${isUnread ? "unread" : ""}" 
                 onclick="markAsRead(${item.id}, '${item.type}')">
-              ${icon} ${label}
-              <small>
-                ${created}
-                ${item.status ? `<span class="status-badge ${item.status.toLowerCase()}">${item.status}</span>` : ''}
-              </small>
+              ${label}
+              <small>${created}</small>
             </li>`;
         })
         .join("");
@@ -403,19 +362,13 @@
   // ==========================
   // MARK AS READ + REDIRECT
   // ==========================
-  // mark single notification (exposed globally)
   async function markAsRead(id, type) {
     try {
       await fetch(`/admin/notification/mark-read/${id}`, { method: "POST" });
-      // keep behavior: redirect for booking/payment types
       if (type === "booking") {
         window.location.href = "/adminviewapp";
       } else if (type === "downpayment" || type === "fullpayment") {
         window.location.href = "/adminviewbookings";
-      } else {
-        // refresh badge + list on other pages
-        if (window.fetchNotificationCount) window.fetchNotificationCount();
-        if (window.fetchNotificationList) window.fetchNotificationList();
       }
     } catch (err) {
       console.error("Error marking as read:", err);
@@ -425,53 +378,8 @@
   // ==========================
   // INITIAL LOAD + REFRESH
   // ==========================
-  // expose to global so other pages can call
-  window.fetchNotificationList = fetchNotificationList;
-
-  // fetch unread count for badge
-  async function fetchNotificationCount() {
-    try {
-      const resp = await fetch('/admin/notification/count', { credentials: 'include' });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      const count = data.count || 0;
-      const badge = document.getElementById('notificationCount');
-      if (badge) {
-        badge.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
-        badge.style.display = count > 0 ? 'inline-flex' : 'none';
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  window.fetchNotificationCount = fetchNotificationCount;
-
-  // expose mark functions globally (markAsRead already defined)
-  window.markAsRead = markAsRead;
-
-  async function markAllAsRead() {
-    try {
-      const resp = await fetch('/admin/notification/markAllAsRead', { method: 'POST' });
-      if (resp.ok) {
-        if (window.fetchNotificationCount) window.fetchNotificationCount();
-        if (window.fetchNotificationList) window.fetchNotificationList();
-        showSideToast('All notifications marked read');
-      } else {
-        showSideToast('Failed to mark all notifications');
-      }
-    } catch (e) {
-      console.error('markAllAsRead error', e);
-    }
-  }
-
-  window.markAllAsRead = markAllAsRead;
-
-  // initial calls and polling
   fetchNotificationList();
-  fetchNotificationCount();
   setInterval(fetchNotificationList, 10000);
-  setInterval(fetchNotificationCount, 30000);
 
   // ==========================
   // DROPDOWN & SIDEBAR TOGGLE
@@ -497,20 +405,6 @@
       notifDropdown.style.display = "none";
     }
   });
-
-  // Ensure Font Awesome is loaded; if not, inject CDN link into head
-  (function ensureFontAwesome() {
-    try {
-      const hasFA = !!document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"], link[href*="cdnjs.cloudflare.com/ajax/libs/font-awesome"]');
-      if (!hasFA) {
-        const l = document.createElement('link');
-        l.rel = 'stylesheet';
-        l.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-        l.crossOrigin = 'anonymous';
-        document.head.appendChild(l);
-      }
-    } catch (e) {}
-  })();
 </script>
 
 </header>

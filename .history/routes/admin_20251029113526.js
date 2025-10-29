@@ -106,14 +106,10 @@ router.get("/notification/list", requireAdmin, async (req, res) => {
         CASE 
           WHEN p.payment_type = 'downpayment' THEN 'downpayment'
           ELSE 'fullpayment'
-        END AS type,
-        pm.plot_number,
-        pm.plot_id
+        END AS type
       FROM notification_tbl n
       LEFT JOIN payment_tbl p ON n.payment_id = p.payment_id
       LEFT JOIN user_tbl u ON p.user_id = u.user_id
-      LEFT JOIN booking_tbl b ON p.booking_id = b.booking_id
-      LEFT JOIN plot_map_tbl pm ON b.plot_id = pm.plot_id
       WHERE n.payment_id IS NOT NULL
     `);
 

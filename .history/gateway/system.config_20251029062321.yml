@@ -1,0 +1,7 @@
+admin:
+  port: 9876
+  host: 0.0.0.0
+
+http:
+  port: 8080
+  host: 0.0.0.0

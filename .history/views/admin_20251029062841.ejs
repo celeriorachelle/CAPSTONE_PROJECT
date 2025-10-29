@@ -17,10 +17,8 @@
 
     .admin-main {
       margin-left: 270px; /* Match sidebar width */
-      margin-top: 90px; /* leave space for fixed header */
-      min-height: calc(100vh - 90px); /* Adjust for header height */
+      min-height: calc(100vh - 60px); /* Adjust for header height */
       transition: margin-left 0.3s ease;
-      padding-bottom: 40px;
     }
 
     .admin-main.collapsed {
@@ -165,7 +163,7 @@
 <body>
   <!-- Include Admin Topbar -->
   <%- include('partials/admin/topbar', { activePage: 'dashboard' }) %>
-  <div style="height: 90px;"></div> <!-- Spacer for fixed header -->
+  <div style="height: 100px;"></div> <!-- Spacer for fixed header -->
   <main class="admin-main">
     <!-- Include Admin Sidebar -->
     <%- include('partials/admin/sidebar', { activePage: 'dashboard' }) %>
